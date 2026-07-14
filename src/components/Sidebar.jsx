@@ -9,20 +9,34 @@ import {
   FaMoneyBill,
   FaChartBar,
   FaCog,
+  FaTable,
+  FaWpforms,
 } from "react-icons/fa";
-
 export default function Sidebar() {
   const location = useLocation();
-
   const menus = [
     { name: "Global Notifications", path: "/dashboard", icon: <FaBell /> },
     { name: "Dashboard", path: "/dashboard", icon: <FaChartPie /> },
     { name: "Members", path: "/dashboard", icon: <FaUsers /> },
+
     {
       name: "Google Docs",
       path: "/google-docs",
       icon: <FaFileAlt />,
     },
+
+    {
+      name: "Google Sheets",
+      path: "/google-sheets",
+      icon: <FaTable />,
+    },
+
+    {
+      name: "Google Forms",
+      path: "/google-forms",
+      icon: <FaWpforms />,
+    },
+
     { name: "Applications", path: "/dashboard", icon: <FaFileAlt /> },
     { name: "Departments", path: "/dashboard", icon: <FaBuilding /> },
     { name: "Calendar", path: "/calendar", icon: <FaCalendarAlt /> },

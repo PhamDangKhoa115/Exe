@@ -1,22 +1,23 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
+  FaEllipsisV,
+  FaExternalLinkAlt,
   FaFileAlt,
   FaFolderOpen,
+  FaList,
   FaPlus,
   FaSearch,
   FaShareAlt,
   FaSyncAlt,
   FaThLarge,
-  FaList,
-  FaExternalLinkAlt,
-  FaEllipsisV,
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import CreateDocumentModal from "../components/CreateDocumentModal";
+import DocumentPickerModal from "../components/DocumentPickerModal";
 
 import {
   getClubDocuments,
@@ -27,12 +28,30 @@ import {
 import { getApiError } from "../utils/getApiError";
 
 const DOCUMENT_TYPES = [
-  { value: "", label: "Tất cả loại tài liệu" },
-  { value: "MEETING_MINUTES", label: "Biên bản cuộc họp" },
-  { value: "EVENT_PLAN", label: "Kế hoạch sự kiện" },
-  { value: "REPORT", label: "Báo cáo" },
-  { value: "FINANCE", label: "Tài chính" },
-  { value: "OTHER", label: "Khác" },
+  {
+    value: "",
+    label: "Tất cả loại tài liệu",
+  },
+  {
+    value: "MEETING_MINUTES",
+    label: "Biên bản cuộc họp",
+  },
+  {
+    value: "EVENT_PLAN",
+    label: "Kế hoạch sự kiện",
+  },
+  {
+    value: "REPORT",
+    label: "Báo cáo",
+  },
+  {
+    value: "FINANCE",
+    label: "Tài chính",
+  },
+  {
+    value: "OTHER",
+    label: "Khác",
+  },
 ];
 
 const TYPE_LABELS = {
@@ -53,11 +72,16 @@ export default function GoogleDocsPage() {
 
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(false);
+
   const [creating, setCreating] = useState(false);
+  const [showPicker, setShowPicker] = useState(false);
 
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
+
   const [type, setType] = useState("");
+  const [scope, setScope] = useState("EVENT");
+
   const [sortBy, setSortBy] = useState("date");
   const [sortDir, setSortDir] = useState("desc");
   const [viewMode, setViewMode] = useState("grid");
@@ -98,11 +122,21 @@ export default function GoogleDocsPage() {
     } finally {
       setLoading(false);
     }
-  }, [clubId, search, sortBy, sortDir, type, userId]);
+  }, [clubId, userId, search, type, sortBy, sortDir]);
 
   useEffect(() => {
     loadDocuments();
   }, [loadDocuments]);
+
+  const displayedDocuments = useMemo(() => {
+    return documents.filter((document) => {
+      if (scope === "EVENT") {
+        return document.eventId !== null && document.eventId !== undefined;
+      }
+
+      return document.eventId === null || document.eventId === undefined;
+    });
+  }, [documents, scope]);
 
   const handleSearch = (event) => {
     event.preventDefault();
@@ -118,6 +152,17 @@ export default function GoogleDocsPage() {
     window.open(document.documentUrl, "_blank", "noopener,noreferrer");
   };
 
+  const handlePickerSelect = (document) => {
+    if (!document) return;
+
+    if (document.documentUrl) {
+      window.open(document.documentUrl, "_blank", "noopener,noreferrer");
+      return;
+    }
+
+    navigate(`/documents/${document.id}`);
+  };
+
   const handleSync = async (document) => {
     try {
       setSyncingId(document.id);
@@ -125,6 +170,7 @@ export default function GoogleDocsPage() {
       await syncDocument(document.id, userId);
 
       toast.success(`Đã đồng bộ "${document.title}"`);
+
       await loadDocuments();
     } catch (error) {
       const message = getApiError(error, "Không thể đồng bộ tài liệu");
@@ -162,18 +208,10 @@ export default function GoogleDocsPage() {
   const handleCreated = async (createdDocument) => {
     await loadDocuments();
 
-    if (createdDocument?.documentUrl) {
-      const shouldOpen = window.confirm(
-        "Tạo tài liệu thành công. Mở Google Docs ngay?",
-      );
+    toast.success("Tạo tài liệu thành công");
 
-      if (shouldOpen) {
-        window.open(
-          createdDocument.documentUrl,
-          "_blank",
-          "noopener,noreferrer",
-        );
-      }
+    if (createdDocument?.documentUrl) {
+      window.open(createdDocument.documentUrl, "_blank", "noopener,noreferrer");
     }
   };
 
@@ -182,47 +220,75 @@ export default function GoogleDocsPage() {
       <Sidebar />
 
       <main className="main-content">
-        <Topbar title="Home Page / Google Docs" />
+        <Topbar title="Home Page / Documents" />
 
-        <section className="documents-page">
-          <div className="documents-heading">
-            <div>
-              <div className="documents-title">
-                <FaFileAlt />
-                <h1>Document</h1>
-              </div>
+        <section className="google-workspace-page documents-workspace-page">
+          <div className="workspace-header">
+            <div className="workspace-title">
+              <FaFileAlt size={27} />
 
-              <p>
-                Quản lý tài liệu của <strong>{clubName}</strong>
-              </p>
+              <h1>Documents</h1>
             </div>
 
-            {canManageDocuments && (
+            <div className="workspace-tabs">
               <button
                 type="button"
-                className="document-create-button"
-                onClick={() => setCreating(true)}
+                className={scope === "EVENT" ? "active" : ""}
+                onClick={() => setScope("EVENT")}
               >
-                <FaPlus />
-                Tạo tài liệu
+                Event
               </button>
-            )}
-          </div>
 
-          <div className="documents-toolbar">
-            <form className="documents-search" onSubmit={handleSearch}>
-              <FaSearch />
+              <button
+                type="button"
+                className={scope === "CLUB_ACTIVITIES" ? "active" : ""}
+                onClick={() => setScope("CLUB_ACTIVITIES")}
+              >
+                Club Activity
+              </button>
+            </div>
+
+            <form className="workspace-search" onSubmit={handleSearch}>
+              <FaSearch size={18} />
 
               <input
                 value={searchInput}
                 onChange={(event) => setSearchInput(event.target.value)}
-                placeholder="Tìm theo tiêu đề hoặc nội dung..."
+                placeholder="Search documents..."
+              />
+            </form>
+          </div>
+
+          <div className="workspace-content">
+            <div className="documents-template-list">
+              <button
+                type="button"
+                className="new-file-card document-new-card"
+                onClick={() => setCreating(true)}
+                disabled={!canManageDocuments}
+              >
+                <div className="new-file-preview document-new-preview">
+                  <FaPlus size={64} />
+                </div>
+
+                <span>New document</span>
+              </button>
+
+              <DocumentTemplateCard title="Curriculum Vitae" subtitle="Serif" />
+
+              <DocumentTemplateCard title="Curriculum Vitae" subtitle="Coral" />
+
+              <DocumentTemplateCard title="Letter" subtitle="Green" />
+
+              <DocumentTemplateCard
+                title="Project proposal"
+                subtitle="Tropical"
               />
 
-              <button type="submit">Tìm kiếm</button>
-            </form>
+              <DocumentTemplateCard title="Advertising" subtitle="Geometry" />
+            </div>
 
-            <div className="documents-filters">
+            <div className="documents-controls">
               <select
                 value={type}
                 onChange={(event) => setType(event.target.value)}
@@ -239,6 +305,7 @@ export default function GoogleDocsPage() {
                 onChange={(event) => setSortBy(event.target.value)}
               >
                 <option value="date">Sắp xếp theo ngày</option>
+
                 <option value="title">Sắp xếp theo tên</option>
               </select>
 
@@ -247,230 +314,259 @@ export default function GoogleDocsPage() {
                 onChange={(event) => setSortDir(event.target.value)}
               >
                 <option value="desc">Giảm dần</option>
+
                 <option value="asc">Tăng dần</option>
               </select>
-
-              <button
-                type="button"
-                className={
-                  viewMode === "grid"
-                    ? "view-mode-button active"
-                    : "view-mode-button"
-                }
-                onClick={() => setViewMode("grid")}
-                title="Hiển thị dạng lưới"
-              >
-                <FaThLarge />
-              </button>
-
-              <button
-                type="button"
-                className={
-                  viewMode === "list"
-                    ? "view-mode-button active"
-                    : "view-mode-button"
-                }
-                onClick={() => setViewMode("list")}
-                title="Hiển thị dạng danh sách"
-              >
-                <FaList />
-              </button>
             </div>
-          </div>
 
-          {!canManageDocuments && (
-            <div className="documents-permission-note">
-              Bạn có thể xem tài liệu. Chỉ Chủ nhiệm hoặc Thủ quỹ mới có thể tạo
-              và chia sẻ tài liệu.
-            </div>
-          )}
+            {!canManageDocuments && (
+              <div className="documents-permission-note">
+                Bạn có thể xem tài liệu. Chỉ Chủ nhiệm hoặc Thủ quỹ mới có thể
+                tạo và chia sẻ tài liệu.
+              </div>
+            )}
 
-          {loading ? (
-            <div className="documents-loading">
-              <div className="documents-spinner" />
-              <p>Đang tải tài liệu...</p>
-            </div>
-          ) : documents.length === 0 ? (
-            <div className="documents-empty">
-              <FaFolderOpen />
+            <div className="recent-header">
+              <h3>Recently documents</h3>
 
-              <h2>Chưa có tài liệu</h2>
-
-              <p>
-                {search || type
-                  ? "Không tìm thấy tài liệu phù hợp với bộ lọc."
-                  : "Câu lạc bộ chưa có tài liệu Google Docs nào."}
-              </p>
-
-              {canManageDocuments && !search && !type && (
+              <div className="recent-actions">
                 <button
                   type="button"
-                  className="document-create-button"
-                  onClick={() => setCreating(true)}
+                  className={viewMode === "grid" ? "active" : ""}
+                  onClick={() => setViewMode("grid")}
+                  title="Hiển thị dạng lưới"
                 >
-                  <FaPlus />
-                  Tạo tài liệu đầu tiên
+                  <FaThLarge size={18} />
                 </button>
-              )}
+
+                <button
+                  type="button"
+                  className={viewMode === "list" ? "active" : ""}
+                  onClick={() => setViewMode("list")}
+                  title="Hiển thị dạng danh sách"
+                >
+                  <FaList size={18} />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowPicker(true)}
+                  title="Mở tệp"
+                >
+                  <FaFolderOpen size={19} />
+                </button>
+              </div>
             </div>
-          ) : (
-            <div
-              className={
-                viewMode === "grid" ? "documents-grid" : "documents-list"
-              }
-            >
-              {documents.map((document) => (
-                <article className="document-card" key={document.id}>
+
+            {loading ? (
+              <div className="documents-loading">
+                <div className="documents-spinner" />
+
+                <p>Đang tải tài liệu...</p>
+              </div>
+            ) : displayedDocuments.length === 0 ? (
+              <div className="documents-empty">
+                <FaFolderOpen />
+
+                <h2>Chưa có tài liệu</h2>
+
+                <p>
+                  {search || type
+                    ? "Không tìm thấy tài liệu phù hợp với bộ lọc."
+                    : scope === "EVENT"
+                      ? "Chưa có tài liệu gắn với sự kiện."
+                      : "Chưa có tài liệu hoạt động câu lạc bộ."}
+                </p>
+
+                {canManageDocuments && !search && !type && (
                   <button
                     type="button"
-                    className="document-preview"
-                    onClick={() => handleOpenDocument(document)}
+                    className="document-create-button"
+                    onClick={() => setCreating(true)}
                   >
-                    <div className="document-page-lines">
-                      <span />
-                      <span />
-                      <span />
-                      <span />
-                      <span />
-                      <span />
-                    </div>
-
-                    <div className="document-type-badge">
-                      {TYPE_LABELS[document.documentType] ||
-                        document.documentType ||
-                        "Tài liệu"}
-                    </div>
+                    <FaPlus />
+                    Tạo tài liệu đầu tiên
                   </button>
+                )}
+              </div>
+            ) : viewMode === "grid" ? (
+              <div className="documents-grid">
+                {displayedDocuments.map((document) => (
+                  <article className="document-card" key={document.id}>
+                    <button
+                      type="button"
+                      className="document-preview"
+                      onClick={() =>
+                        navigate(`/documents/${document.id}/preview`)
+                      }
+                    >
+                      <div className="document-page-lines">
+                        <span />
+                        <span />
+                        <span />
+                        <span />
+                        <span />
+                        <span />
+                      </div>
 
-                  <div className="document-card-content">
-                    <div className="document-card-top">
-                      <button
-                        type="button"
-                        className="document-title-button"
-                        onClick={() => navigate(`/documents/${document.id}`)}
-                      >
-                        {document.title}
-                      </button>
+                      <div className="document-type-badge">
+                        {TYPE_LABELS[document.documentType] ||
+                          document.documentType ||
+                          "Tài liệu"}
+                      </div>
+                    </button>
 
-                      <div className="document-card-menu-wrap">
+                    <div className="document-card-content">
+                      <div className="document-card-top">
                         <button
                           type="button"
-                          className="document-menu-button"
+                          className="document-title-button"
                           onClick={() =>
-                            setOpenMenuId(
-                              openMenuId === document.id ? null : document.id,
-                            )
+                            navigate(`/documents/${document.id}/preview`)
                           }
                         >
-                          <FaEllipsisV />
+                          {document.title}
                         </button>
 
-                        {openMenuId === document.id && (
-                          <div className="document-card-menu">
-                            <button
-                              type="button"
-                              onClick={() => handleOpenDocument(document)}
-                            >
-                              <FaExternalLinkAlt />
-                              Mở Google Docs
-                            </button>
+                        <div className="document-card-menu-wrap">
+                          <button
+                            type="button"
+                            className="document-menu-button"
+                            onClick={() =>
+                              setOpenMenuId(
+                                openMenuId === document.id ? null : document.id,
+                              )
+                            }
+                          >
+                            <FaEllipsisV />
+                          </button>
 
-                            <button
-                              type="button"
-                              onClick={() =>
-                                navigate(`/documents/${document.id}`)
-                              }
-                            >
-                              <FaFileAlt />
-                              Xem chi tiết
-                            </button>
+                          {openMenuId === document.id && (
+                            <div className="document-card-menu">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setOpenMenuId(null);
+                                  handleOpenDocument(document);
+                                }}
+                              >
+                                <FaExternalLinkAlt />
+                                Mở Google Docs
+                              </button>
 
-                            <button
-                              type="button"
-                              disabled={syncingId === document.id}
-                              onClick={() => handleSync(document)}
-                            >
-                              <FaSyncAlt />
-                              {syncingId === document.id
-                                ? "Đang đồng bộ..."
-                                : "Đồng bộ"}
-                            </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setOpenMenuId(null);
+                                  navigate(`/documents/${document.id}/preview`);
+                                }}
+                              >
+                                <FaFileAlt />
+                                Xem trước
+                              </button>
 
-                            {canManageDocuments && (
-                              <>
-                                <button
-                                  type="button"
-                                  disabled={sharingId === document.id}
-                                  onClick={() =>
-                                    handleShare(document, "reader")
-                                  }
-                                >
-                                  <FaShareAlt />
-                                  Chia sẻ chỉ xem
-                                </button>
+                              <button
+                                type="button"
+                                disabled={syncingId === document.id}
+                                onClick={() => handleSync(document)}
+                              >
+                                <FaSyncAlt />
 
-                                <button
-                                  type="button"
-                                  disabled={sharingId === document.id}
-                                  onClick={() =>
-                                    handleShare(document, "commenter")
-                                  }
-                                >
-                                  <FaShareAlt />
-                                  Chia sẻ bình luận
-                                </button>
+                                {syncingId === document.id
+                                  ? "Đang đồng bộ..."
+                                  : "Đồng bộ"}
+                              </button>
 
-                                <button
-                                  type="button"
-                                  disabled={sharingId === document.id}
-                                  onClick={() =>
-                                    handleShare(document, "writer")
-                                  }
-                                >
-                                  <FaShareAlt />
-                                  Chia sẻ chỉnh sửa
-                                </button>
-                              </>
-                            )}
-                          </div>
+                              {canManageDocuments && (
+                                <>
+                                  <button
+                                    type="button"
+                                    disabled={sharingId === document.id}
+                                    onClick={() =>
+                                      handleShare(document, "reader")
+                                    }
+                                  >
+                                    <FaShareAlt />
+                                    Chia sẻ chỉ xem
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    disabled={sharingId === document.id}
+                                    onClick={() =>
+                                      handleShare(document, "commenter")
+                                    }
+                                  >
+                                    <FaShareAlt />
+                                    Chia sẻ bình luận
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    disabled={sharingId === document.id}
+                                    onClick={() =>
+                                      handleShare(document, "writer")
+                                    }
+                                  >
+                                    <FaShareAlt />
+                                    Chia sẻ chỉnh sửa
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <p className="document-summary">
+                        {document.contentSummary || "Chưa có nội dung tóm tắt."}
+                      </p>
+
+                      <div className="document-card-meta">
+                        <span>
+                          Người tạo:{" "}
+                          {document.createdByName || "Không xác định"}
+                        </span>
+
+                        <span>
+                          {formatDate(document.updatedAt || document.createdAt)}
+                        </span>
+                      </div>
+
+                      <div className="document-card-footer">
+                        <span
+                          className={`document-sync-status ${
+                            document.syncStatus?.toLowerCase() || "not_synced"
+                          }`}
+                        >
+                          {getSyncLabel(document.syncStatus)}
+                        </span>
+
+                        {document.eventTitle && (
+                          <span className="document-event-label">
+                            {document.eventTitle}
+                          </span>
                         )}
                       </div>
                     </div>
-
-                    <p className="document-summary">
-                      {document.contentSummary || "Chưa có nội dung tóm tắt."}
-                    </p>
-
-                    <div className="document-card-meta">
-                      <span>
-                        Người tạo: {document.createdByName || "Không xác định"}
-                      </span>
-
-                      <span>
-                        {formatDate(document.updatedAt || document.createdAt)}
-                      </span>
-                    </div>
-
-                    <div className="document-card-footer">
-                      <span
-                        className={`document-sync-status ${
-                          document.syncStatus?.toLowerCase() || "not_synced"
-                        }`}
-                      >
-                        {getSyncLabel(document.syncStatus)}
-                      </span>
-
-                      {document.eventTitle && (
-                        <span className="document-event-label">
-                          {document.eventTitle}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <DocumentsList
+                documents={displayedDocuments}
+                onPreview={(document) =>
+                  navigate(`/documents/${document.id}/preview`)
+                }
+                onOpenGoogle={handleOpenDocument}
+                onSync={handleSync}
+                onShare={handleShare}
+                canManageDocuments={canManageDocuments}
+                syncingId={syncingId}
+                sharingId={sharingId}
+              />
+            )}
+          </div>
         </section>
       </main>
 
@@ -479,7 +575,183 @@ export default function GoogleDocsPage() {
         onClose={() => setCreating(false)}
         onCreated={handleCreated}
       />
+
+      <DocumentPickerModal
+        open={showPicker}
+        onClose={() => setShowPicker(false)}
+        onSelect={handlePickerSelect}
+      />
     </div>
+  );
+}
+function DocumentsList({
+  documents,
+  onPreview,
+  onOpenGoogle,
+  onSync,
+  onShare,
+  canManageDocuments,
+  syncingId,
+  sharingId,
+}) {
+  return (
+    <div className="workspace-list-view">
+      <div className="workspace-list-header">
+        <span />
+
+        <span>Tên</span>
+
+        <span className="owner-column">Chủ sở hữu</span>
+
+        <span className="date-column">Ngày cập nhật</span>
+
+        <span />
+      </div>
+
+      {documents.map((document) => (
+        <DocumentListRow
+          key={document.id}
+          document={document}
+          onPreview={() => onPreview(document)}
+          onOpenGoogle={() => onOpenGoogle(document)}
+          onSync={() => onSync(document)}
+          onShare={(role) => onShare(document, role)}
+          canManageDocuments={canManageDocuments}
+          syncing={syncingId === document.id}
+          sharing={sharingId === document.id}
+        />
+      ))}
+    </div>
+  );
+}
+
+function DocumentListRow({
+  document,
+  onPreview,
+  onOpenGoogle,
+  onSync,
+  onShare,
+  canManageDocuments,
+  syncing,
+  sharing,
+}) {
+  const [menu, setMenu] = useState(false);
+
+  return (
+    <div className="workspace-list-row">
+      <div className="workspace-list-icon document">
+        <FaFileAlt />
+      </div>
+
+      <button type="button" className="workspace-list-name" onClick={onPreview}>
+        <span>{document.title}</span>
+      </button>
+
+      <span className="workspace-list-owner">
+        {document.createdByName || "Tôi"}
+      </span>
+
+      <span className="workspace-list-date">
+        {formatWorkspaceDate(document.updatedAt || document.createdAt)}
+      </span>
+
+      <div className="workspace-list-menu-wrap">
+        <button
+          type="button"
+          className="workspace-list-menu-button"
+          onClick={() => setMenu((current) => !current)}
+        >
+          <FaEllipsisV />
+        </button>
+
+        {menu && (
+          <div className="workspace-list-dropdown">
+            <button
+              type="button"
+              onClick={() => {
+                setMenu(false);
+                onPreview();
+              }}
+            >
+              <FaFileAlt />
+              Xem trước
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setMenu(false);
+                onOpenGoogle();
+              }}
+            >
+              <FaExternalLinkAlt />
+              Mở Google Docs
+            </button>
+
+            <button
+              type="button"
+              disabled={syncing}
+              onClick={() => {
+                setMenu(false);
+                onSync();
+              }}
+            >
+              <FaSyncAlt />
+              {syncing ? "Đang đồng bộ..." : "Đồng bộ"}
+            </button>
+
+            {canManageDocuments && (
+              <>
+                <button
+                  type="button"
+                  disabled={sharing}
+                  onClick={() => {
+                    setMenu(false);
+                    onShare("reader");
+                  }}
+                >
+                  <FaShareAlt />
+                  Chia sẻ chỉ xem
+                </button>
+
+                <button
+                  type="button"
+                  disabled={sharing}
+                  onClick={() => {
+                    setMenu(false);
+                    onShare("writer");
+                  }}
+                >
+                  <FaShareAlt />
+                  Chia sẻ chỉnh sửa
+                </button>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+function DocumentTemplateCard({ title, subtitle }) {
+  return (
+    <button
+      type="button"
+      className="workspace-template-card document-template-card"
+    >
+      <div className="document-template-preview">
+        <div className="document-template-title" />
+
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+      </div>
+
+      <strong>{title}</strong>
+      <small>{subtitle}</small>
+    </button>
   );
 }
 
@@ -487,10 +759,13 @@ function getSyncLabel(status) {
   switch (status) {
     case "SYNCED":
       return "Đã đồng bộ";
+
     case "FAILED":
       return "Đồng bộ lỗi";
+
     case "NOT_SYNCED":
       return "Chưa đồng bộ";
+
     default:
       return status || "Chưa đồng bộ";
   }
@@ -505,5 +780,15 @@ function formatDate(value) {
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+  });
+}
+
+function formatWorkspaceDate(value) {
+  if (!value) return "Không rõ ngày";
+
+  return new Date(value).toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
   });
 }

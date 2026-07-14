@@ -13,6 +13,9 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import ClubRoute from "./components/ClubRoute";
 import GoogleDocsPage from "./pages/GoogleDocsPage";
 import DocumentDetailPage from "./pages/DocumentDetailPage";
+import GoogleSheetsPage from "./pages/GoogleSheetsPage";
+import GoogleFormsPage from "./pages/GoogleFormsPage";
+import DocumentPreviewPage from "./pages/DocumentPreviewPage";
 export default function App() {
   return (
     <Routes>
@@ -58,7 +61,37 @@ export default function App() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/documents/:id/preview"
+        element={
+          <ProtectedRoute>
+            <ClubRoute>
+              <DocumentPreviewPage />
+            </ClubRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/google-sheets"
+        element={
+          <ProtectedRoute>
+            <ClubRoute>
+              <GoogleSheetsPage />
+            </ClubRoute>
+          </ProtectedRoute>
+        }
+      />
 
+      <Route
+        path="/google-forms"
+        element={
+          <ProtectedRoute>
+            <ClubRoute>
+              <GoogleFormsPage />
+            </ClubRoute>
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/documents/:id"
         element={
