@@ -15,6 +15,7 @@ import {
 export default function Sidebar() {
   const location = useLocation();
   const menus = [
+    { name: "Home", path: "/home", icon: <FaChartPie /> },
     { name: "Global Notifications", path: "/dashboard", icon: <FaBell /> },
     { name: "Dashboard", path: "/dashboard", icon: <FaChartPie /> },
     { name: "Members", path: "/dashboard", icon: <FaUsers /> },

@@ -11,16 +11,21 @@ import {
   createEvent,
   deleteEvent,
   getCalendarEvents,
+  getEventDetail,
+  getSyncStatus,
   syncEventToGoogle,
   updateEvent,
 } from "../api/eventApi";
 
-import { connectGoogle } from "../api/googleApi";
+import { getGoogleConnectionStatus } from "../api/googleApi";
 export default function CalendarPage() {
   const calendarRef = useRef(null);
 
   const [events, setEvents] = useState([]);
   const [connected, setConnected] = useState(false);
+  const [googleEmail, setGoogleEmail] = useState("");
+
+  const [checkingGoogleStatus, setCheckingGoogleStatus] = useState(true);
   const [loading, setLoading] = useState(false);
   const [currentTitle, setCurrentTitle] = useState("");
   const [view, setView] = useState("timeGridWeek");
@@ -28,17 +33,23 @@ export default function CalendarPage() {
   const [lastSync, setLastSync] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
+  const [currentDate, setCurrentDate] = useState(formatLocalDate(new Date()));
 
+  const [syncingEventId, setSyncingEventId] = useState(null);
+
+  const [eventSyncStatus, setEventSyncStatus] = useState("NOT_SYNCED");
+
+  const [googleEventLink, setGoogleEventLink] = useState("");
+
+  const [meetLink, setMeetLink] = useState("");
   const [form, setForm] = useState({
     title: "",
     start: "",
     end: "",
     location: "",
     description: "",
-    guests: "",
     color: "#6d28d9",
   });
-
   const calendarApi = () => calendarRef.current?.getApi();
 
   const filteredEvents = useMemo(() => {
@@ -46,34 +57,80 @@ export default function CalendarPage() {
       event.title?.toLowerCase().includes(search.toLowerCase()),
     );
   }, [events, search]);
-
   const upcomingEvents = useMemo(() => {
     return [...events]
       .filter((event) => new Date(event.start) >= new Date())
       .sort((a, b) => new Date(a.start) - new Date(b.start))
       .slice(0, 6);
   }, [events]);
+  const getBackendViewType = (calendarView = view) => {
+    if (calendarView === "dayGridMonth") {
+      return "MONTH";
+    }
 
-  const loadGoogleEvents = async () => {
+    if (calendarView === "timeGridDay") {
+      return "DAY";
+    }
+
+    return "WEEK";
+  };
+  const loadGoogleConnectionStatus = async () => {
+    try {
+      setCheckingGoogleStatus(true);
+
+      const data = await getGoogleConnectionStatus();
+
+      setConnected(data?.isConnected === true);
+
+      setGoogleEmail(data?.googleEmail || "");
+    } catch (error) {
+      console.log("GOOGLE STATUS ERROR:", error.response?.data || error);
+
+      setConnected(false);
+      setGoogleEmail("");
+    } finally {
+      setCheckingGoogleStatus(false);
+    }
+  };
+  const loadGoogleEvents = async ({
+    date = currentDate,
+    calendarView = view,
+  } = {}) => {
+    const clubId = localStorage.getItem("selectedClubId");
+
+    if (!clubId) {
+      toast.error("Vui lòng chọn câu lạc bộ trước.");
+
+      setEvents([]);
+      return;
+    }
+
     try {
       setLoading(true);
 
       const data = await getCalendarEvents({
-        clubId: localStorage.getItem("selectedClubId") || undefined,
-        viewType: "MONTH",
-        date: new Date().toISOString().slice(0, 10),
+        clubId: Number(clubId),
+        viewType: getBackendViewType(calendarView),
+        date,
       });
 
-      const mappedEvents = data.map((event) => ({
+      const sourceEvents = Array.isArray(data) ? data : [];
+
+      const mappedEvents = sourceEvents.map((event) => ({
         id: String(event.id),
-        title: event.title,
+        title: event.title || "Không có tiêu đề",
         start: event.startTime,
         end: event.endTime,
         location: event.location || "",
         description: event.description || "",
+        clubId: event.clubId,
+        clubName: event.clubName || "",
+        createdByUserId: event.createdByUserId,
+        createdByName: event.createdByName || "",
         googleEventLink: event.googleEventLink || "",
         syncStatus: event.syncStatus || "NOT_SYNCED",
         meetLink: event.meetLink || "",
+        status: event.status || "",
         color:
           event.syncStatus === "SYNCED"
             ? "#16a34a"
@@ -83,45 +140,80 @@ export default function CalendarPage() {
       }));
 
       setEvents(mappedEvents);
-      setConnected(mappedEvents.some((event) => event.syncStatus === "SYNCED"));
-    } catch (error) {
-      console.log(error.response?.data || error);
 
-      setConnected(false);
+      setLastSync(
+        new Date().toLocaleTimeString("vi-VN", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      );
+    } catch (error) {
+      console.log("LOAD CALENDAR ERROR:", error.response?.data || error);
+
+      toast.error(
+        error.response?.data?.message ||
+          error.response?.data?.error ||
+          "Không thể tải danh sách sự kiện",
+      );
+
       setEvents([]);
     } finally {
       setLoading(false);
     }
   };
   useEffect(() => {
-    loadGoogleEvents();
+    loadGoogleConnectionStatus();
   }, []);
   const openCreateModal = (start = "", end = "") => {
     setEditingEvent(null);
+    setEventSyncStatus("NOT_SYNCED");
+    setGoogleEventLink("");
+    setMeetLink("");
     setForm({
       title: "",
       start,
       end,
       location: "",
       description: "",
-      guests: "",
       color: "#6d28d9",
     });
     setShowModal(true);
   };
 
-  const openEditModal = (event) => {
-    setEditingEvent(event.id);
-    setForm({
-      title: event.title || "",
-      start: event.startStr?.slice(0, 16) || "",
-      end: event.endStr?.slice(0, 16) || event.startStr?.slice(0, 16) || "",
-      location: event.extendedProps.location || "",
-      description: event.extendedProps.description || "",
-      guests: event.extendedProps.guests || "",
-      color: event.backgroundColor || "#6d28d9",
-    });
-    setShowModal(true);
+  const openEditModal = async (calendarEvent) => {
+    try {
+      const detail = await getEventDetail(calendarEvent.id);
+
+      setEditingEvent(String(detail.id));
+
+      setForm({
+        title: detail.title || "",
+        start: toLocalInputValue(new Date(detail.startTime)),
+        end: toLocalInputValue(new Date(detail.endTime)),
+        location: detail.location || "",
+        description: detail.description || "",
+        color:
+          detail.syncStatus === "SYNCED"
+            ? "#16a34a"
+            : detail.syncStatus === "FAILED"
+              ? "#dc2626"
+              : "#6d28d9",
+      });
+
+      setEventSyncStatus(detail.syncStatus || "NOT_SYNCED");
+
+      setGoogleEventLink(detail.googleEventLink || "");
+
+      setMeetLink(detail.meetLink || "");
+
+      setShowModal(true);
+    } catch (error) {
+      console.log("GET EVENT DETAIL ERROR:", error.response?.data || error);
+
+      toast.error(
+        error.response?.data?.message || "Không thể tải chi tiết sự kiện",
+      );
+    }
   };
 
   const handleSelect = (info) => {
@@ -141,175 +233,264 @@ export default function CalendarPage() {
   };
 
   const handleSave = async () => {
+    if (!form.title.trim() || !form.start || !form.end) {
+      toast.error("Vui lòng nhập tiêu đề, thời gian bắt đầu và kết thúc.");
+      return;
+    }
+
+    const startDate = new Date(form.start);
+    const endDate = new Date(form.end);
+
+    if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+      toast.error("Thời gian sự kiện không hợp lệ.");
+      return;
+    }
+
+    if (endDate <= startDate) {
+      toast.error("Thời gian kết thúc phải sau thời gian bắt đầu.");
+      return;
+    }
+
     try {
-      if (!form.title || !form.start || !form.end) {
-        toast.error("Please fill title, start time and end time");
-        return;
-      }
-
-      const userId = localStorage.getItem("userId");
-      const clubId = localStorage.getItem("selectedClubId");
-
-      if (!userId) {
-        toast.error("Please login again");
-        return;
-      }
-
-      if (!clubId) {
-        toast.error("Please select a club first");
-        return;
-      }
-
       const payload = {
-        title: form.title,
-        description: form.description || "",
-        startTime: new Date(form.start).toISOString(),
-        endTime: new Date(form.end).toISOString(),
-        location: form.location || "",
+        title: form.title.trim(),
+        description: form.description.trim(),
+        startTime: startDate.toISOString(),
+        endTime: endDate.toISOString(),
+        location: form.location.trim(),
       };
 
-      console.log("CREATE/UPDATE PAYLOAD:", payload);
-
-      let savedEvent;
-
       if (editingEvent) {
-        savedEvent = await updateEvent(editingEvent, payload, userId);
+        await updateEvent(editingEvent, payload);
 
-        try {
-          await syncEventToGoogle(editingEvent, userId);
-        } catch (syncError) {
-          console.log(
-            "SYNC GOOGLE ERROR:",
-            syncError.response?.data || syncError,
-          );
-        }
+        toast.success("Cập nhật sự kiện thành công.");
       } else {
-        savedEvent = await createEvent(payload, userId, clubId);
+        await createEvent(payload);
 
-        try {
-          await syncEventToGoogle(savedEvent.id, userId);
-        } catch (syncError) {
-          console.log(
-            "SYNC GOOGLE ERROR:",
-            syncError.response?.data || syncError,
-          );
-        }
+        toast.success("Tạo sự kiện thành công.");
       }
 
       setShowModal(false);
       setEditingEvent(null);
-      await loadGoogleEvents();
 
-      toast.success("Event saved successfully");
+      await loadGoogleEvents({
+        date: currentDate,
+        calendarView: view,
+      });
     } catch (error) {
       console.log("SAVE EVENT ERROR:", error.response?.data || error);
 
       toast.error(
         error.response?.data?.message ||
           error.response?.data?.error ||
-          JSON.stringify(error.response?.data) ||
-          "Cannot save event",
+          "Không thể lưu sự kiện",
       );
     }
   };
-  const handleDelete = async () => {
-    try {
-      if (!editingEvent) return;
-      if (!window.confirm("Delete this event?")) return;
+  const handleSyncEvent = async () => {
+    if (!connected) {
+      toast.warning("Vui lòng kết nối tài khoản Google tại Home Page trước.");
+      return;
+    }
 
-      await deleteEvent(editingEvent, localStorage.getItem("userId"));
+    if (!editingEvent) {
+      toast.warning("Bạn cần lưu sự kiện trước khi đồng bộ.");
+      return;
+    }
+
+    if (!editingEvent) {
+      toast.warning("Bạn cần lưu sự kiện trước khi đồng bộ.");
+      return;
+    }
+
+    try {
+      setSyncingEventId(editingEvent);
+
+      await syncEventToGoogle(editingEvent);
+
+      const statusData = await getSyncStatus(editingEvent);
+
+      const nextStatus =
+        statusData?.syncStatus || statusData?.status || "SYNCED";
+
+      setEventSyncStatus(nextStatus);
+
+      if (statusData?.googleEventLink) {
+        setGoogleEventLink(statusData.googleEventLink);
+      }
+
+      if (statusData?.meetLink) {
+        setMeetLink(statusData.meetLink);
+      }
+
+      setConnected(true);
+
+      toast.success("Đồng bộ Google Calendar thành công.");
+
+      await loadGoogleEvents({
+        date: currentDate,
+        calendarView: view,
+      });
+    } catch (error) {
+      console.log("SYNC EVENT ERROR:", error.response?.data || error);
+
+      setEventSyncStatus("FAILED");
+
+      toast.error(
+        error.response?.data?.message ||
+          error.response?.data?.error ||
+          "Không thể đồng bộ Google Calendar",
+      );
+    } finally {
+      setSyncingEventId(null);
+    }
+  };
+  const handleDelete = async () => {
+    if (!editingEvent) return;
+
+    const confirmed = window.confirm("Bạn có chắc muốn xóa sự kiện này?");
+
+    if (!confirmed) return;
+
+    try {
+      await deleteEvent(editingEvent);
 
       setShowModal(false);
       setEditingEvent(null);
-      await loadGoogleEvents();
+
+      await loadGoogleEvents({
+        date: currentDate,
+        calendarView: view,
+      });
+
+      toast.success("Xóa sự kiện thành công.");
     } catch (error) {
-      console.log(error.response?.data || error);
-      toast.error(error.response?.data?.message || "Cannot delete event");
+      console.log("DELETE EVENT ERROR:", error.response?.data || error);
+
+      toast.error(error.response?.data?.message || "Không thể xóa sự kiện");
     }
   };
 
   const handleEventDrop = async (info) => {
+    const oldEvent = events.find((item) => item.id === info.event.id);
+
+    if (!oldEvent) {
+      info.revert();
+      return;
+    }
+
     try {
-      const oldEvent = events.find((item) => item.id === info.event.id);
-      if (!oldEvent) return;
+      const startDate = info.event.start;
+
+      const endDate =
+        info.event.end || new Date(startDate.getTime() + 60 * 60 * 1000);
 
       const payload = {
         title: oldEvent.title,
         description: oldEvent.description || "",
-        startTime: new Date(info.event.startStr).toISOString(),
-        endTime: new Date(info.event.endStr).toISOString(),
+        startTime: startDate.toISOString(),
+        endTime: endDate.toISOString(),
         location: oldEvent.location || "",
       };
 
-      const userId = localStorage.getItem("userId");
+      await updateEvent(info.event.id, payload);
 
-      await updateEvent(info.event.id, payload, userId);
-      await syncEventToGoogle(info.event.id, userId);
-      await loadGoogleEvents();
+      toast.success("Đã cập nhật thời gian sự kiện.");
+
+      await loadGoogleEvents({
+        date: currentDate,
+        calendarView: view,
+      });
     } catch (error) {
-      console.log(error.response?.data || error);
+      console.log("MOVE EVENT ERROR:", error.response?.data || error);
+
       info.revert();
-      toast.error("Cannot move event");
+
+      toast.error(
+        error.response?.data?.message || "Không thể di chuyển sự kiện",
+      );
     }
   };
 
   const handleEventResize = async (info) => {
+    const oldEvent = events.find((item) => item.id === info.event.id);
+
+    if (!oldEvent) {
+      info.revert();
+      return;
+    }
+
     try {
-      const oldEvent = events.find((item) => item.id === info.event.id);
-      if (!oldEvent) return;
+      const startDate = info.event.start;
+      const endDate = info.event.end;
+
+      if (!startDate || !endDate) {
+        throw new Error("Thời gian sự kiện không hợp lệ");
+      }
 
       const payload = {
         title: oldEvent.title,
         description: oldEvent.description || "",
-        startTime: new Date(info.event.startStr).toISOString(),
-        endTime: new Date(info.event.endStr).toISOString(),
+        startTime: startDate.toISOString(),
+        endTime: endDate.toISOString(),
         location: oldEvent.location || "",
       };
 
-      const userId = localStorage.getItem("userId");
+      await updateEvent(info.event.id, payload);
 
-      await updateEvent(info.event.id, payload, userId);
-      await syncEventToGoogle(info.event.id, userId);
-      await loadGoogleEvents();
+      toast.success("Đã cập nhật thời lượng sự kiện.");
+
+      await loadGoogleEvents({
+        date: currentDate,
+        calendarView: view,
+      });
     } catch (error) {
-      console.log(error.response?.data || error);
+      console.log("RESIZE EVENT ERROR:", error.response?.data || error);
+
       info.revert();
-      toast.error("Cannot resize event");
+
+      toast.error(
+        error.response?.data?.message || "Không thể thay đổi thời lượng",
+      );
     }
   };
   const changeView = (newView) => {
-    setView(newView);
-    calendarApi().changeView(newView);
-    setCurrentTitle(calendarApi().view.title);
-  };
+    const api = calendarApi();
 
+    if (!api) return;
+
+    api.changeView(newView);
+  };
   const goToday = () => {
-    calendarApi().today();
-    setCurrentTitle(calendarApi().view.title);
+    calendarApi()?.today();
   };
 
   const goPrev = () => {
-    calendarApi().prev();
-    setCurrentTitle(calendarApi().view.title);
+    calendarApi()?.prev();
   };
 
   const goNext = () => {
-    calendarApi().next();
-    setCurrentTitle(calendarApi().view.title);
+    calendarApi()?.next();
   };
 
   const goDate = (date) => {
-    calendarApi().gotoDate(date);
-    setCurrentTitle(calendarApi().view.title);
+    calendarApi()?.gotoDate(date);
   };
-  const handleConnectGoogle = async () => {
-    try {
-      await connectGoogle();
-    } catch (error) {
-      console.log("CONNECT GOOGLE ERROR:", error.response?.data || error);
-      toast.error("Cannot connect Google Calendar");
-    }
+  const handleDatesSet = (info) => {
+    const activeDate = info.view.calendar.getDate();
+    const selectedDate = formatLocalDate(activeDate);
+    const selectedView = info.view.type;
+
+    setCurrentTitle(info.view.title);
+    setCurrentDate(selectedDate);
+    setView(selectedView);
+
+    loadGoogleEvents({
+      date: selectedDate,
+      calendarView: selectedView,
+    });
   };
+
   return (
     <div className="app-layout">
       <Sidebar />
@@ -322,17 +503,35 @@ export default function CalendarPage() {
             <button className="gcal-create" onClick={() => openCreateModal()}>
               + Create
             </button>
+            {checkingGoogleStatus ? (
+              <div className="gcal-google-connected">
+                <span>Đang kiểm tra Google...</span>
+              </div>
+            ) : connected ? (
+              <div className="gcal-google-connected">
+                <span>✓ Đã kết nối Google</span>
+
+                {googleEmail && <small>{googleEmail}</small>}
+              </div>
+            ) : (
+              <div className="gcal-google-required">
+                Chưa kết nối Google. Vui lòng quay lại Home Page để thiết lập.
+              </div>
+            )}
+
             <button
-              className={connected ? "gcal-sync connected" : "gcal-sync"}
-              onClick={handleConnectGoogle}
+              type="button"
+              className="gcal-refresh"
+              onClick={() =>
+                loadGoogleEvents({
+                  date: currentDate,
+                  calendarView: view,
+                })
+              }
+              disabled={loading}
             >
-              {connected ? "✓ Google Connected" : "Sync Google Calendar"}
+              {loading ? "Đang tải..." : "Làm mới"}
             </button>
-
-            <button className="gcal-refresh" onClick={loadGoogleEvents}>
-              {loading ? "Syncing..." : "Refresh"}
-            </button>
-
             <MiniCalendar onPickDate={goDate} />
 
             <div className="gcal-card">
@@ -384,17 +583,16 @@ export default function CalendarPage() {
                   <option value="timeGridDay">Day</option>
                   <option value="timeGridWeek">Week</option>
                   <option value="dayGridMonth">Month</option>
-                  <option value="listWeek">Agenda</option>
                 </select>
               </div>
             </div>
 
-            {!connected && (
+            {!checkingGoogleStatus && !connected && (
               <div className="connect-warning">
-                Please sync Google Calendar before creating events.
+                Bạn vẫn có thể tạo sự kiện trong CLB. Vui lòng quay lại Home
+                Page để kết nối Google trước khi đồng bộ sự kiện.
               </div>
             )}
-
             <div className="gcal-box">
               <FullCalendar
                 ref={calendarRef}
@@ -405,6 +603,7 @@ export default function CalendarPage() {
                   listPlugin,
                 ]}
                 initialView="timeGridWeek"
+                firstDay={1}
                 initialDate={new Date()}
                 headerToolbar={false}
                 events={filteredEvents}
@@ -418,7 +617,7 @@ export default function CalendarPage() {
                 slotMinTime="06:00:00"
                 slotMaxTime="22:00:00"
                 slotDuration="00:30:00"
-                datesSet={(info) => setCurrentTitle(info.view.title)}
+                datesSet={handleDatesSet}
                 select={handleSelect}
                 dateClick={handleDateClick}
                 eventClick={(info) => openEditModal(info.event)}
@@ -473,13 +672,6 @@ export default function CalendarPage() {
                 onChange={(e) => setForm({ ...form, location: e.target.value })}
               />
 
-              <label>Guests</label>
-              <input
-                placeholder="email1@gmail.com, email2@gmail.com"
-                value={form.guests}
-                onChange={(e) => setForm({ ...form, guests: e.target.value })}
-              />
-
               <label>Description</label>
               <textarea
                 placeholder="Add description..."
@@ -488,7 +680,39 @@ export default function CalendarPage() {
                   setForm({ ...form, description: e.target.value })
                 }
               />
+              {editingEvent && (
+                <div className="gcal-sync-status-box">
+                  <div>
+                    <strong>Trạng thái đồng bộ</strong>
 
+                    <span
+                      className={`sync-badge ${eventSyncStatus
+                        .toLowerCase()
+                        .replaceAll("_", "-")}`}
+                    >
+                      {formatSyncStatus(eventSyncStatus)}
+                    </span>
+                  </div>
+
+                  <div className="gcal-sync-links">
+                    {googleEventLink && (
+                      <a
+                        href={googleEventLink}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Mở Google Calendar
+                      </a>
+                    )}
+
+                    {meetLink && (
+                      <a href={meetLink} target="_blank" rel="noreferrer">
+                        Tham gia Google Meet
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
               <label>Color</label>
               <div className="gcal-color-row">
                 {["#6d28d9", "#2563eb", "#16a34a", "#f59e0b", "#dc2626"].map(
@@ -506,17 +730,57 @@ export default function CalendarPage() {
 
               <div className="gcal-modal-actions">
                 {editingEvent && (
-                  <button className="danger" onClick={handleDelete}>
-                    Delete
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      className="danger"
+                      onClick={handleDelete}
+                      disabled={syncingEventId === editingEvent}
+                    >
+                      Xóa
+                    </button>
+                    <button
+                      type="button"
+                      className="sync"
+                      onClick={handleSyncEvent}
+                      disabled={!connected || syncingEventId === editingEvent}
+                      title={
+                        connected
+                          ? "Đồng bộ sự kiện lên Google Calendar"
+                          : "Vui lòng kết nối Google tại Home Page"
+                      }
+                    >
+                      {syncingEventId === editingEvent
+                        ? "Đang đồng bộ..."
+                        : !connected
+                          ? "Chưa kết nối Google"
+                          : eventSyncStatus === "SYNCED"
+                            ? "Đồng bộ lại Google"
+                            : "Đồng bộ Google"}
+                    </button>
+                  </>
                 )}
 
-                <button className="ghost" onClick={() => setShowModal(false)}>
-                  Cancel
+                <button
+                  type="button"
+                  className="ghost"
+                  onClick={() => setShowModal(false)}
+                  disabled={
+                    syncingEventId !== null && syncingEventId === editingEvent
+                  }
+                >
+                  Hủy
                 </button>
-
-                <button className="primary" onClick={handleSave}>
-                  Save
+                <button
+                  type="button"
+                  className="primary"
+                  onClick={handleSave}
+                  disabled={
+                    syncingEventId !== null && syncingEventId === editingEvent
+                  }
+                >
+                  {" "}
+                  {editingEvent ? "Lưu thay đổi" : "Tạo sự kiện"}{" "}
                 </button>
               </div>
             </div>
@@ -533,7 +797,9 @@ function MiniCalendar({ onPickDate }) {
   const month = today.getMonth();
 
   const firstDay = new Date(year, month, 1);
-  const startDay = firstDay.getDay();
+  let startDay = firstDay.getDay();
+
+  startDay = startDay === 0 ? 6 : startDay - 1;
   const totalDays = new Date(year, month + 1, 0).getDate();
 
   const cells = [];
@@ -548,7 +814,7 @@ function MiniCalendar({ onPickDate }) {
       </h3>
 
       <div className="mini-week">
-        {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((d) => (
+        {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map((d) => (
           <b key={d}>{d}</b>
         ))}
       </div>
@@ -579,7 +845,25 @@ function toLocalInputValue(date) {
   const local = new Date(date.getTime() - offset * 60000);
   return local.toISOString().slice(0, 16);
 }
+function formatSyncStatus(status) {
+  const labels = {
+    SYNCED: "Đã đồng bộ",
+    NOT_SYNCED: "Chưa đồng bộ",
+    FAILED: "Đồng bộ thất bại",
+    PENDING: "Đang chờ đồng bộ",
+  };
 
+  return labels[status] || status || "Không rõ";
+}
+function formatLocalDate(dateValue) {
+  const date = new Date(dateValue);
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
 function formatDateTime(value) {
   if (!value) return "";
 

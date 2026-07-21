@@ -1,15 +1,44 @@
 import API from "./api";
 
-export const connectGoogle = async () => {
+const getStoredUserId = () => {
   const userId = localStorage.getItem("userId");
 
   if (!userId) {
-    alert("Bạn cần đăng nhập trước");
-    window.location.href = "/login";
-    return;
+    throw new Error("Không tìm thấy userId. Vui lòng đăng nhập lại.");
   }
 
-  const res = await API.get(`/api/google/connect?userId=${userId}`);
+  return Number(userId);
+};
 
-  window.location.href = res.data.url;
+export const connectGoogle = async () => {
+  const userId = getStoredUserId();
+
+  const response = await API.get("/api/google/connect", {
+    params: {
+      userId,
+    },
+  });
+
+  const googleUrl =
+    response.data?.url || response.data?.authUrl || response.data;
+
+  if (!googleUrl || typeof googleUrl !== "string") {
+    throw new Error("Backend không trả về đường dẫn kết nối Google.");
+  }
+
+  window.location.href = googleUrl;
+
+  return response.data;
+};
+
+export const getGoogleConnectionStatus = async () => {
+  const userId = getStoredUserId();
+
+  const response = await API.get("/api/google/status", {
+    params: {
+      userId,
+    },
+  });
+
+  return response.data;
 };

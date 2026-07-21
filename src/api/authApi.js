@@ -8,13 +8,22 @@ export const login = async (emailOrUsername, password) => {
 
   return res.data;
 };
-
 export const register = async (data) => {
   const res = await API.post("/api/auth/register", data);
   return res.data;
 };
+export const loginWithGoogle = async ({
+  googleId,
+  email,
+  fullName,
+  avatarUrl,
+}) => {
+  const res = await API.post("/api/auth/google", {
+    googleId,
+    email,
+    fullName,
+    avatarUrl,
+  });
 
-export const logout = async () => {
-  const res = await API.post("/api/auth/logout");
   return res.data;
 };

@@ -11,6 +11,7 @@ export const getClubDocuments = async ({
   const res = await API.get(`/api/documents/club/${clubId}`, {
     params: {
       userId,
+      clubId,
       search: search || undefined,
       type: type || undefined,
       sortBy,
