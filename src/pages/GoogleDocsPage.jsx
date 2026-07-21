@@ -1,16 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  FaEllipsisV,
-  FaExternalLinkAlt,
   FaFileAlt,
   FaFolderOpen,
-  FaList,
   FaPlus,
   FaSearch,
   FaShareAlt,
   FaSyncAlt,
   FaThLarge,
+  FaList,
+  FaExternalLinkAlt,
+  FaEllipsisV,
+  FaTrash,
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 
@@ -20,39 +21,15 @@ import CreateDocumentModal from "../components/CreateDocumentModal";
 import DocumentPickerModal from "../components/DocumentPickerModal";
 
 import {
+  deleteDocument,
   getClubDocuments,
+  getDocumentCategories,
+  getDocumentTypes,
   shareDocument,
   syncDocument,
 } from "../api/documentApi";
 
 import { getApiError } from "../utils/getApiError";
-
-const DOCUMENT_TYPES = [
-  {
-    value: "",
-    label: "Tất cả loại tài liệu",
-  },
-  {
-    value: "MEETING_MINUTES",
-    label: "Biên bản cuộc họp",
-  },
-  {
-    value: "EVENT_PLAN",
-    label: "Kế hoạch sự kiện",
-  },
-  {
-    value: "REPORT",
-    label: "Báo cáo",
-  },
-  {
-    value: "FINANCE",
-    label: "Tài chính",
-  },
-  {
-    value: "OTHER",
-    label: "Khác",
-  },
-];
 
 const TYPE_LABELS = {
   MEETING_MINUTES: "Biên bản",
@@ -69,7 +46,11 @@ export default function GoogleDocsPage() {
   const clubId = localStorage.getItem("selectedClubId");
   const clubName = localStorage.getItem("selectedClubName") || "Câu lạc bộ";
   const role = localStorage.getItem("selectedClubRole") || "MEMBER";
+  const [documentTypes, setDocumentTypes] = useState([]);
+  const [documentCategories, setDocumentCategories] = useState([]);
 
+  const [category, setCategory] = useState("");
+  const [deletingId, setDeletingId] = useState(null);
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -80,7 +61,6 @@ export default function GoogleDocsPage() {
   const [searchInput, setSearchInput] = useState("");
 
   const [type, setType] = useState("");
-  const [scope, setScope] = useState("EVENT");
 
   const [sortBy, setSortBy] = useState("date");
   const [sortDir, setSortDir] = useState("desc");
@@ -104,14 +84,12 @@ export default function GoogleDocsPage() {
       setLoading(true);
 
       const data = await getClubDocuments({
-        clubId,
-        userId,
         search,
+        category,
         type,
         sortBy,
         sortDir,
       });
-
       setDocuments(Array.isArray(data) ? data : []);
     } catch (error) {
       const message = getApiError(error, "Không thể tải danh sách tài liệu");
@@ -122,27 +100,67 @@ export default function GoogleDocsPage() {
     } finally {
       setLoading(false);
     }
-  }, [clubId, userId, search, type, sortBy, sortDir]);
+  }, [clubId, userId, search, category, type, sortBy, sortDir]);
 
   useEffect(() => {
     loadDocuments();
   }, [loadDocuments]);
+  const loadDocumentOptions = useCallback(async () => {
+    try {
+      const [typesData, categoriesData] = await Promise.all([
+        getDocumentTypes(),
+        getDocumentCategories(),
+      ]);
 
-  const displayedDocuments = useMemo(() => {
-    return documents.filter((document) => {
-      if (scope === "EVENT") {
-        return document.eventId !== null && document.eventId !== undefined;
-      }
+      setDocumentTypes(Array.isArray(typesData) ? typesData : []);
 
-      return document.eventId === null || document.eventId === undefined;
-    });
-  }, [documents, scope]);
+      setDocumentCategories(
+        Array.isArray(categoriesData) ? categoriesData : [],
+      );
+    } catch (error) {
+      console.error(
+        "LOAD DOCUMENT OPTIONS ERROR:",
+        error?.response?.data || error,
+      );
+
+      setDocumentTypes([]);
+      setDocumentCategories([]);
+    }
+  }, []);
+  useEffect(() => {
+    loadDocumentOptions();
+  }, [loadDocumentOptions]);
 
   const handleSearch = (event) => {
     event.preventDefault();
     setSearch(searchInput.trim());
   };
+  const handleDelete = async (document) => {
+    const confirmed = window.confirm(
+      `Bạn có chắc muốn xóa tài liệu "${document.title}" không?`,
+    );
 
+    if (!confirmed) return;
+
+    try {
+      setDeletingId(document.id);
+
+      await deleteDocument(document.id);
+
+      toast.success("Xóa tài liệu thành công.");
+
+      await loadDocuments();
+    } catch (error) {
+      const message = getApiError(error, "Không thể xóa tài liệu");
+
+      console.error("DELETE DOCUMENT ERROR:", error?.response?.data || error);
+
+      toast.error(message);
+    } finally {
+      setDeletingId(null);
+      setOpenMenuId(null);
+    }
+  };
   const handleOpenDocument = (document) => {
     if (!document.documentUrl) {
       toast.warning("Tài liệu chưa có đường dẫn Google Docs");
@@ -167,7 +185,7 @@ export default function GoogleDocsPage() {
     try {
       setSyncingId(document.id);
 
-      await syncDocument(document.id, userId);
+      await syncDocument(document.id);
 
       toast.success(`Đã đồng bộ "${document.title}"`);
 
@@ -186,9 +204,7 @@ export default function GoogleDocsPage() {
   const handleShare = async (document, shareRole) => {
     try {
       setSharingId(document.id);
-
-      const result = await shareDocument(document.id, userId, shareRole);
-
+      const result = await shareDocument(document.id, shareRole);
       toast.success(
         typeof result === "string"
           ? result
@@ -233,16 +249,16 @@ export default function GoogleDocsPage() {
             <div className="workspace-tabs">
               <button
                 type="button"
-                className={scope === "EVENT" ? "active" : ""}
-                onClick={() => setScope("EVENT")}
+                className={category === "EVENT" ? "active" : ""}
+                onClick={() => setCategory("EVENT")}
               >
                 Event
               </button>
 
               <button
                 type="button"
-                className={scope === "CLUB_ACTIVITIES" ? "active" : ""}
-                onClick={() => setScope("CLUB_ACTIVITIES")}
+                className={category === "CLUB_ACTIVITY" ? "active" : ""}
+                onClick={() => setCategory("CLUB_ACTIVITY")}
               >
                 Club Activity
               </button>
@@ -293,13 +309,14 @@ export default function GoogleDocsPage() {
                 value={type}
                 onChange={(event) => setType(event.target.value)}
               >
-                {DOCUMENT_TYPES.map((item) => (
+                <option value="">Tất cả loại tài liệu</option>
+
+                {documentTypes.map((item) => (
                   <option key={item.value} value={item.value}>
-                    {item.label}
+                    {item.displayName}
                   </option>
                 ))}
               </select>
-
               <select
                 value={sortBy}
                 onChange={(event) => setSortBy(event.target.value)}
@@ -364,7 +381,7 @@ export default function GoogleDocsPage() {
 
                 <p>Đang tải tài liệu...</p>
               </div>
-            ) : displayedDocuments.length === 0 ? (
+            ) : documents.length === 0 ? (
               <div className="documents-empty">
                 <FaFolderOpen />
 
@@ -373,7 +390,7 @@ export default function GoogleDocsPage() {
                 <p>
                   {search || type
                     ? "Không tìm thấy tài liệu phù hợp với bộ lọc."
-                    : scope === "EVENT"
+                    : category === "EVENT"
                       ? "Chưa có tài liệu gắn với sự kiện."
                       : "Chưa có tài liệu hoạt động câu lạc bộ."}
                 </p>
@@ -391,7 +408,7 @@ export default function GoogleDocsPage() {
               </div>
             ) : viewMode === "grid" ? (
               <div className="documents-grid">
-                {displayedDocuments.map((document) => (
+                {documents.map((document) => (
                   <article className="document-card" key={document.id}>
                     <button
                       type="button"
@@ -554,16 +571,18 @@ export default function GoogleDocsPage() {
               </div>
             ) : (
               <DocumentsList
-                documents={displayedDocuments}
+                documents={documents}
                 onPreview={(document) =>
                   navigate(`/documents/${document.id}/preview`)
                 }
                 onOpenGoogle={handleOpenDocument}
                 onSync={handleSync}
                 onShare={handleShare}
+                onDelete={handleDelete}
                 canManageDocuments={canManageDocuments}
                 syncingId={syncingId}
                 sharingId={sharingId}
+                deletingId={deletingId}
               />
             )}
           </div>
@@ -590,9 +609,11 @@ function DocumentsList({
   onOpenGoogle,
   onSync,
   onShare,
+  onDelete,
   canManageDocuments,
   syncingId,
   sharingId,
+  deletingId,
 }) {
   return (
     <div className="workspace-list-view">
@@ -616,9 +637,11 @@ function DocumentsList({
           onOpenGoogle={() => onOpenGoogle(document)}
           onSync={() => onSync(document)}
           onShare={(role) => onShare(document, role)}
+          onDelete={() => onDelete(document)}
           canManageDocuments={canManageDocuments}
           syncing={syncingId === document.id}
           sharing={sharingId === document.id}
+          deleting={deletingId === document.id}
         />
       ))}
     </div>
@@ -631,9 +654,11 @@ function DocumentListRow({
   onOpenGoogle,
   onSync,
   onShare,
+  onDelete,
   canManageDocuments,
   syncing,
   sharing,
+  deleting,
 }) {
   const [menu, setMenu] = useState(false);
 
@@ -726,6 +751,20 @@ function DocumentListRow({
                   Chia sẻ chỉnh sửa
                 </button>
               </>
+            )}
+            {canManageDocuments && (
+              <button
+                type="button"
+                className="document-delete-menu-button"
+                disabled={deleting}
+                onClick={() => {
+                  setMenu(false);
+                  onDelete();
+                }}
+              >
+                <FaTrash />
+                {deleting ? "Đang xóa..." : "Xóa tài liệu"}
+              </button>
             )}
           </div>
         )}

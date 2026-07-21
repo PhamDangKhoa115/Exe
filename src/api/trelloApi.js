@@ -53,19 +53,6 @@ export async function connectTrello() {
   window.location.href = url;
 }
 
-export async function saveTrelloToken(token) {
-  const { clubId } = getRequiredContext();
-
-  const response = await API.post("/api/trello/save-token", null, {
-    params: {
-      clubId,
-      token,
-    },
-  });
-
-  return extractData(response);
-}
-
 export async function getTrelloBoards() {
   const { clubId } = getRequiredContext();
 
@@ -192,6 +179,15 @@ export async function getMemberPerformance() {
       userId,
     },
   });
+
+  return extractData(response);
+}
+// ==================== CLUB MEMBERS ====================
+
+export async function getClubMembers() {
+  const { clubId } = getRequiredContext();
+
+  const response = await API.get(`/api/clubs/${clubId}/members`);
 
   return extractData(response);
 }

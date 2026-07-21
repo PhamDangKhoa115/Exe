@@ -35,9 +35,10 @@ import {
   getTasks,
   getTrelloBoards,
   linkTrelloBoard,
+  getClubMembers,
   updateTask,
 } from "../api/trelloApi";
-
+import { useSearchParams } from "react-router-dom";
 import "../styles.css";
 
 const EMPTY_TASK_FORM = {
@@ -89,10 +90,11 @@ export default function TrelloPage() {
   const [dashboard, setDashboard] = useState(null);
   const [reminders, setReminders] = useState([]);
   const [performance, setPerformance] = useState([]);
-
+  const [members, setMembers] = useState([]);
+  const [loadingMembers, setLoadingMembers] = useState(false);
   const [boards, setBoards] = useState([]);
   const [selectedBoardId, setSelectedBoardId] = useState("");
-
+  const [searchParams, setSearchParams] = useSearchParams();
   const [loadingTasks, setLoadingTasks] = useState(false);
   const [loadingStatistics, setLoadingStatistics] = useState(false);
   const [loadingBoards, setLoadingBoards] = useState(false);
@@ -156,7 +158,29 @@ export default function TrelloPage() {
       setLoadingStatistics(false);
     }
   }, []);
+  const loadMembers = useCallback(async () => {
+    try {
+      setLoadingMembers(true);
 
+      const data = await getClubMembers();
+
+      const activeMembers = Array.isArray(data)
+        ? data.filter((member) => member.status === "ACTIVE")
+        : [];
+
+      setMembers(activeMembers);
+    } catch (error) {
+      console.error("LOAD CLUB MEMBERS ERROR:", error.response?.data || error);
+
+      toast.error(
+        getErrorMessage(error, "Không thể tải danh sách thành viên CLB."),
+      );
+
+      setMembers([]);
+    } finally {
+      setLoadingMembers(false);
+    }
+  }, []);
   const loadBoards = useCallback(
     async ({ showError = false } = {}) => {
       try {
@@ -191,13 +215,36 @@ export default function TrelloPage() {
     },
     [selectedBoardId],
   );
-
   useEffect(() => {
     loadTasks();
     loadDashboardData();
-    loadBoards();
-  }, [loadTasks, loadDashboardData, loadBoards]);
+    loadMembers();
+  }, [loadTasks, loadDashboardData, loadMembers]);
+  useEffect(() => {
+    const callbackClubId = searchParams.get("clubId");
 
+    if (!callbackClubId) return;
+
+    const selectedClubId = localStorage.getItem("selectedClubId");
+
+    if (!selectedClubId || String(selectedClubId) !== String(callbackClubId)) {
+      localStorage.setItem("selectedClubId", callbackClubId);
+    }
+
+    toast.success("Kết nối Trello thành công.");
+
+    loadBoards({
+      showError: true,
+    });
+
+    // Xóa ?clubId=6 khỏi URL để tránh hiện toast lại khi refresh.
+    setSearchParams(
+      {},
+      {
+        replace: true,
+      },
+    );
+  }, [searchParams, setSearchParams, loadBoards]);
   const filteredTasks = useMemo(() => {
     const keyword = searchText.trim().toLowerCase();
 
@@ -255,8 +302,8 @@ export default function TrelloPage() {
       status: normalizeStatus(task.status),
       dueDate: toDateTimeLocal(task.dueDate),
       department: task.department || "",
-      financeRelated: Boolean(task.financeRelated),
-      eventCritical: Boolean(task.eventCritical),
+      isFinanceRelated: Boolean(task.isFinanceRelated),
+      isEventCritical: Boolean(task.isEventCritical),
     });
 
     setShowTaskModal(true);
@@ -277,10 +324,9 @@ export default function TrelloPage() {
     }
 
     if (!form.assignedUserId) {
-      toast.error("Vui lòng nhập ID thành viên được giao.");
+      toast.error("Vui lòng chọn thành viên được giao.");
       return false;
     }
-
     if (!form.dueDate) {
       toast.error("Vui lòng chọn hạn hoàn thành.");
       return false;
@@ -310,10 +356,9 @@ export default function TrelloPage() {
         status: form.status,
         dueDate: new Date(form.dueDate).toISOString(),
         department: form.department.trim(),
-        financeRelated: form.financeRelated,
-        eventCritical: form.eventCritical,
+        isFinanceRelated: Boolean(form.financeRelated),
+        isEventCritical: Boolean(form.eventCritical),
       };
-
       if (editingTask) {
         await updateTask(editingTask.taskId, payload);
         toast.success("Cập nhật công việc thành công.");
@@ -375,8 +420,8 @@ export default function TrelloPage() {
         status: nextStatus,
         dueDate: task.dueDate,
         department: task.department || "",
-        financeRelated: Boolean(task.financeRelated),
-        eventCritical: Boolean(task.eventCritical),
+        isFinanceRelated: Boolean(task.isFinanceRelated),
+        isEventCritical: Boolean(task.isEventCritical),
       };
 
       await updateTask(task.taskId, payload);
@@ -605,6 +650,8 @@ export default function TrelloPage() {
           <TaskModal
             form={form}
             setForm={setForm}
+            members={members}
+            loadingMembers={loadingMembers}
             editingTask={editingTask}
             saving={savingTask}
             onClose={closeTaskModal}
@@ -784,11 +831,11 @@ function TaskCard({ task, onEdit, onDelete, onMove }) {
             <span className="task-label department">{task.department}</span>
           )}
 
-          {task.financeRelated && (
+          {task.isFinanceRelated && (
             <span className="task-label finance">Tài chính</span>
           )}
 
-          {task.eventCritical && (
+          {task.isEventCritical && (
             <span className="task-label critical">Quan trọng</span>
           )}
         </div>
@@ -944,7 +991,7 @@ function DashboardTab({ dashboard, loading }) {
         <div className="dashboard-summary">
           <div>
             <span>Công việc quan trọng</span>
-            <strong>{data.eventCriticalTasks || 0}</strong>
+            <strong>{data.isEventCriticalTasks || 0}</strong>
           </div>
 
           <div>
@@ -1242,7 +1289,16 @@ function TrelloSettingsTab({
   );
 }
 
-function TaskModal({ form, setForm, editingTask, saving, onClose, onSave }) {
+function TaskModal({
+  form,
+  setForm,
+  members,
+  loadingMembers,
+  editingTask,
+  saving,
+  onClose,
+  onSave,
+}) {
   const setField = (field, value) => {
     setForm((current) => ({
       ...current,
@@ -1299,15 +1355,35 @@ function TaskModal({ form, setForm, editingTask, saving, onClose, onSave }) {
                 Thành viên được giao <span>*</span>
               </label>
 
-              <input
-                type="number"
-                min="1"
-                placeholder="Nhập User ID"
+              <select
                 value={form.assignedUserId}
                 onChange={(event) =>
                   setField("assignedUserId", event.target.value)
                 }
-              />
+                disabled={loadingMembers || saving}
+              >
+                <option value="">
+                  {loadingMembers
+                    ? "Đang tải thành viên..."
+                    : "Chọn thành viên"}
+                </option>
+
+                {members.map((member) => (
+                  <option key={member.id} value={member.userId}>
+                    {member.fullName}
+                    {member.role ? ` — ${formatMemberRole(member.role)}` : ""}
+                    {member.departmentName && member.departmentName !== "None"
+                      ? ` — ${member.departmentName}`
+                      : ""}
+                  </option>
+                ))}
+              </select>
+
+              {!loadingMembers && members.length === 0 && (
+                <small className="task-field-message">
+                  Không tìm thấy thành viên đang hoạt động trong CLB.
+                </small>
+              )}
             </div>
 
             <div>
@@ -1376,9 +1452,9 @@ function TaskModal({ form, setForm, editingTask, saving, onClose, onSave }) {
             <label>
               <input
                 type="checkbox"
-                checked={form.eventCritical}
+                checked={form.isEventCritical}
                 onChange={(event) =>
-                  setField("eventCritical", event.target.checked)
+                  setField("isEventCritical", event.target.checked)
                 }
               />
 
@@ -1509,7 +1585,15 @@ function formatDateTime(value) {
     minute: "2-digit",
   });
 }
+function formatMemberRole(role) {
+  const roleLabels = {
+    PRESIDENT: "Chủ nhiệm",
+    TREASURER: "Thủ quỹ",
+    MEMBER: "Thành viên",
+  };
 
+  return roleLabels[role] || role;
+}
 function getInitials(fullName) {
   if (!fullName) return "?";
 

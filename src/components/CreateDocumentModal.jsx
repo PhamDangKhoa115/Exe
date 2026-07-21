@@ -1,197 +1,286 @@
 import { useEffect, useState } from "react";
+import { FaFileAlt, FaTimes } from "react-icons/fa";
 import { toast } from "react-toastify";
-import { createDocument } from "../api/documentApi";
-import { getClubEvents } from "../api/eventApi";
+
+import {
+  createDocument,
+  getDocumentCategories,
+  getDocumentTypes,
+} from "../api/documentApi";
 import { getApiError } from "../utils/getApiError";
 
-const DOCUMENT_TYPES = [
-  {
-    value: "MEETING_MINUTES",
-    label: "Biên bản cuộc họp",
-  },
-  {
-    value: "EVENT_PLAN",
-    label: "Kế hoạch sự kiện",
-  },
-  {
-    value: "REPORT",
-    label: "Báo cáo",
-  },
-  {
-    value: "FINANCE",
-    label: "Tài chính",
-  },
-  {
-    value: "OTHER",
-    label: "Khác",
-  },
-];
+const EMPTY_FORM = {
+  title: "",
+  category: "CLUB_ACTIVITY",
+  type: "MEETING_MINUTES",
+  eventId: "",
+};
 
 export default function CreateDocumentModal({ open, onClose, onCreated }) {
-  const userId = localStorage.getItem("userId");
-  const clubId = localStorage.getItem("selectedClubId");
+  const [form, setForm] = useState(EMPTY_FORM);
 
-  const [events, setEvents] = useState([]);
+  const [types, setTypes] = useState([]);
+  const [categories, setCategories] = useState([]);
+
+  const [loadingOptions, setLoadingOptions] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const [form, setForm] = useState({
-    title: "",
-    documentType: "MEETING_MINUTES",
-    eventId: "",
-  });
+  useEffect(() => {
+    if (!open) return;
+
+    let active = true;
+
+    async function loadOptions() {
+      try {
+        setLoadingOptions(true);
+
+        const [typesData, categoriesData] = await Promise.all([
+          getDocumentTypes(),
+          getDocumentCategories(),
+        ]);
+
+        if (!active) return;
+
+        const nextTypes = Array.isArray(typesData) ? typesData : [];
+
+        const nextCategories = Array.isArray(categoriesData)
+          ? categoriesData
+          : [];
+
+        setTypes(nextTypes);
+        setCategories(nextCategories);
+
+        setForm((current) => ({
+          ...current,
+          type: current.type || nextTypes[0]?.value || "MEETING_MINUTES",
+          category:
+            current.category || nextCategories[0]?.value || "CLUB_ACTIVITY",
+        }));
+      } catch (error) {
+        console.error(
+          "LOAD DOCUMENT OPTIONS ERROR:",
+          error?.response?.data || error,
+        );
+      } finally {
+        if (active) {
+          setLoadingOptions(false);
+        }
+      }
+    }
+
+    loadOptions();
+
+    return () => {
+      active = false;
+    };
+  }, [open]);
 
   useEffect(() => {
-    if (!open || !clubId) return;
+    if (open) {
+      setForm(EMPTY_FORM);
+    }
+  }, [open]);
 
-    const loadEvents = async () => {
-      try {
-        const data = await getClubEvents(clubId);
-        setEvents(Array.isArray(data) ? data : []);
-      } catch (error) {
-        console.log("LOAD EVENTS ERROR:", error.response?.data || error);
-        setEvents([]);
-      }
-    };
+  if (!open) return null;
 
-    loadEvents();
-  }, [open, clubId]);
+  const setField = (name, value) => {
+    setForm((current) => ({
+      ...current,
+      [name]: value,
+    }));
+  };
+
+  const handleClose = () => {
+    if (submitting) return;
+
+    setForm(EMPTY_FORM);
+    onClose();
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
     if (!form.title.trim()) {
-      toast.warning("Vui lòng nhập tên tài liệu");
+      toast.error("Vui lòng nhập tiêu đề tài liệu.");
       return;
     }
 
-    if (!userId || !clubId) {
-      toast.error("Không tìm thấy thông tin người dùng hoặc câu lạc bộ");
+    if (!form.category) {
+      toast.error("Vui lòng chọn danh mục.");
+      return;
+    }
+
+    if (!form.type) {
+      toast.error("Vui lòng chọn loại tài liệu.");
+      return;
+    }
+
+    if (form.category === "EVENT" && !form.eventId) {
+      toast.error("Tài liệu thuộc sự kiện phải chọn Event ID.");
       return;
     }
 
     try {
       setSubmitting(true);
 
-      const payload = {
-        clubId: Number(clubId),
-        eventId: form.eventId ? Number(form.eventId) : null,
-        title: form.title.trim(),
-        documentType: form.documentType,
-      };
-
-      const createdDocument = await createDocument(payload, userId);
-
-      toast.success("Tạo tài liệu Google Docs thành công");
-
-      setForm({
-        title: "",
-        documentType: "MEETING_MINUTES",
-        eventId: "",
+      const createdDocument = await createDocument({
+        title: form.title,
+        category: form.category,
+        type: form.type,
+        eventId:
+          form.category === "EVENT" && form.eventId
+            ? Number(form.eventId)
+            : null,
       });
 
-      onCreated?.(createdDocument);
+      toast.success("Tạo tài liệu thành công.");
+
+      setForm(EMPTY_FORM);
       onClose();
+
+      await onCreated?.(createdDocument);
     } catch (error) {
       const message = getApiError(error, "Không thể tạo tài liệu");
 
-      console.log("CREATE DOCUMENT ERROR:", message);
+      console.error("CREATE DOCUMENT ERROR:", error?.response?.data || error);
+
       toast.error(message);
     } finally {
       setSubmitting(false);
     }
   };
 
-  if (!open) return null;
-
   return (
-    <div className="document-modal-overlay" onMouseDown={onClose}>
-      <div
-        className="document-modal"
-        onMouseDown={(event) => event.stopPropagation()}
-      >
+    <div
+      className="document-modal-backdrop"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) {
+          handleClose();
+        }
+      }}
+    >
+      <form className="document-create-modal" onSubmit={handleSubmit}>
         <div className="document-modal-header">
           <div>
-            <h2>Tạo tài liệu mới</h2>
-            <p>Tài liệu sẽ được tạo trực tiếp trên Google Drive.</p>
+            <FaFileAlt />
+
+            <div>
+              <h2>Tạo tài liệu mới</h2>
+              <p>Tài liệu sẽ được tạo trên Google Docs.</p>
+            </div>
           </div>
 
-          <button
-            type="button"
-            className="document-modal-close"
-            onClick={onClose}
-          >
-            ×
+          <button type="button" onClick={handleClose} disabled={submitting}>
+            <FaTimes />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <label>Tên tài liệu</label>
+        <div className="document-modal-body">
+          <label htmlFor="document-title">
+            Tiêu đề <span>*</span>
+          </label>
+
           <input
+            id="document-title"
+            type="text"
             value={form.title}
-            onChange={(event) =>
-              setForm({
-                ...form,
-                title: event.target.value,
-              })
-            }
-            placeholder="Ví dụ: Biên bản họp CLB tháng 7"
+            placeholder="Ví dụ: Biên bản họp tháng 7"
+            onChange={(event) => setField("title", event.target.value)}
           />
 
-          <label>Loại tài liệu</label>
+          <label htmlFor="document-category">
+            Danh mục <span>*</span>
+          </label>
+
           <select
-            value={form.documentType}
-            onChange={(event) =>
-              setForm({
-                ...form,
-                documentType: event.target.value,
-              })
-            }
+            id="document-category"
+            value={form.category}
+            disabled={loadingOptions}
+            onChange={(event) => setField("category", event.target.value)}
           >
-            {DOCUMENT_TYPES.map((type) => (
-              <option key={type.value} value={type.value}>
-                {type.label}
-              </option>
-            ))}
+            {categories.length > 0 ? (
+              categories.map((item) => (
+                <option key={item.value} value={item.value}>
+                  {item.displayName}
+                </option>
+              ))
+            ) : (
+              <>
+                <option value="EVENT">Sự kiện</option>
+
+                <option value="CLUB_ACTIVITY">Hoạt động câu lạc bộ</option>
+              </>
+            )}
           </select>
 
-          <label>Sự kiện liên quan</label>
-          <select
-            value={form.eventId}
-            onChange={(event) =>
-              setForm({
-                ...form,
-                eventId: event.target.value,
-              })
-            }
-          >
-            <option value="">Không gắn với sự kiện</option>
+          <label htmlFor="document-type">
+            Loại tài liệu <span>*</span>
+          </label>
 
-            {events.map((clubEvent) => (
-              <option key={clubEvent.id} value={clubEvent.id}>
-                {clubEvent.title}
-              </option>
-            ))}
+          <select
+            id="document-type"
+            value={form.type}
+            disabled={loadingOptions}
+            onChange={(event) => setField("type", event.target.value)}
+          >
+            {types.length > 0 ? (
+              types.map((item) => (
+                <option key={item.value} value={item.value}>
+                  {item.displayName}
+                </option>
+              ))
+            ) : (
+              <>
+                <option value="MEETING_MINUTES">Biên bản cuộc họp</option>
+
+                <option value="EVENT_PLAN">Kế hoạch sự kiện</option>
+
+                <option value="REPORT">Báo cáo</option>
+
+                <option value="FINANCE">Tài chính</option>
+
+                <option value="OTHER">Khác</option>
+              </>
+            )}
           </select>
 
-          <div className="document-modal-actions">
-            <button
-              type="button"
-              className="document-button secondary"
-              onClick={onClose}
-            >
-              Hủy
-            </button>
+          {form.category === "EVENT" && (
+            <>
+              <label htmlFor="document-event-id">
+                Event ID <span>*</span>
+              </label>
 
-            <button
-              type="submit"
-              className="document-button primary"
-              disabled={submitting}
-            >
-              {submitting ? "Đang tạo..." : "Tạo tài liệu"}
-            </button>
-          </div>
-        </form>
-      </div>
+              <input
+                id="document-event-id"
+                type="number"
+                min="1"
+                value={form.eventId}
+                placeholder="Nhập ID sự kiện"
+                onChange={(event) => setField("eventId", event.target.value)}
+              />
+            </>
+          )}
+        </div>
+
+        <div className="document-modal-footer">
+          <button
+            type="button"
+            className="document-cancel-button"
+            onClick={handleClose}
+            disabled={submitting}
+          >
+            Hủy
+          </button>
+
+          <button
+            type="submit"
+            className="document-create-button"
+            disabled={submitting || loadingOptions}
+          >
+            {submitting ? "Đang tạo..." : "Tạo tài liệu"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

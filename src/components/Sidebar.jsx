@@ -21,19 +21,19 @@ export default function Sidebar() {
     { name: "Members", path: "/dashboard", icon: <FaUsers /> },
 
     {
-      name: "Google Docs",
+      name: "Documents",
       path: "/google-docs",
       icon: <FaFileAlt />,
     },
 
     {
-      name: "Google Sheets",
+      name: "Spreadsheets",
       path: "/google-sheets",
       icon: <FaTable />,
     },
 
     {
-      name: "Google Forms",
+      name: "Forms",
       path: "/google-forms",
       icon: <FaWpforms />,
     },

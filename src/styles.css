@@ -5375,3 +5375,17 @@ input {
     flex-wrap: wrap;
   }
 }
+.task-field-message {
+  display: block;
+  margin-top: 6px;
+  color: #dc2626;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.document-delete-menu-button {
+  color: #dc2626 !important;
+}
+
+.document-delete-menu-button:hover {
+  background: #fef2f2 !important;
+}
