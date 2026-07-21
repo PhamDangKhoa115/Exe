@@ -16,13 +16,13 @@ import DocumentDetailPage from "./pages/DocumentDetailPage";
 import GoogleSheetsPage from "./pages/GoogleSheetsPage";
 import GoogleFormsPage from "./pages/GoogleFormsPage";
 import DocumentPreviewPage from "./pages/DocumentPreviewPage";
+import TrelloPage from "./pages/TrelloPage";
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
-
       <Route
         path="/select-club"
         element={
@@ -31,7 +31,16 @@ export default function App() {
           </ProtectedRoute>
         }
       />
-
+      <Route
+        path="/trello"
+        element={
+          <ProtectedRoute>
+            <ClubRoute>
+              <TrelloPage />
+            </ClubRoute>
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/create-club"
         element={
@@ -40,7 +49,6 @@ export default function App() {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/home"
         element={
@@ -81,7 +89,6 @@ export default function App() {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/google-forms"
         element={
@@ -112,7 +119,6 @@ export default function App() {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/calendar"
         element={
@@ -123,7 +129,6 @@ export default function App() {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/profile"
         element={
@@ -134,7 +139,6 @@ export default function App() {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/setting"
         element={

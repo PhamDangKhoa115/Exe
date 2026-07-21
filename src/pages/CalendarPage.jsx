@@ -34,7 +34,7 @@ export default function CalendarPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [currentDate, setCurrentDate] = useState(formatLocalDate(new Date()));
-
+  const [saving, setSaving] = useState(false);
   const [syncingEventId, setSyncingEventId] = useState(null);
 
   const [eventSyncStatus, setEventSyncStatus] = useState("NOT_SYNCED");
@@ -219,7 +219,16 @@ export default function CalendarPage() {
   const handleSelect = (info) => {
     openCreateModal(info.startStr.slice(0, 16), info.endStr.slice(0, 16));
   };
+  const toLocalDateTimeString = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hour = String(date.getHours()).padStart(2, "0");
+    const minute = String(date.getMinutes()).padStart(2, "0");
+    const second = String(date.getSeconds()).padStart(2, "0");
 
+    return `${year}-${month}-${day}T${hour}:${minute}:${second}`;
+  };
   const handleDateClick = (info) => {
     const start =
       info.dateStr.length === 10
@@ -233,6 +242,8 @@ export default function CalendarPage() {
   };
 
   const handleSave = async () => {
+    if (saving) return;
+
     if (!form.title.trim() || !form.start || !form.end) {
       toast.error("Vui lòng nhập tiêu đề, thời gian bắt đầu và kết thúc.");
       return;
@@ -251,22 +262,22 @@ export default function CalendarPage() {
       return;
     }
 
+    const payload = {
+      title: form.title.trim(),
+      description: form.description.trim(),
+      startTime: toLocalDateTimeString(startDate),
+      endTime: toLocalDateTimeString(endDate),
+      location: form.location.trim(),
+    };
+
     try {
-      const payload = {
-        title: form.title.trim(),
-        description: form.description.trim(),
-        startTime: startDate.toISOString(),
-        endTime: endDate.toISOString(),
-        location: form.location.trim(),
-      };
+      setSaving(true);
 
       if (editingEvent) {
         await updateEvent(editingEvent, payload);
-
         toast.success("Cập nhật sự kiện thành công.");
       } else {
         await createEvent(payload);
-
         toast.success("Tạo sự kiện thành công.");
       }
 
@@ -285,6 +296,8 @@ export default function CalendarPage() {
           error.response?.data?.error ||
           "Không thể lưu sự kiện",
       );
+    } finally {
+      setSaving(false);
     }
   };
   const handleSyncEvent = async () => {
@@ -614,8 +627,9 @@ export default function CalendarPage() {
                 nowIndicator
                 allDaySlot
                 height="78vh"
-                slotMinTime="06:00:00"
-                slotMaxTime="22:00:00"
+                slotMinTime="00:00:00"
+                slotMaxTime="24:00:00"
+                scrollTime="07:00:00"
                 slotDuration="00:30:00"
                 datesSet={handleDatesSet}
                 select={handleSelect}
@@ -762,25 +776,22 @@ export default function CalendarPage() {
                 )}
 
                 <button
-                  type="button"
                   className="ghost"
+                  disabled={saving}
                   onClick={() => setShowModal(false)}
-                  disabled={
-                    syncingEventId !== null && syncingEventId === editingEvent
-                  }
                 >
                   Hủy
                 </button>
                 <button
-                  type="button"
                   className="primary"
                   onClick={handleSave}
-                  disabled={
-                    syncingEventId !== null && syncingEventId === editingEvent
-                  }
+                  disabled={saving}
                 >
-                  {" "}
-                  {editingEvent ? "Lưu thay đổi" : "Tạo sự kiện"}{" "}
+                  {saving
+                    ? "Đang lưu..."
+                    : editingEvent
+                      ? "Lưu thay đổi"
+                      : "Tạo sự kiện"}
                 </button>
               </div>
             </div>

@@ -37,13 +37,9 @@ export default function Sidebar() {
       path: "/google-forms",
       icon: <FaWpforms />,
     },
-
-    { name: "Applications", path: "/dashboard", icon: <FaFileAlt /> },
-    { name: "Departments", path: "/dashboard", icon: <FaBuilding /> },
+    { name: "Trello", path: "/trello", icon: <FaTable /> },
     { name: "Calendar", path: "/calendar", icon: <FaCalendarAlt /> },
     { name: "Finance", path: "/dashboard", icon: <FaMoneyBill /> },
-    { name: "Reports", path: "/dashboard", icon: <FaChartBar /> },
-    { name: "Settings", path: "/dashboard", icon: <FaCog /> },
   ];
 
   return (
