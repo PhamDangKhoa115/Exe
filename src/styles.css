@@ -7807,3 +7807,266 @@ input {
     grid-template-columns: 1fr;
   }
 }
+.setting-page {
+  min-height: calc(100vh - 70px);
+  padding: 30px;
+  color: #172033;
+  background: #f8f9fd;
+}
+
+.setting-header {
+  margin-bottom: 24px;
+}
+
+.setting-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.setting-heading-icon {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border-radius: 15px;
+  color: white;
+  background: linear-gradient(135deg, #6d28d9, #8b5cf6);
+  box-shadow: 0 10px 24px rgba(109, 40, 217, 0.2);
+}
+
+.setting-heading h1 {
+  margin: 0;
+  font-size: 29px;
+}
+
+.setting-heading p {
+  margin: 6px 0 0;
+  color: #64748b;
+}
+
+.setting-layout {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1.6fr)
+    minmax(280px, 0.7fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.setting-card,
+.setting-info-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
+}
+
+.setting-card {
+  overflow: hidden;
+}
+
+.setting-card-header {
+  padding: 21px 23px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.setting-card-header h2,
+.setting-info-card h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.setting-card-header p,
+.setting-info-card p {
+  margin: 6px 0 0;
+  color: #64748b;
+  line-height: 1.55;
+}
+
+.setting-card-header > svg {
+  color: #6d28d9;
+}
+
+.setting-option-list {
+  display: grid;
+}
+
+.setting-option {
+  padding: 19px 23px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-bottom: 1px solid #edf0f3;
+}
+
+.setting-option:last-child {
+  border-bottom: 0;
+}
+
+.setting-option:hover {
+  background: #fcfaff;
+}
+
+.setting-option-icon {
+  width: 43px;
+  height: 43px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  color: #6d28d9;
+  background: #f3e8ff;
+}
+
+.setting-option-content {
+  flex: 1;
+}
+
+.setting-option-content strong {
+  display: block;
+  color: #1e293b;
+  font-size: 15px;
+}
+
+.setting-option-content p {
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.setting-switch {
+  position: relative;
+  width: 48px;
+  height: 27px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.setting-switch input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.setting-switch span {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: #cbd5e1;
+  transition: background-color 0.2s ease;
+}
+
+.setting-switch span::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 2px 5px rgba(15, 23, 42, 0.25);
+  transition: transform 0.2s ease;
+}
+
+.setting-switch input:checked + span {
+  background: #7c3aed;
+}
+
+.setting-switch input:checked + span::after {
+  transform: translateX(21px);
+}
+
+.setting-switch input:focus-visible + span {
+  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.15);
+}
+
+.setting-card-footer {
+  padding: 17px 23px;
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid #e2e8f0;
+  background: #fafbff;
+}
+
+.setting-save-button {
+  border: 0;
+  border-radius: 9px;
+  padding: 11px 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: white;
+  background: linear-gradient(90deg, #6d28d9, #7c3aed);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.setting-save-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.setting-info-card {
+  padding: 23px;
+}
+
+.setting-info-icon {
+  width: 49px;
+  height: 49px;
+  margin-bottom: 17px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  color: #15803d;
+  background: #dcfce7;
+}
+
+.setting-info-status {
+  margin-top: 19px;
+  padding: 11px 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 9px;
+  color: #166534;
+  background: #f0fdf4;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .setting-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .setting-page {
+    padding: 17px;
+  }
+
+  .setting-option {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .setting-switch {
+    margin-left: auto;
+  }
+
+  .setting-card-footer {
+    padding: 15px;
+  }
+
+  .setting-save-button {
+    width: 100%;
+    justify-content: center;
+  }
+}

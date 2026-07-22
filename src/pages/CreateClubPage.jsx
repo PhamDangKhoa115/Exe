@@ -18,19 +18,49 @@ export default function CreateClubPage() {
 
     const userId = localStorage.getItem("userId");
 
-    const res = await api.post("/api/clubs", form, {
-      params: {
-        userId,
-      },
-    });
+    if (!userId) {
+      alert("Không tìm thấy userId. Vui lòng đăng nhập lại.");
+      return;
+    }
 
-    const club = res.data;
+    try {
+      const res = await api.post("/api/clubs", form, {
+        params: {
+          userId: Number(userId),
+        },
+      });
 
-    localStorage.setItem("selectedClubId", club.id);
-    localStorage.setItem("selectedClubName", club.name);
-    localStorage.setItem("selectedClubRole", "Club Manager");
+      const club = res.data;
 
-    navigate("/home");
+      const clubId = club?.id ?? club?.clubId;
+
+      const clubName = club?.name ?? club?.clubName ?? form.name;
+
+      if (!clubId) {
+        throw new Error("Backend không trả về ID câu lạc bộ.");
+      }
+
+      localStorage.setItem("selectedClubId", String(clubId));
+
+      localStorage.setItem("selectedClubName", clubName);
+
+      localStorage.setItem(
+        "selectedClubRole",
+        club?.role || club?.memberRole || "PRESIDENT",
+      );
+
+      navigate("/home", {
+        replace: true,
+      });
+    } catch (error) {
+      console.error("CREATE CLUB ERROR:", error?.response?.data || error);
+
+      alert(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Không thể tạo câu lạc bộ.",
+      );
+    }
   };
 
   return (
