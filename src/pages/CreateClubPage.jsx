@@ -17,14 +17,27 @@ export default function CreateClubPage() {
     e.preventDefault();
 
     const userId = localStorage.getItem("userId");
+    const clubName = form.name.trim();
 
     if (!userId) {
       alert("Không tìm thấy userId. Vui lòng đăng nhập lại.");
       return;
     }
 
+    if (!clubName) {
+      alert("Vui lòng nhập tên câu lạc bộ.");
+      return;
+    }
+
     try {
-      const res = await api.post("/api/clubs", form, {
+      const payload = {
+        ...form,
+        name: clubName,
+        description: form.description.trim(),
+        logoUrl: form.logoUrl.trim(),
+      };
+
+      const res = await api.post("/api/clubs", payload, {
         params: {
           userId: Number(userId),
         },
@@ -34,16 +47,14 @@ export default function CreateClubPage() {
 
       const clubId = club?.id ?? club?.clubId;
 
-      const clubName = club?.name ?? club?.clubName ?? form.name;
+      const createdClubName = club?.name ?? club?.clubName ?? clubName;
 
       if (!clubId) {
         throw new Error("Backend không trả về ID câu lạc bộ.");
       }
 
       localStorage.setItem("selectedClubId", String(clubId));
-
-      localStorage.setItem("selectedClubName", clubName);
-
+      localStorage.setItem("selectedClubName", createdClubName);
       localStorage.setItem(
         "selectedClubRole",
         club?.role || club?.memberRole || "PRESIDENT",
@@ -71,10 +82,19 @@ export default function CreateClubPage() {
         <form className="profile-form" onSubmit={submit}>
           <h1>Create Club</h1>
 
-          <label>Club Name</label>
+          <label>
+            Club Name <span style={{ color: "red" }}>*</span>
+          </label>
+
           <input
+            required
             value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                name: e.target.value,
+              })
+            }
             placeholder="Ex: Badminton Club"
           />
 
@@ -125,7 +145,9 @@ export default function CreateClubPage() {
             <button type="button" onClick={() => navigate("/select-club")}>
               Cancel
             </button>
-            <button type="submit">Save</button>
+            <button type="submit" disabled={!form.name.trim()}>
+              Save
+            </button>
           </div>
         </form>
       </main>

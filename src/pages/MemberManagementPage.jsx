@@ -212,7 +212,6 @@ export default function MemberManagementPage() {
 
     return currentData.filter((member) =>
       [
-        member.username,
         member.fullName,
         member.email,
         member.role,
@@ -414,7 +413,7 @@ export default function MemberManagementPage() {
                   <thead>
                     <tr>
                       <th>No.</th>
-                      <th>Username</th>
+
                       <th>Full Name</th>
 
                       {activeTab === "MEMBERS" && (
@@ -434,8 +433,6 @@ export default function MemberManagementPage() {
                     {paginatedMembers.map((member, index) => (
                       <tr key={member.memberId ?? member.userId}>
                         <td>{(page - 1) * pageSize + index + 1}</td>
-
-                        <td>{member.username || `user_${member.userId}`}</td>
 
                         <td>
                           <strong>{member.fullName || "Không xác định"}</strong>

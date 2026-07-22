@@ -133,13 +133,40 @@ export default function RegisterPage() {
     }
 
     let timeoutId;
+    let resizeTimeoutId;
     let cancelled = false;
+
+    const renderGoogleButton = () => {
+      const container = googleButtonRef.current;
+
+      if (cancelled || !container || !window.google?.accounts?.id) {
+        return;
+      }
+
+      container.innerHTML = "";
+
+      const containerWidth = container.getBoundingClientRect().width;
+
+      const buttonWidth = Math.floor(Math.max(240, containerWidth));
+
+      window.google.accounts.id.renderButton(container, {
+        type: "standard",
+        theme: "outline",
+        size: "large",
+        text: "signup_with",
+        shape: "rectangular",
+        logo_alignment: "left",
+        width: buttonWidth,
+        locale: "vi",
+      });
+    };
 
     const initializeGoogleButton = () => {
       if (cancelled) return;
 
       if (!window.google?.accounts?.id) {
         timeoutId = window.setTimeout(initializeGoogleButton, 300);
+
         return;
       }
 
@@ -150,124 +177,143 @@ export default function RegisterPage() {
         auto_select: false,
       });
 
-      if (googleButtonRef.current) {
-        googleButtonRef.current.innerHTML = "";
+      requestAnimationFrame(() => {
+        renderGoogleButton();
+      });
+    };
 
-        window.google.accounts.id.renderButton(googleButtonRef.current, {
-          type: "standard",
-          theme: "outline",
-          size: "large",
-          text: "signup_with",
-          shape: "rectangular",
-          width: 340,
-          locale: "en",
-        });
-      }
+    const handleResize = () => {
+      window.clearTimeout(resizeTimeoutId);
+
+      resizeTimeoutId = window.setTimeout(() => {
+        renderGoogleButton();
+      }, 150);
     };
 
     initializeGoogleButton();
+    window.addEventListener("resize", handleResize);
 
     return () => {
       cancelled = true;
 
+      window.removeEventListener("resize", handleResize);
+
       if (timeoutId) {
         window.clearTimeout(timeoutId);
       }
+
+      if (resizeTimeoutId) {
+        window.clearTimeout(resizeTimeoutId);
+      }
     };
   }, []);
-
   return (
     <div className="auth-page">
       <form className="auth-card register-card" onSubmit={handleRegister}>
-        <div className="big-logo">CS</div>
+        <img src="/logo.png" alt="S-Club Logo" className="auth-logo" />
 
         <h1>Join S-Club</h1>
-        <p>The unified student clubs OS.</p>
+        <p className="auth-subtitle">The unified student clubs OS.</p>
 
-        <label>Full Name</label>
-        <input
-          name="fullName"
-          value={form.fullName}
-          onChange={handleChange}
-          placeholder="Tran Van A"
-          disabled={loading || googleLoading}
-        />
-
-        <label>Username</label>
-        <input
-          name="username"
-          value={form.username}
-          onChange={handleChange}
-          placeholder="tranvana"
-          disabled={loading || googleLoading}
-        />
-
-        <label>University Email</label>
-        <input
-          name="email"
-          type="email"
-          value={form.email}
-          onChange={handleChange}
-          placeholder="tranvana@fpt.edu.vn"
-          disabled={loading || googleLoading}
-        />
-
-        <div className="two-cols">
-          <div>
-            <label>Password</label>
+        <div className="register-fields">
+          <div className="auth-field">
+            <label htmlFor="fullName">Full Name</label>
 
             <input
-              name="password"
-              type="password"
-              value={form.password}
+              id="fullName"
+              name="fullName"
+              value={form.fullName}
               onChange={handleChange}
-              placeholder="••••••••"
+              placeholder="Tran Van A"
               disabled={loading || googleLoading}
             />
           </div>
 
-          <div>
-            <label>Confirm</label>
+          <div className="auth-field">
+            <label htmlFor="username">Username</label>
 
             <input
-              name="confirmPassword"
-              type="password"
-              value={form.confirmPassword}
+              id="username"
+              name="username"
+              value={form.username}
               onChange={handleChange}
-              placeholder="••••••••"
+              placeholder="tranvana"
               disabled={loading || googleLoading}
             />
           </div>
+
+          <div className="auth-field">
+            <label htmlFor="email">University Email</label>
+
+            <input
+              id="email"
+              name="email"
+              type="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="tranvana@fpt.edu.vn"
+              disabled={loading || googleLoading}
+            />
+          </div>
+
+          <div className="two-cols">
+            <div className="auth-field">
+              <label htmlFor="password">Password</label>
+
+              <input
+                id="password"
+                name="password"
+                type="password"
+                value={form.password}
+                onChange={handleChange}
+                placeholder="••••••••"
+                disabled={loading || googleLoading}
+              />
+            </div>
+
+            <div className="auth-field">
+              <label htmlFor="confirmPassword">Confirm</label>
+
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                value={form.confirmPassword}
+                onChange={handleChange}
+                placeholder="••••••••"
+                disabled={loading || googleLoading}
+              />
+            </div>
+          </div>
+
+          <div className="role-box">Default role: New User</div>
+
+          <button
+            type="submit"
+            className="main-btn full"
+            disabled={loading || googleLoading}
+          >
+            {loading ? "Registering..." : "Register"}
+          </button>
+
+          <div className="divider">
+            <span>OR</span>
+          </div>
+
+          <div className="google-register-wrapper" ref={googleButtonRef}>
+            {googleLoading && (
+              <span className="google-loading-overlay">Đang đăng ký...</span>
+            )}
+          </div>
+
+          {googleLoading && (
+            <p className="google-login-status">Đang đăng ký bằng Google...</p>
+          )}
+
+          <p className="auth-footer">
+            Already have an account? <Link to="/login">Log in</Link>
+          </p>
         </div>
-
-        <div className="role-box">Default role: New User</div>
-
-        <button
-          type="submit"
-          className="main-btn full"
-          disabled={loading || googleLoading}
-        >
-          {loading ? "Registering..." : "Register"}
-        </button>
-
-        <div className="divider">OR</div>
-
-        <div
-          ref={googleButtonRef}
-          className={
-            googleLoading
-              ? "google-login-container loading"
-              : "google-login-container"
-          }
-        />
-
-        {googleLoading && (
-          <p className="google-login-status">Đang đăng ký bằng Google...</p>
-        )}
-
-        <p className="auth-footer">
-          Already have an account? <Link to="/login">Log in</Link>
-        </p>
       </form>
     </div>
   );

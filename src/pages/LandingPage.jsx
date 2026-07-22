@@ -5,7 +5,7 @@ export default function LandingPage() {
     <div className="landing-page">
       <nav className="landing-nav">
         <div className="brand">
-          <div className="logo">CS</div>
+          <img src="/logo.png" alt="S-Club Logo" className="brand-logo" />
           <h2>S-Club</h2>
         </div>
 

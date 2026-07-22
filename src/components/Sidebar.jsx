@@ -53,7 +53,8 @@ export default function Sidebar() {
   return (
     <aside className="sidebar">
       <div className="side-brand">
-        <div className="logo">CS</div>
+        <img src="/logo.png" alt="ClubSync Logo" className="sidebar-logo" />
+
         <div>
           <h2>ClubSync</h2>
           <p>CLUB MANAGER PRO</p>

@@ -151,11 +151,10 @@ export default function LoginPage() {
   return (
     <div className="auth-page">
       <form className="auth-card" onSubmit={handleLogin}>
-        <div className="big-logo">CS</div>
+        <img src="/logo.png" alt="S-Club Logo" className="auth-logo" />
 
         <h1>S-Club</h1>
         <p>STUDENT CLUBS OS</p>
-
         <div className="auth-inner">
           <h2>Welcome to S-Club</h2>
 
