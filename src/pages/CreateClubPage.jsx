@@ -85,10 +85,21 @@ export default function CreateClubPage() {
           />
 
           <label>Logo URL</label>
+
           <input
+            type="url"
+            maxLength={255}
             value={form.logoUrl}
-            onChange={(e) => setForm({ ...form, logoUrl: e.target.value })}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                logoUrl: e.target.value,
+              })
+            }
+            placeholder="https://example.com/logo.png"
           />
+
+          <small>Chỉ nhập đường dẫn ảnh ngắn</small>
 
           <div className="radio-row">
             <label>
