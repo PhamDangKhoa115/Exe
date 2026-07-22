@@ -795,7 +795,6 @@ function CreateFormModal({
         >
           <X size={20} />
         </button>
-
         <div className="workspace-modal-icon">
           <GoogleFormsIcon size={34} />
         </div>

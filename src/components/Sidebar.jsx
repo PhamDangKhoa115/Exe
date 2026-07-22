@@ -16,9 +16,13 @@ export default function Sidebar() {
   const location = useLocation();
   const menus = [
     { name: "Home", path: "/home", icon: <FaChartPie /> },
-    { name: "Global Notifications", path: "/dashboard", icon: <FaBell /> },
+    {
+      name: "Global Notifications",
+      path: "/global-notifications",
+      icon: <FaBell />,
+    },
     { name: "Dashboard", path: "/dashboard", icon: <FaChartPie /> },
-    { name: "Members", path: "/dashboard", icon: <FaUsers /> },
+    { name: "Members", path: "/members", icon: <FaUsers /> },
 
     {
       name: "Documents",
@@ -31,7 +35,11 @@ export default function Sidebar() {
       path: "/google-sheets",
       icon: <FaTable />,
     },
-
+    {
+      path: "/departments",
+      name: "Departments",
+      icon: <FaBuilding />,
+    },
     {
       name: "Forms",
       path: "/google-forms",
@@ -39,7 +47,7 @@ export default function Sidebar() {
     },
     { name: "Trello", path: "/trello", icon: <FaTable /> },
     { name: "Calendar", path: "/calendar", icon: <FaCalendarAlt /> },
-    { name: "Finance", path: "/dashboard", icon: <FaMoneyBill /> },
+    { name: "Finance", path: "/finance", icon: <FaMoneyBill /> },
   ];
 
   return (

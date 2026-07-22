@@ -1,13 +1,153 @@
-import api from "./api";
+import API from "./api";
 
-export const getUserClubs = (userId) => {
-  return api.get(`/api/clubs/user/${userId}`);
-};
+function getRequiredUserId() {
+  const userId = localStorage.getItem("userId");
 
-export const createClub = (data) => {
-  return api.post("/api/clubs", data);
-};
+  if (!userId) {
+    throw new Error("Không tìm thấy userId. Vui lòng đăng nhập lại.");
+  }
 
-export const getClubById = (clubId) => {
-  return api.get(`/api/clubs/${clubId}`);
-};
+  return Number(userId);
+}
+
+function getRequiredClubId() {
+  const clubId = localStorage.getItem("selectedClubId");
+
+  if (!clubId) {
+    throw new Error("Vui lòng chọn câu lạc bộ trước.");
+  }
+
+  return Number(clubId);
+}
+
+function extractData(response) {
+  return response?.data;
+}
+
+// ==================== CLUB ====================
+
+export async function getAllClubs() {
+  const response = await API.get("/api/clubs");
+
+  return extractData(response);
+}
+
+export async function getUserClubs(userId = getRequiredUserId()) {
+  const response = await API.get(`/api/clubs/user/${userId}`);
+
+  return extractData(response);
+}
+
+export async function getClubDetail(clubId) {
+  const response = await API.get(`/api/clubs/${clubId}`);
+
+  return extractData(response);
+}
+
+export async function joinClub(clubId) {
+  const userId = getRequiredUserId();
+
+  const response = await API.post(`/api/clubs/${clubId}/join`, null, {
+    params: {
+      userId,
+    },
+  });
+
+  return extractData(response);
+}
+
+// ==================== MEMBERS ====================
+
+export async function getClubMembers(clubId = getRequiredClubId()) {
+  const response = await API.get(`/api/clubs/${clubId}/members`);
+
+  return extractData(response);
+}
+
+export async function getPendingClubMembers(clubId = getRequiredClubId()) {
+  const requesterUserId = getRequiredUserId();
+
+  const response = await API.get(`/api/clubs/${clubId}/members/pending`, {
+    params: {
+      requesterUserId,
+    },
+  });
+
+  return extractData(response);
+}
+
+export async function updateClubMember(
+  memberId,
+  { role, departmentId },
+  clubId = getRequiredClubId(),
+) {
+  const requesterUserId = getRequiredUserId();
+
+  const params = {
+    requesterUserId,
+  };
+
+  if (role) {
+    params.role = role;
+  }
+
+  if (
+    departmentId !== "" &&
+    departmentId !== null &&
+    departmentId !== undefined
+  ) {
+    params.departmentId = Number(departmentId);
+  }
+
+  const response = await API.put(
+    `/api/clubs/${clubId}/members/${memberId}`,
+    null,
+    {
+      params,
+    },
+  );
+
+  return extractData(response);
+}
+
+export async function lockClubMember(
+  memberId,
+  lock,
+  clubId = getRequiredClubId(),
+) {
+  const requesterUserId = getRequiredUserId();
+
+  const response = await API.put(
+    `/api/clubs/${clubId}/members/${memberId}/lock`,
+    null,
+    {
+      params: {
+        requesterUserId,
+        lock: Boolean(lock),
+      },
+    },
+  );
+
+  return extractData(response);
+}
+
+export async function approveClubMember(
+  memberId,
+  approve,
+  clubId = getRequiredClubId(),
+) {
+  const requesterUserId = getRequiredUserId();
+
+  const response = await API.put(
+    `/api/clubs/${clubId}/members/${memberId}/approve`,
+    null,
+    {
+      params: {
+        requesterUserId,
+        approve: Boolean(approve),
+      },
+    },
+  );
+
+  return extractData(response);
+}

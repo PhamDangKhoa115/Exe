@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   FaBell,
   FaCog,
@@ -8,13 +8,90 @@ import {
   FaUser,
 } from "react-icons/fa";
 
+import API from "../api/api";
+
+const FALLBACK_AVATAR = "https://placehold.co/100x100?text=User";
+
 export default function Topbar({ title = "Home Page" }) {
   const [open, setOpen] = useState(false);
+
+  const [profile, setProfile] = useState({
+    fullName: localStorage.getItem("fullName") || "User",
+
+    avatarUrl: localStorage.getItem("avatarUrl") || "",
+  });
+
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const userId = localStorage.getItem("userId");
+
+  const isSelectClubPage = location.pathname === "/select-club";
+
+  useEffect(() => {
+    if (!userId) return;
+
+    let active = true;
+
+    async function loadProfile() {
+      try {
+        const response = await API.get(`/api/users/${userId}`);
+
+        const user = response.data || {};
+
+        if (!active) return;
+
+        const fullName =
+          user.fullName || localStorage.getItem("fullName") || "User";
+
+        const avatarUrl =
+          user.avatarUrl || localStorage.getItem("avatarUrl") || "";
+
+        setProfile({
+          fullName,
+          avatarUrl,
+        });
+
+        localStorage.setItem("fullName", fullName);
+
+        if (avatarUrl) {
+          localStorage.setItem("avatarUrl", avatarUrl);
+        } else {
+          localStorage.removeItem("avatarUrl");
+        }
+      } catch (error) {
+        console.error(
+          "LOAD TOPBAR PROFILE ERROR:",
+          error?.response?.data || error,
+        );
+      }
+    }
+
+    loadProfile();
+
+    return () => {
+      active = false;
+    };
+  }, [userId]);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [location.pathname]);
 
   const logout = () => {
     localStorage.clear();
     navigate("/login");
+  };
+
+  const handleAvatarClick = () => {
+    if (isSelectClubPage) return;
+
+    setOpen((current) => !current);
+  };
+
+  const handleAvatarError = (event) => {
+    event.currentTarget.onerror = null;
+    event.currentTarget.src = FALLBACK_AVATAR;
   };
 
   return (
@@ -25,41 +102,79 @@ export default function Topbar({ title = "Home Page" }) {
         <FaBell className="bell" />
 
         <div className="profile-info">
-          <b>{localStorage.getItem("fullName")}</b>
+          <b>{profile.fullName}</b>
+
           <span>
-            {localStorage.getItem("selectedClubRole") || "CLB MANAGER"}
+            {formatRole(
+              localStorage.getItem("selectedClubRole"),
+              isSelectClubPage,
+            )}
           </span>
         </div>
 
         <img
           src={
-            localStorage.getItem("avatarUrl") ||
-            "https://i.pravatar.cc/100?img=32"
+            isValidImageUrl(profile.avatarUrl)
+              ? profile.avatarUrl
+              : FALLBACK_AVATAR
           }
-          alt="avatar"
-          onClick={() => setOpen(!open)}
+          alt={profile.fullName}
+          onError={handleAvatarError}
+          onClick={handleAvatarClick}
+          className={
+            isSelectClubPage ? "topbar-avatar disabled" : "topbar-avatar"
+          }
+          aria-disabled={isSelectClubPage}
         />
 
-        {open && (
+        {!isSelectClubPage && open && (
           <div className="profile-dropdown">
-            <button onClick={() => navigate("/profile")}>
-              <FaUser /> Profile
+            <button type="button" onClick={() => navigate("/profile")}>
+              <FaUser />
+              Profile
             </button>
 
-            <button onClick={() => navigate("/setting")}>
-              <FaCog /> Setting
+            <button type="button" onClick={() => navigate("/setting")}>
+              <FaCog />
+              Setting
             </button>
 
-            <button onClick={logout}>
-              <FaSignOutAlt /> Logout
+            <button type="button" onClick={() => navigate("/select-club")}>
+              <FaExchangeAlt />
+              Switch Club
             </button>
 
-            <button onClick={() => navigate("/select-club")}>
-              <FaExchangeAlt /> Switch Club
+            <button type="button" onClick={logout}>
+              <FaSignOutAlt />
+              Logout
             </button>
           </div>
         )}
       </div>
     </header>
   );
+}
+
+function isValidImageUrl(value) {
+  return (
+    typeof value === "string" &&
+    value.trim() !== "" &&
+    /^https?:\/\//i.test(value)
+  );
+}
+
+function formatRole(role, isSelectClubPage) {
+  if (isSelectClubPage) {
+    return "CHOOSE CLUB";
+  }
+
+  const labels = {
+    PRESIDENT: "CLB MANAGER",
+    CLUB_MANAGER: "CLB MANAGER",
+    DEPARTMENT_HEAD: "DEPARTMENT HEAD",
+    TREASURER: "TREASURER",
+    MEMBER: "MEMBER",
+  };
+
+  return labels[String(role || "").toUpperCase()] || "CLB MEMBER";
 }

@@ -628,17 +628,6 @@ function SheetCard({ sheet, onOpen, onViewData, onEditData, onDelete }) {
                   type="button"
                   onClick={() => {
                     setMenu(false);
-                    onViewData();
-                  }}
-                >
-                  <Eye size={16} />
-                  Xem dữ liệu
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMenu(false);
                     onEditData();
                   }}
                 >
@@ -1011,8 +1000,7 @@ function CreateWorkspaceModal({
 
           {!canEdit && mode === "edit" && (
             <div className="spreadsheet-permission-warning">
-              Bạn không có quyền ghi dữ liệu. Chỉ PRESIDENT hoặc TREASURER được
-              chỉnh sửa.
+              Bạn không có quyền ghi dữ liệu.
             </div>
           )}
 

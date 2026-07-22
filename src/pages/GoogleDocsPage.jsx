@@ -336,13 +336,6 @@ export default function GoogleDocsPage() {
               </select>
             </div>
 
-            {!canManageDocuments && (
-              <div className="documents-permission-note">
-                Bạn có thể xem tài liệu. Chỉ Chủ nhiệm hoặc Thủ quỹ mới có thể
-                tạo và chia sẻ tài liệu.
-              </div>
-            )}
-
             <div className="recent-header">
               <h3>Recently documents</h3>
 

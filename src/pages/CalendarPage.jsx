@@ -294,7 +294,7 @@ export default function CalendarPage() {
       toast.error(
         error.response?.data?.message ||
           error.response?.data?.error ||
-          "Không thể lưu sự kiện",
+          "Bạn Chưa có quyền tạo sự kiện.",
       );
     } finally {
       setSaving(false);

@@ -2,7 +2,9 @@ import { Route, Routes } from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import GlobalNotificationsPage from "./pages/GlobalNotificationsPage";
 import DashboardPage from "./pages/DashboardPage";
+import FinancePage from "./pages/FinancePage";
 import CalendarPage from "./pages/CalendarPage";
 import HomePage from "./pages/HomePage";
 import SelectClubPage from "./pages/SelectClubPage";
@@ -17,6 +19,8 @@ import GoogleSheetsPage from "./pages/GoogleSheetsPage";
 import GoogleFormsPage from "./pages/GoogleFormsPage";
 import DocumentPreviewPage from "./pages/DocumentPreviewPage";
 import TrelloPage from "./pages/TrelloPage";
+import DepartmentPage from "./pages/DepartmentPage";
+import MemberManagementPage from "./pages/MemberManagementPage";
 export default function App() {
   return (
     <Routes>
@@ -32,11 +36,31 @@ export default function App() {
         }
       />
       <Route
+        path="/departments"
+        element={
+          <ProtectedRoute>
+            <ClubRoute>
+              <DepartmentPage />
+            </ClubRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/trello"
         element={
           <ProtectedRoute>
             <ClubRoute>
               <TrelloPage />
+            </ClubRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/members"
+        element={
+          <ProtectedRoute>
+            <ClubRoute>
+              <MemberManagementPage />
             </ClubRoute>
           </ProtectedRoute>
         }
@@ -110,11 +134,33 @@ export default function App() {
         }
       />
       <Route
+        path="/global-notifications"
+        element={
+          <ProtectedRoute>
+            <ClubRoute>
+              <GlobalNotificationsPage />
+            </ClubRoute>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
         path="/dashboard"
         element={
           <ProtectedRoute>
             <ClubRoute>
               <DashboardPage />
+            </ClubRoute>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/finance"
+        element={
+          <ProtectedRoute>
+            <ClubRoute>
+              <FinancePage />
             </ClubRoute>
           </ProtectedRoute>
         }
