@@ -58,34 +58,58 @@ export default function SelectClubPage() {
     try {
       setLoading(true);
 
-      const [myClubData, allClubData] = await Promise.all([
-        getUserClubs(Number(userId)),
-        getAllClubs(),
-      ]);
+      let myClubList = [];
+      let allClubList = [];
 
-      const normalizedMyClubs = normalizeArray(myClubData);
+      try {
+        const myClubData = await getUserClubs(Number(userId));
 
-      const activeClubs = normalizedMyClubs.filter((club) => {
-        const status = String(
-          club.status ?? club.membershipStatus ?? club.memberStatus ?? "",
-        ).toUpperCase();
+        myClubList = normalizeArray(myClubData);
+      } catch (error) {
+        const message =
+          error?.response?.data?.message ||
+          error?.response?.data ||
+          error?.message ||
+          "";
 
-        return status === "ACTIVE" || status === "APPROVED";
-      });
+        const isNoClubError =
+          String(message).toLowerCase().includes("chưa tham gia câu lạc bộ") ||
+          String(message).toLowerCase().includes("không có câu lạc bộ") ||
+          error?.response?.status === 404;
 
-      setMyClubs(activeClubs);
-      setAllClubs(normalizeArray(allClubData));
-    } catch (error) {
-      console.error("LOAD CLUBS ERROR:", error?.response?.data || error);
+        if (isNoClubError) {
+          myClubList = [];
+        } else {
+          console.error(
+            "LOAD USER CLUBS ERROR:",
+            error?.response?.data || error,
+          );
 
-      toast.error(
-        getErrorMessage(error, "Không thể tải danh sách câu lạc bộ."),
-      );
+          toast.error("Không thể tải câu lạc bộ của bạn.");
+        }
+      }
+
+      try {
+        const allClubData = await getAllClubs();
+
+        allClubList = normalizeArray(allClubData);
+      } catch (error) {
+        console.error("LOAD ALL CLUBS ERROR:", error?.response?.data || error);
+
+        toast.error(
+          getErrorMessage(
+            error,
+            "Không thể tải danh sách câu lạc bộ để khám phá.",
+          ),
+        );
+      }
+
+      setMyClubs(myClubList);
+      setAllClubs(allClubList);
     } finally {
       setLoading(false);
     }
   }, [userId]);
-
   useEffect(() => {
     loadData();
   }, [loadData]);
@@ -238,7 +262,11 @@ export default function SelectClubPage() {
 
                   <p>Khám phá câu lạc bộ hoặc tạo một câu lạc bộ mới.</p>
 
-                  <button type="button" onClick={() => setActiveTab("EXPLORE")}>
+                  <button
+                    type="button"
+                    className="main-btn "
+                    onClick={() => setActiveTab("EXPLORE")}
+                  >
                     Explore Club
                   </button>
                 </div>

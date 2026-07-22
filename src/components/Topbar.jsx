@@ -80,12 +80,13 @@ export default function Topbar({ title = "Home Page" }) {
 
   const logout = () => {
     localStorage.clear();
-    navigate("/login");
+
+    navigate("/login", {
+      replace: true,
+    });
   };
 
   const handleAvatarClick = () => {
-    if (isSelectClubPage) return;
-
     setOpen((current) => !current);
   };
 
@@ -99,7 +100,7 @@ export default function Topbar({ title = "Home Page" }) {
       <h2>{title}</h2>
 
       <div className="profile-box">
-        <FaBell className="bell" />
+        {!isSelectClubPage && <FaBell className="bell" />}
 
         <div className="profile-info">
           <b>{profile.fullName}</b>
@@ -112,39 +113,51 @@ export default function Topbar({ title = "Home Page" }) {
           </span>
         </div>
 
-        <img
-          src={
-            isValidImageUrl(profile.avatarUrl)
-              ? profile.avatarUrl
-              : FALLBACK_AVATAR
-          }
-          alt={profile.fullName}
-          onError={handleAvatarError}
+        <button
+          type="button"
+          className="topbar-avatar-button"
           onClick={handleAvatarClick}
-          className={
-            isSelectClubPage ? "topbar-avatar disabled" : "topbar-avatar"
-          }
-          aria-disabled={isSelectClubPage}
-        />
+          aria-label="Mở menu tài khoản"
+          aria-expanded={open}
+        >
+          <img
+            src={
+              isValidImageUrl(profile.avatarUrl)
+                ? profile.avatarUrl
+                : FALLBACK_AVATAR
+            }
+            alt={profile.fullName}
+            onError={handleAvatarError}
+            className="topbar-avatar"
+          />
+        </button>
 
-        {!isSelectClubPage && open && (
-          <div className="profile-dropdown">
-            <button type="button" onClick={() => navigate("/profile")}>
-              <FaUser />
-              Profile
-            </button>
+        {open && (
+          <div
+            className={`profile-dropdown ${
+              isSelectClubPage ? "logout-only" : ""
+            }`}
+          >
+            {!isSelectClubPage && (
+              <>
+                <button type="button" onClick={() => navigate("/profile")}>
+                  <FaUser />
+                  Profile
+                </button>
 
-            <button type="button" onClick={() => navigate("/setting")}>
-              <FaCog />
-              Setting
-            </button>
+                <button type="button" onClick={() => navigate("/setting")}>
+                  <FaCog />
+                  Setting
+                </button>
 
-            <button type="button" onClick={() => navigate("/select-club")}>
-              <FaExchangeAlt />
-              Switch Club
-            </button>
+                <button type="button" onClick={() => navigate("/select-club")}>
+                  <FaExchangeAlt />
+                  Switch Club
+                </button>
+              </>
+            )}
 
-            <button type="button" onClick={logout}>
+            <button type="button" className="logout-button" onClick={logout}>
               <FaSignOutAlt />
               Logout
             </button>
