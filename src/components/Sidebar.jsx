@@ -79,16 +79,7 @@ export default function Sidebar() {
           </Link>
         ))}
       </nav>
-      <button
-        className="logout-btn"
-        onClick={() => {
-          localStorage.clear();
 
-          window.location = "/login";
-        }}
-      >
-        Logout
-      </button>
       <div className="upgrade-box">
         <h3>Upgrade to Premium</h3>
         <p>Unlock advanced analytics, finance automation and AI assistant.</p>

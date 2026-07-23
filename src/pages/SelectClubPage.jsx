@@ -42,8 +42,8 @@ export default function SelectClubPage() {
   const [activeTab, setActiveTab] = useState("MY_CLUBS");
 
   const [myClubs, setMyClubs] = useState([]);
+  const [pendingClubs, setPendingClubs] = useState([]);
   const [allClubs, setAllClubs] = useState([]);
-
   const [loading, setLoading] = useState(false);
   const [joiningClubId, setJoiningClubId] = useState(null);
 
@@ -104,7 +104,24 @@ export default function SelectClubPage() {
         );
       }
 
-      setMyClubs(myClubList);
+      const activeClubs = myClubList.filter((club) => {
+        const status = String(
+          club.status ?? club.membershipStatus ?? club.memberStatus ?? "",
+        ).toUpperCase();
+
+        return status === "ACTIVE" || status === "APPROVED";
+      });
+
+      const waitingClubs = myClubList.filter((club) => {
+        const status = String(
+          club.status ?? club.membershipStatus ?? club.memberStatus ?? "",
+        ).toUpperCase();
+
+        return status === "PENDING";
+      });
+
+      setMyClubs(activeClubs);
+      setPendingClubs(waitingClubs);
       setAllClubs(allClubList);
     } finally {
       setLoading(false);
@@ -114,21 +131,20 @@ export default function SelectClubPage() {
     loadData();
   }, [loadData]);
 
-  const myClubIds = useMemo(() => {
+  const joinedOrPendingClubIds = useMemo(() => {
     return new Set(
-      myClubs
+      [...myClubs, ...pendingClubs]
         .map((club) => Number(club.clubId ?? club.id))
         .filter(Number.isFinite),
     );
-  }, [myClubs]);
-
+  }, [myClubs, pendingClubs]);
   const exploredClubs = useMemo(() => {
     const keyword = searchText.trim().toLowerCase();
 
     return allClubs.filter((club) => {
       const id = Number(club.id);
 
-      if (myClubIds.has(id)) {
+      if (joinedOrPendingClubIds.has(id)) {
         return false;
       }
 
@@ -140,15 +156,22 @@ export default function SelectClubPage() {
         .toLowerCase()
         .includes(keyword);
     });
-  }, [allClubs, myClubIds, searchText]);
+  }, [allClubs, joinedOrPendingClubIds, searchText]);
 
   const selectClub = (club) => {
-    const clubId = club.clubId ?? club.id;
+    const status = String(
+      club.status ?? club.membershipStatus ?? club.memberStatus ?? "",
+    ).toUpperCase();
 
+    if (status !== "ACTIVE" && status !== "APPROVED") {
+      toast.warning("Yêu cầu tham gia câu lạc bộ chưa được phê duyệt.");
+      return;
+    }
+
+    const clubId = club.clubId ?? club.id;
     const clubName = club.clubName ?? club.name;
 
     localStorage.setItem("selectedClubId", String(clubId));
-
     localStorage.setItem("selectedClubName", clubName || "Club");
 
     localStorage.setItem(
@@ -279,7 +302,12 @@ export default function SelectClubPage() {
                   onSelect={selectClub}
                 />
               ))}
-
+              {pendingClubs.map((club) => (
+                <PendingClubCard
+                  key={`pending-${club.id ?? club.clubId}`}
+                  club={club}
+                />
+              ))}
               <button
                 type="button"
                 className="club-card create"
@@ -359,7 +387,36 @@ function MyClubCard({ club, onSelect }) {
     </article>
   );
 }
+function PendingClubCard({ club }) {
+  const clubName = club.clubName ?? club.name ?? "Club";
 
+  return (
+    <article className="club-card pending">
+      <div className="club-card-logo">
+        <img
+          src={
+            isValidImageUrl(club.logoUrl)
+              ? club.logoUrl
+              : `https://placehold.co/120x120?text=${encodeURIComponent(
+                  clubName.slice(0, 1),
+                )}`
+          }
+          alt={clubName}
+        />
+      </div>
+
+      <div className="club-card-information">
+        <h2>{clubName}</h2>
+
+        <span className="club-role-badge pending">Đang chờ phê duyệt</span>
+      </div>
+
+      <button type="button" className="club-enter-button pending" disabled>
+        Chờ phê duyệt
+      </button>
+    </article>
+  );
+}
 function ExploreClubCard({ club, joining, onJoin }) {
   const isPublic = String(club.visibility).toUpperCase() === "PUBLIC";
 
