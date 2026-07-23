@@ -330,7 +330,7 @@ export default function GoogleDocsPage() {
                 value={sortDir}
                 onChange={(event) => setSortDir(event.target.value)}
               >
-                <option value="desc">Giảm dần</option>
+                <option value="desc">Descending</option>
 
                 <option value="asc">Tăng dần</option>
               </select>
