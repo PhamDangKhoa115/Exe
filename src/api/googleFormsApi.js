@@ -5,11 +5,11 @@ const getAuthParams = () => {
   const clubId = localStorage.getItem("selectedClubId");
 
   if (!userId) {
-    throw new Error("Không tìm thấy userId. Vui lòng đăng nhập lại.");
+    throw new Error("Please login first.");
   }
 
   if (!clubId) {
-    throw new Error("Chưa chọn câu lạc bộ.");
+    throw new Error("Please select a club first.");
   }
 
   return {

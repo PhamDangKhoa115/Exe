@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-
+import Footer from "../components/Footer";
 export default function LandingPage() {
   return (
     <div className="landing-page">
@@ -8,26 +8,26 @@ export default function LandingPage() {
           <img src="/logo.png" alt="S-Club Logo" className="brand-logo" />
           <h2>S-Club</h2>
         </div>
-
+        {/* 
         <div className="landing-menu">
           <a>Home</a>
           <a>Features</a>
           <a>Pricing</a>
           <a>Contact</a>
-        </div>
+        </div> */}
 
         <div>
           <Link to="/login" className="text-btn">
             Login
           </Link>
           <Link to="/register" className="small-primary-btn">
-            Sign in
+            Sign Up
           </Link>
         </div>
       </nav>
 
       <section className="hero-section">
-        <span className="badge">New: Global Feed for every CLB in school</span>
+        <span className="badge">New: Global Feed for every CLUB in school</span>
 
         <h1>
           Welcome to <span>S-Club</span>: All-in-one <br />
@@ -92,6 +92,7 @@ export default function LandingPage() {
         <h2>Ready to take your club to the next level?</h2>
         <Link to="/register">Start now</Link>
       </section>
+      <Footer />
     </div>
   );
 }

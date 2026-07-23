@@ -81,8 +81,7 @@ function getErrorMessage(error, fallback) {
 }
 
 export default function TrelloPage() {
-  const selectedClubName =
-    localStorage.getItem("selectedClubName") || "Câu lạc bộ";
+  const selectedClubName = localStorage.getItem("selectedClubName") || "Club";
 
   const [activeTab, setActiveTab] = useState("board");
 
@@ -127,7 +126,7 @@ export default function TrelloPage() {
     } catch (error) {
       console.error("LOAD TASKS ERROR:", error);
 
-      toast.error(getErrorMessage(error, "Không thể tải danh sách công việc."));
+      toast.error(getErrorMessage(error, "Cannot load task list."));
 
       setTasks([]);
     } finally {
@@ -172,9 +171,7 @@ export default function TrelloPage() {
     } catch (error) {
       console.error("LOAD CLUB MEMBERS ERROR:", error.response?.data || error);
 
-      toast.error(
-        getErrorMessage(error, "Không thể tải danh sách thành viên CLB."),
-      );
+      toast.error(getErrorMessage(error, "Cannot load club member list."));
 
       setMembers([]);
     } finally {
@@ -205,7 +202,7 @@ export default function TrelloPage() {
           toast.error(
             getErrorMessage(
               error,
-              "Chưa kết nối Trello hoặc không thể tải danh sách Board.",
+              "Cannot connect to Trello or load Board list.",
             ),
           );
         }
@@ -231,7 +228,7 @@ export default function TrelloPage() {
       localStorage.setItem("selectedClubId", callbackClubId);
     }
 
-    toast.success("Kết nối Trello thành công.");
+    toast.success("Trello connection successful.");
 
     loadBoards({
       showError: true,
@@ -319,23 +316,23 @@ export default function TrelloPage() {
 
   const validateTaskForm = () => {
     if (!form.title.trim()) {
-      toast.error("Vui lòng nhập tiêu đề công việc.");
+      toast.error("Please enter a title for the task.");
       return false;
     }
 
     if (!form.assignedUserId) {
-      toast.error("Vui lòng chọn thành viên được giao.");
+      toast.error("Please select a member to assign the task to.");
       return false;
     }
     if (!form.dueDate) {
-      toast.error("Vui lòng chọn hạn hoàn thành.");
+      toast.error("Please select a due date.");
       return false;
     }
 
     const dueDate = new Date(form.dueDate);
 
     if (Number.isNaN(dueDate.getTime())) {
-      toast.error("Hạn hoàn thành không hợp lệ.");
+      toast.error("Invalid due date.");
       return false;
     }
 
@@ -361,10 +358,10 @@ export default function TrelloPage() {
       };
       if (editingTask) {
         await updateTask(editingTask.taskId, payload);
-        toast.success("Cập nhật công việc thành công.");
+        toast.success("Task updated successfully.");
       } else {
         await createTask(payload);
-        toast.success("Tạo công việc thành công.");
+        toast.success("Task created successfully.");
       }
 
       closeTaskModal();
@@ -376,9 +373,7 @@ export default function TrelloPage() {
       toast.error(
         getErrorMessage(
           error,
-          editingTask
-            ? "Không thể cập nhật công việc."
-            : "Không thể tạo công việc.",
+          editingTask ? "Cannot update task." : "Cannot create task.",
         ),
       );
     } finally {
@@ -388,7 +383,7 @@ export default function TrelloPage() {
 
   const handleDeleteTask = async (task) => {
     const confirmed = window.confirm(
-      `Bạn có chắc muốn xóa công việc "${task.title}" không?`,
+      `Are you sure you want to delete the task "${task.title}"?`,
     );
 
     if (!confirmed) return;
@@ -396,13 +391,13 @@ export default function TrelloPage() {
     try {
       await deleteTask(task.taskId);
 
-      toast.success("Xóa công việc thành công.");
+      toast.success("Task deleted successfully.");
 
       await Promise.all([loadTasks(), loadDashboardData()]);
     } catch (error) {
       console.error("DELETE TASK ERROR:", error);
 
-      toast.error(getErrorMessage(error, "Không thể xóa công việc."));
+      toast.error(getErrorMessage(error, "Cannot delete task."));
     }
   };
 
@@ -426,15 +421,13 @@ export default function TrelloPage() {
 
       await updateTask(task.taskId, payload);
 
-      toast.success(`Đã chuyển công việc sang ${nextStatus}.`);
+      toast.success(`Task moved to ${nextStatus}.`);
 
       await Promise.all([loadTasks(), loadDashboardData()]);
     } catch (error) {
       console.error("MOVE TASK ERROR:", error);
 
-      toast.error(
-        getErrorMessage(error, "Không thể thay đổi trạng thái công việc."),
-      );
+      toast.error(getErrorMessage(error, "Cannot change task status."));
     }
   };
 
@@ -444,13 +437,13 @@ export default function TrelloPage() {
     } catch (error) {
       console.error("CONNECT TRELLO ERROR:", error);
 
-      toast.error(getErrorMessage(error, "Không thể bắt đầu kết nối Trello."));
+      toast.error(getErrorMessage(error, "Cannot start Trello connection."));
     }
   };
 
   const handleLinkBoard = async () => {
     if (!selectedBoardId) {
-      toast.error("Vui lòng chọn một Trello Board.");
+      toast.error("Please select a Trello Board.");
       return;
     }
 
@@ -460,14 +453,14 @@ export default function TrelloPage() {
       await linkTrelloBoard(selectedBoardId);
 
       toast.success(
-        "Liên kết Trello Board thành công. Hệ thống đã tạo các danh sách mặc định và đăng ký Webhook.",
+        "Successfully linked Trello Board. The system has created default lists and registered the Webhook.",
       );
 
       await Promise.all([loadBoards({ showError: true }), loadTasks()]);
     } catch (error) {
       console.error("LINK BOARD ERROR:", error);
 
-      toast.error(getErrorMessage(error, "Không thể liên kết Trello Board."));
+      toast.error(getErrorMessage(error, "Cannot link Trello Board."));
     } finally {
       setLinkingBoard(false);
     }
@@ -476,7 +469,7 @@ export default function TrelloPage() {
   const handleRefresh = async () => {
     await Promise.all([loadTasks(), loadDashboardData(), loadBoards()]);
 
-    toast.success("Đã làm mới dữ liệu.");
+    toast.success("Data refreshed successfully.");
   };
 
   return (
@@ -484,7 +477,7 @@ export default function TrelloPage() {
       <Sidebar />
 
       <main className="main-content">
-        <Topbar title="← Home / Trello & Công việc" />
+        <Topbar title="← Home / Trello & Jobs" />
 
         <div className="trello-page">
           <section className="trello-header">
@@ -495,8 +488,8 @@ export default function TrelloPage() {
                 </div>
 
                 <div>
-                  <h1>Quản lý công việc</h1>
-                  <p>{selectedClubName} · Đồng bộ Trello theo thời gian thực</p>
+                  <h1>Jobs management</h1>
+                  <p>{selectedClubName} · Real-time Trello synchronization</p>
                 </div>
               </div>
             </div>
@@ -512,7 +505,7 @@ export default function TrelloPage() {
                   size={17}
                   className={loadingTasks ? "spin-icon" : ""}
                 />
-                Làm mới
+                Refresh
               </button>
 
               <button
@@ -521,7 +514,7 @@ export default function TrelloPage() {
                 onClick={() => openCreateTaskModal()}
               >
                 <CirclePlus size={18} />
-                Tạo công việc
+                Create Task
               </button>
             </div>
           </section>
@@ -537,14 +530,14 @@ export default function TrelloPage() {
               <div>
                 <strong>
                   {trelloConnected
-                    ? "Đã kết nối tài khoản Trello"
-                    : "Chưa kết nối Trello"}
+                    ? "Already connected to Trello account"
+                    : "Not connected to Trello"}
                 </strong>
 
                 <p>
                   {trelloConnected
-                    ? `${boards.length} Board có thể sử dụng`
-                    : "Kết nối Trello để tạo Card và đồng bộ công việc."}
+                    ? `${boards.length} Boards available for use`
+                    : "Connect to Trello to create Cards and synchronize tasks."}
                 </p>
               </div>
             </div>
@@ -555,7 +548,7 @@ export default function TrelloPage() {
               onClick={handleConnectTrello}
             >
               <KanbanSquare size={17} />
-              {trelloConnected ? "Kết nối lại" : "Kết nối Trello"}
+              {trelloConnected ? "Reconnect" : "Connect to Trello"}
             </button>
           </section>
 
@@ -563,7 +556,7 @@ export default function TrelloPage() {
             <TabButton
               active={activeTab === "board"}
               icon={<ListTodo size={18} />}
-              label="Bảng công việc"
+              label="Board"
               onClick={() => setActiveTab("board")}
             />
 
@@ -577,7 +570,7 @@ export default function TrelloPage() {
             <TabButton
               active={activeTab === "reminders"}
               icon={<Bell size={18} />}
-              label="Nhắc nhở"
+              label="Reminders"
               badge={reminders.length}
               onClick={() => setActiveTab("reminders")}
             />
@@ -585,14 +578,14 @@ export default function TrelloPage() {
             <TabButton
               active={activeTab === "performance"}
               icon={<BarChart3 size={18} />}
-              label="Hiệu suất"
+              label="Performance"
               onClick={() => setActiveTab("performance")}
             />
 
             <TabButton
               active={activeTab === "settings"}
               icon={<Settings size={18} />}
-              label="Cấu hình Trello"
+              label="Trello Settings"
               onClick={() => setActiveTab("settings")}
             />
           </nav>
@@ -694,7 +687,7 @@ function BoardTab({
 
           <input
             type="text"
-            placeholder="Tìm theo tên, thành viên, sự kiện..."
+            placeholder="Search by name, member, event..."
             value={searchText}
             onChange={(event) => setSearchText(event.target.value)}
           />
@@ -709,10 +702,10 @@ function BoardTab({
             }))
           }
         >
-          <option value="ALL">Tất cả công việc</option>
-          <option value="MY_TASKS">Công việc của tôi</option>
-          <option value="EVENT">Theo sự kiện</option>
-          <option value="DEPARTMENT">Theo ban</option>
+          <option value="ALL">All Tasks</option>
+          <option value="MY_TASKS">My Tasks</option>
+          <option value="EVENT">By Event</option>
+          <option value="DEPARTMENT">By Department</option>
         </select>
 
         <select
@@ -724,7 +717,7 @@ function BoardTab({
             }))
           }
         >
-          <option value="">Mọi trạng thái</option>
+          <option value="">All Statuses</option>
           <option value="To Do">To Do</option>
           <option value="Doing">Doing</option>
           <option value="Done">Done</option>
@@ -732,7 +725,7 @@ function BoardTab({
 
         <input
           type="text"
-          placeholder="Tên ban..."
+          placeholder="Department name..."
           value={filters.department}
           onChange={(event) =>
             setFilters((current) => ({
@@ -757,7 +750,7 @@ function BoardTab({
       </div>
 
       {loading ? (
-        <PageLoading text="Đang tải công việc..." />
+        <PageLoading text="Loading tasks..." />
       ) : (
         <div className="trello-kanban">
           {STATUS_COLUMNS.map((column) => (
@@ -790,7 +783,7 @@ function KanbanColumn({ column, tasks, onCreate, onEdit, onDelete, onMove }) {
         <button
           type="button"
           onClick={() => onCreate(column.key)}
-          title={`Thêm công việc vào ${column.label}`}
+          title={`Create task in ${column.label}`}
         >
           <CirclePlus size={19} />
         </button>
@@ -800,7 +793,7 @@ function KanbanColumn({ column, tasks, onCreate, onEdit, onDelete, onMove }) {
         {tasks.length === 0 ? (
           <div className="kanban-empty">
             <ListTodo size={30} />
-            <p>Chưa có công việc</p>
+            <p>No tasks available</p>
           </div>
         ) : (
           tasks.map((task) => (
@@ -832,20 +825,20 @@ function TaskCard({ task, onEdit, onDelete, onMove }) {
           )}
 
           {task.isFinanceRelated && (
-            <span className="task-label finance">Tài chính</span>
+            <span className="task-label finance">Financial</span>
           )}
 
           {task.isEventCritical && (
-            <span className="task-label critical">Quan trọng</span>
+            <span className="task-label critical">Critical</span>
           )}
         </div>
 
         <div className="task-card-menu">
-          <button type="button" onClick={() => onEdit(task)} title="Chỉnh sửa">
+          <button type="button" onClick={() => onEdit(task)} title="Edit">
             <Pencil size={15} />
           </button>
 
-          <button type="button" onClick={() => onDelete(task)} title="Xóa">
+          <button type="button" onClick={() => onDelete(task)} title="Delete">
             <Trash2 size={15} />
           </button>
         </div>
@@ -859,7 +852,7 @@ function TaskCard({ task, onEdit, onDelete, onMove }) {
 
       {task.eventTitle && (
         <div className="task-meta-line">
-          <span>Sự kiện:</span>
+          <span>Event:</span>
           <strong>{task.eventTitle}</strong>
         </div>
       )}
@@ -868,7 +861,7 @@ function TaskCard({ task, onEdit, onDelete, onMove }) {
         <div>
           <UserRoundCheck size={15} />
           <span>
-            {task.assignedUserName || `Thành viên #${task.assignedUserId}`}
+            {task.assignedUserName || `Member #${task.assignedUserId}`}
           </span>
         </div>
 
@@ -883,7 +876,7 @@ function TaskCard({ task, onEdit, onDelete, onMove }) {
 
         {task.trelloCardUrl && (
           <a href={task.trelloCardUrl} target="_blank" rel="noreferrer">
-            Mở Trello
+            Open Trello
             <ExternalLink size={14} />
           </a>
         )}
@@ -907,44 +900,44 @@ function TaskCard({ task, onEdit, onDelete, onMove }) {
 
 function DashboardTab({ dashboard, loading }) {
   if (loading) {
-    return <PageLoading text="Đang tải dashboard..." />;
+    return <PageLoading text="Loading dashboard..." />;
   }
 
   const data = dashboard || {};
 
   const cards = [
     {
-      label: "Tổng công việc",
+      label: "Total Tasks",
       value: data.totalTasks || 0,
       icon: <ListTodo />,
       className: "total",
     },
     {
-      label: "Chưa thực hiện",
+      label: "To Do",
       value: data.todoTasks || 0,
       icon: <Clock3 />,
       className: "todo",
     },
     {
-      label: "Đang thực hiện",
+      label: "Doing",
       value: data.doingTasks || 0,
       icon: <RefreshCw />,
       className: "doing",
     },
     {
-      label: "Đã hoàn thành",
+      label: "Done",
       value: data.doneTasks || 0,
       icon: <CheckCircle2 />,
       className: "done",
     },
     {
-      label: "Quá hạn",
+      label: "Overdue",
       value: data.overdueTasksCount || 0,
       icon: <AlertTriangle />,
       className: "overdue",
     },
     {
-      label: "Liên quan tài chính",
+      label: "Financial",
       value: data.financeRelatedTasks || 0,
       icon: <BarChart3 />,
       className: "finance",
@@ -977,8 +970,8 @@ function DashboardTab({ dashboard, loading }) {
       <article className="progress-panel">
         <div className="progress-panel-header">
           <div>
-            <h2>Tiến độ công việc</h2>
-            <p>Tỷ lệ hoàn thành công việc quan trọng của sự kiện</p>
+            <h2>Task Progress</h2>
+            <p>Completion rate of important tasks for the event</p>
           </div>
 
           <strong>{progress.toFixed(1)}%</strong>
@@ -990,17 +983,17 @@ function DashboardTab({ dashboard, loading }) {
 
         <div className="dashboard-summary">
           <div>
-            <span>Công việc quan trọng</span>
+            <span>Important Tasks</span>
             <strong>{data.isEventCriticalTasks || 0}</strong>
           </div>
 
           <div>
-            <span>Hoàn thành</span>
+            <span>Completed</span>
             <strong>{data.doneTasks || 0}</strong>
           </div>
 
           <div>
-            <span>Còn lại</span>
+            <span>Remaining</span>
             <strong>
               {Math.max(0, (data.totalTasks || 0) - (data.doneTasks || 0))}
             </strong>
@@ -1013,25 +1006,25 @@ function DashboardTab({ dashboard, loading }) {
 
 function RemindersTab({ reminders, loading, onEdit }) {
   if (loading) {
-    return <PageLoading text="Đang tải nhắc nhở..." />;
+    return <PageLoading text="Loading reminders..." />;
   }
 
   return (
     <section className="reminders-section">
       <div className="section-heading">
         <div>
-          <h2>Công việc cần chú ý</h2>
-          <p>Công việc đã quá hạn hoặc đến hạn trong vòng 48 giờ.</p>
+          <h2>Tasks to Attention</h2>
+          <p>Tasks that are overdue or due within the next 48 hours.</p>
         </div>
 
-        <span>{reminders.length} công việc</span>
+        <span>{reminders.length} tasks</span>
       </div>
 
       {reminders.length === 0 ? (
         <EmptyState
           icon={<CheckCircle2 size={42} />}
-          title="Không có công việc cần nhắc"
-          description="Hiện tại không có công việc quá hạn hoặc sắp đến hạn."
+          title="No tasks to attention"
+          description="Currently, there are no tasks that are overdue or due soon."
         />
       ) : (
         <div className="reminder-list">
@@ -1051,12 +1044,11 @@ function RemindersTab({ reminders, loading, onEdit }) {
                   <div>
                     <h3>{task.title}</h3>
 
-                    <span>{overdue ? "Đã quá hạn" : "Sắp đến hạn"}</span>
+                    <span>{overdue ? "Overdue" : "Upcoming"}</span>
                   </div>
 
                   <p>
-                    {task.assignedUserName ||
-                      `Thành viên #${task.assignedUserId}`}
+                    {task.assignedUserName || `Member #${task.assignedUserId}`}
                     {" · "}
                     {formatDateTime(task.dueDate)}
                   </p>
@@ -1065,7 +1057,7 @@ function RemindersTab({ reminders, loading, onEdit }) {
                 </div>
 
                 <button type="button" onClick={() => onEdit(task)}>
-                  Xem công việc
+                  View Task
                 </button>
               </article>
             );
@@ -1078,35 +1070,35 @@ function RemindersTab({ reminders, loading, onEdit }) {
 
 function PerformanceTab({ performance, loading }) {
   if (loading) {
-    return <PageLoading text="Đang tải hiệu suất..." />;
+    return <PageLoading text="Loading performance..." />;
   }
 
   return (
     <section className="performance-section">
       <div className="section-heading">
         <div>
-          <h2>Hiệu suất thành viên</h2>
-          <p>Thống kê số lượng công việc được giao và kết quả hoàn thành.</p>
+          <h2>Member Performance</h2>
+          <p>Statistics of assigned tasks and completion results.</p>
         </div>
       </div>
 
       {performance.length === 0 ? (
         <EmptyState
           icon={<BarChart3 size={42} />}
-          title="Chưa có dữ liệu hiệu suất"
-          description="Dữ liệu sẽ xuất hiện sau khi thành viên được giao công việc."
+          title="No performance data available"
+          description="Data will appear once members are assigned tasks."
         />
       ) : (
         <div className="performance-table-wrap">
           <table className="performance-table">
             <thead>
               <tr>
-                <th>Thành viên</th>
-                <th>Được giao</th>
-                <th>Hoàn thành</th>
-                <th>Đang làm</th>
-                <th>Quá hạn</th>
-                <th>Tỷ lệ hoàn thành</th>
+                <th>Member</th>
+                <th>Assigned</th>
+                <th>Completed</th>
+                <th>In Progress</th>
+                <th>Overdue</th>
+                <th>Completion Rate</th>
               </tr>
             </thead>
 
@@ -1190,34 +1182,34 @@ function TrelloSettingsTab({
         </div>
 
         <div className="settings-card-content">
-          <h2>Kết nối tài khoản Trello</h2>
+          <h2>Connect Trello Account</h2>
 
           <p>
-            Cấp quyền Read/Write để hệ thống có thể tạo Card, cập nhật trạng
-            thái và nhận Webhook từ Trello.
+            Grant Read/Write permissions for the system to create Cards, update
+            status, and receive Webhooks from Trello.
           </p>
 
           <div className={`settings-status ${connected ? "connected" : ""}`}>
             <span />
             {connected
-              ? "Tài khoản Trello đã được kết nối"
-              : "Chưa kết nối tài khoản Trello"}
+              ? "Trello account is connected"
+              : "Trello account is not connected"}
           </div>
         </div>
 
         <button type="button" className="trello-btn trello" onClick={onConnect}>
           <Link2 size={17} />
-          {connected ? "Kết nối lại" : "Kết nối ngay"}
+          {connected ? "Reconnect" : "Connect Now"}
         </button>
       </article>
 
       <article className="settings-card board-link-card">
         <div className="settings-card-content">
-          <h2>Liên kết Trello Board</h2>
+          <h2>Link Trello Board</h2>
 
           <p>
-            Sau khi liên kết, hệ thống sẽ tạo các List To Do, Doing, Done và
-            đăng ký Webhook tự động.
+            After linking, the system will create To Do, Doing, Done lists and
+            automatically register Webhooks.
           </p>
 
           <div className="board-picker-row">
@@ -1227,7 +1219,7 @@ function TrelloSettingsTab({
               disabled={loadingBoards || boards.length === 0}
             >
               <option value="">
-                {loadingBoards ? "Đang tải Board..." : "Chọn Trello Board"}
+                {loadingBoards ? "Loading Board..." : "Select Trello Board"}
               </option>
 
               {boards.map((board) => (
@@ -1247,7 +1239,7 @@ function TrelloSettingsTab({
                 size={16}
                 className={loadingBoards ? "spin-icon" : ""}
               />
-              Tải Board
+              Load Board
             </button>
 
             <button
@@ -1257,7 +1249,7 @@ function TrelloSettingsTab({
               disabled={!selectedBoardId || linkingBoard}
             >
               <Link2 size={16} />
-              {linkingBoard ? "Đang liên kết..." : "Liên kết Board"}
+              {linkingBoard ? "Linking Board..." : "Link Board"}
             </button>
           </div>
 
@@ -1270,14 +1262,14 @@ function TrelloSettingsTab({
                   <strong>{selectedBoard.name}</strong>
 
                   <small>
-                    {selectedBoard.desc || "Trello Board của câu lạc bộ"}
+                    {selectedBoard.desc || "Trello Board of the club"}
                   </small>
                 </span>
               </div>
 
               {selectedBoard.url && (
                 <a href={selectedBoard.url} target="_blank" rel="noreferrer">
-                  Mở Board
+                  Open Board
                   <ExternalLink size={15} />
                 </a>
               )}
@@ -1318,9 +1310,9 @@ function TaskModal({
       <div className="task-modal">
         <div className="task-modal-header">
           <div>
-            <h2>{editingTask ? "Chỉnh sửa công việc" : "Tạo công việc mới"}</h2>
+            <h2>{editingTask ? "Edit Task" : "Create New Task"}</h2>
 
-            <p>Công việc sẽ được đồng bộ sang Trello Card.</p>
+            <p>The task will be synchronized to a Trello Card.</p>
           </div>
 
           <button type="button" onClick={onClose} disabled={saving}>
@@ -1330,7 +1322,7 @@ function TaskModal({
 
         <div className="task-modal-body">
           <label>
-            Tiêu đề công việc <span>*</span>
+            Task Title <span>*</span>
           </label>
 
           <input
@@ -1340,11 +1332,11 @@ function TaskModal({
             onChange={(event) => setField("title", event.target.value)}
           />
 
-          <label>Mô tả</label>
+          <label>Description</label>
 
           <textarea
             rows="4"
-            placeholder="Nhập nội dung chi tiết của công việc..."
+            placeholder="Enter the detailed description of the task..."
             value={form.description}
             onChange={(event) => setField("description", event.target.value)}
           />
@@ -1352,7 +1344,7 @@ function TaskModal({
           <div className="task-form-grid">
             <div>
               <label>
-                Thành viên được giao <span>*</span>
+                Assigned Member <span>*</span>
               </label>
 
               <select
@@ -1363,9 +1355,7 @@ function TaskModal({
                 disabled={loadingMembers || saving}
               >
                 <option value="">
-                  {loadingMembers
-                    ? "Đang tải thành viên..."
-                    : "Chọn thành viên"}
+                  {loadingMembers ? "Loading members..." : "Select member"}
                 </option>
 
                 {members.map((member) => (
@@ -1381,25 +1371,25 @@ function TaskModal({
 
               {!loadingMembers && members.length === 0 && (
                 <small className="task-field-message">
-                  Không tìm thấy thành viên đang hoạt động trong CLB.
+                  No active members found in the club.
                 </small>
               )}
             </div>
 
             <div>
-              <label>Sự kiện liên quan</label>
+              <label>Related Event</label>
 
               <input
                 type="number"
                 min="1"
-                placeholder="Event ID, có thể để trống"
+                placeholder="Event ID, can be left empty"
                 value={form.eventId}
                 onChange={(event) => setField("eventId", event.target.value)}
               />
             </div>
 
             <div>
-              <label>Trạng thái</label>
+              <label>Status</label>
 
               <select
                 value={form.status}
@@ -1413,7 +1403,7 @@ function TaskModal({
 
             <div>
               <label>
-                Hạn hoàn thành <span>*</span>
+                Due Date <span>*</span>
               </label>
 
               <input
@@ -1424,11 +1414,11 @@ function TaskModal({
             </div>
           </div>
 
-          <label>Ban phụ trách</label>
+          <label>Responsible Department</label>
 
           <input
             type="text"
-            placeholder="Ví dụ: Ban Truyền Thông"
+            placeholder="Example: Communications Department"
             value={form.department}
             onChange={(event) => setField("department", event.target.value)}
           />
@@ -1444,8 +1434,8 @@ function TaskModal({
               />
 
               <span>
-                <strong>Liên quan tài chính</strong>
-                <small>Đánh dấu công việc cần theo dõi ngân sách.</small>
+                <strong>Finance Related</strong>
+                <small>Mark tasks that need to be tracked for budgeting.</small>
               </span>
             </label>
 
@@ -1459,8 +1449,8 @@ function TaskModal({
               />
 
               <span>
-                <strong>Công việc quan trọng</strong>
-                <small>Được tính vào tiến độ chính của sự kiện.</small>
+                <strong>Critical Event Task</strong>
+                <small>Counted towards the main progress of the event.</small>
               </span>
             </label>
           </div>
@@ -1473,7 +1463,7 @@ function TaskModal({
             onClick={onClose}
             disabled={saving}
           >
-            Hủy
+            Cancel
           </button>
 
           <button
@@ -1483,10 +1473,10 @@ function TaskModal({
             disabled={saving}
           >
             {saving
-              ? "Đang lưu..."
+              ? "Saving..."
               : editingTask
-                ? "Lưu thay đổi"
-                : "Tạo công việc"}
+                ? "Save Changes"
+                : "Create Task"}
           </button>
         </div>
       </div>
@@ -1500,12 +1490,12 @@ function SyncBadge({ status }) {
     .replaceAll(" ", "_");
 
   const labels = {
-    SYNCED: "Đã đồng bộ",
-    SUCCESS: "Đã đồng bộ",
-    NOT_SYNCED: "Chưa đồng bộ",
-    PENDING: "Đang đồng bộ",
-    FAILED: "Đồng bộ lỗi",
-    ERROR: "Đồng bộ lỗi",
+    SYNCED: "Synced",
+    SUCCESS: "Synced",
+    NOT_SYNCED: "Not Synced",
+    PENDING: "Syncing",
+    FAILED: "Sync Failed",
+    ERROR: "Sync Error",
   };
 
   return (
@@ -1514,7 +1504,7 @@ function SyncBadge({ status }) {
         .toLowerCase()
         .replaceAll("_", "-")}`}
     >
-      {labels[normalized] || status || "Chưa đồng bộ"}
+      {labels[normalized] || status || "Not Synced"}
     </span>
   );
 }
@@ -1569,12 +1559,12 @@ function toDateTimeLocal(value) {
 }
 
 function formatDateTime(value) {
-  if (!value) return "Chưa có thời hạn";
+  if (!value) return "No due date";
 
   const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) {
-    return "Thời gian không hợp lệ";
+    return "Invalid date";
   }
 
   return date.toLocaleString("vi-VN", {
@@ -1587,9 +1577,9 @@ function formatDateTime(value) {
 }
 function formatMemberRole(role) {
   const roleLabels = {
-    PRESIDENT: "Chủ nhiệm",
-    TREASURER: "Thủ quỹ",
-    MEMBER: "Thành viên",
+    PRESIDENT: "President",
+    TREASURER: "Treasurer",
+    MEMBER: "Member",
   };
 
   return roleLabels[role] || role;

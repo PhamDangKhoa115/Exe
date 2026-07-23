@@ -61,7 +61,7 @@ function normalizeDepartment(department) {
 
     id: department.id ?? department.departmentId,
 
-    name: department.name ?? department.departmentName ?? "Phòng ban",
+    name: department.name ?? department.departmentName ?? "Department",
 
     description: department.description ?? "",
 
@@ -71,7 +71,7 @@ function normalizeDepartment(department) {
       department.headMemberName ??
       department.headName ??
       department.head?.fullName ??
-      "Chưa có trưởng ban",
+      "No department head assigned",
 
     memberCount:
       department.memberCount ??
@@ -90,10 +90,7 @@ function normalizeMember(member) {
     userId: member.userId ?? member.user?.id,
 
     fullName:
-      member.fullName ??
-      member.user?.fullName ??
-      member.name ??
-      "Không xác định",
+      member.fullName ?? member.user?.fullName ?? member.name ?? "Unknown",
 
     role: member.role ?? member.memberRole ?? "MEMBER",
 
@@ -104,7 +101,7 @@ function normalizeMember(member) {
 export default function DepartmentPage() {
   const role = localStorage.getItem("selectedClubRole") || "MEMBER";
 
-  const clubName = localStorage.getItem("selectedClubName") || "Câu lạc bộ";
+  const clubName = localStorage.getItem("selectedClubName") || "Club";
 
   const canManageDepartments = useMemo(() => {
     return ["PRESIDENT", "CLUB_MANAGER"].includes(role.toUpperCase());
@@ -137,7 +134,7 @@ export default function DepartmentPage() {
     } catch (error) {
       console.error("LOAD DEPARTMENTS ERROR:", error?.response?.data || error);
 
-      toast.error(getErrorMessage(error, "Không thể tải danh sách phòng ban."));
+      toast.error(getErrorMessage(error, "Cannot load department list."));
 
       setDepartments([]);
     } finally {
@@ -207,7 +204,7 @@ export default function DepartmentPage() {
 
   const handleSaveDepartment = async (form) => {
     if (!form.name.trim()) {
-      toast.error("Vui lòng nhập tên phòng ban.");
+      toast.error("Please enter a department name.");
       return;
     }
 
@@ -223,11 +220,11 @@ export default function DepartmentPage() {
       if (editingDepartment) {
         await updateDepartment(editingDepartment.id, payload);
 
-        toast.success("Cập nhật phòng ban thành công.");
+        toast.success("Department updated successfully.");
       } else {
         await createDepartment(payload);
 
-        toast.success("Tạo phòng ban thành công.");
+        toast.success("Department created successfully.");
       }
 
       setShowModal(false);
@@ -241,8 +238,8 @@ export default function DepartmentPage() {
         getErrorMessage(
           error,
           editingDepartment
-            ? "Không thể cập nhật phòng ban."
-            : "Không thể tạo phòng ban.",
+            ? "Cannot update department."
+            : "Cannot create department.",
         ),
       );
     } finally {
@@ -263,19 +260,17 @@ export default function DepartmentPage() {
         result?.chatAccess === true;
 
       if (allowed) {
-        toast.success(`Bạn có quyền truy cập chat của ${department.name}.`);
+        toast.success(`You have access to the chat of ${department.name}.`);
       } else {
         toast.warning(
           result?.message ||
-            `Bạn chưa có quyền truy cập chat của ${department.name}.`,
+            `You do not have access to the chat of ${department.name}.`,
         );
       }
     } catch (error) {
       console.error("CHECK CHAT ACCESS ERROR:", error?.response?.data || error);
 
-      toast.error(
-        getErrorMessage(error, "Không thể kiểm tra quyền truy cập chat."),
-      );
+      toast.error(getErrorMessage(error, "Cannot check chat access."));
     } finally {
       setCheckingChatId(null);
     }
@@ -298,7 +293,7 @@ export default function DepartmentPage() {
                   <h1>Department Management</h1>
 
                   <p>
-                    Quản lý các phòng ban của <strong>{clubName}</strong>
+                    Manage departments of <strong>{clubName}</strong>
                   </p>
                 </div>
               </div>
@@ -312,7 +307,7 @@ export default function DepartmentPage() {
                 disabled={loading}
               >
                 <RefreshCw size={17} className={loading ? "spin-icon" : ""} />
-                Làm mới
+                Refresh
               </button>
 
               {canManageDepartments && (
@@ -322,7 +317,7 @@ export default function DepartmentPage() {
                   onClick={openCreateModal}
                 >
                   <CirclePlus size={18} />
-                  Tạo phòng ban
+                  Create Department
                 </button>
               )}
             </div>
@@ -336,11 +331,11 @@ export default function DepartmentPage() {
                 type="text"
                 value={searchText}
                 onChange={(event) => setSearchText(event.target.value)}
-                placeholder="Tìm theo tên, mô tả hoặc trưởng ban..."
+                placeholder="Search by name, description or department head..."
               />
             </div>
 
-            <span>{filteredDepartments.length} phòng ban</span>
+            <span>{filteredDepartments.length} departments</span>
           </div>
 
           {!canManageDepartments && (
@@ -348,8 +343,8 @@ export default function DepartmentPage() {
               <ShieldCheck size={18} />
 
               <span>
-                Bạn có thể xem phòng ban. Chỉ Chủ nhiệm hoặc Quản lý CLB được
-                phép tạo và chỉnh sửa.
+                You can view departments. Only department heads or club managers
+                are allowed to create and edit departments.
               </span>
             </div>
           )}
@@ -358,23 +353,22 @@ export default function DepartmentPage() {
             <div className="department-loading">
               <LoaderCircle size={34} className="spin-icon" />
 
-              <p>Đang tải phòng ban...</p>
+              <p>Loading departments...</p>
             </div>
           ) : filteredDepartments.length === 0 ? (
             <div className="department-empty">
               <Building2 size={50} />
 
-              <h2>Chưa có phòng ban</h2>
+              <h2>No departments found</h2>
 
               <p>
-                Hãy tạo phòng ban đầu tiên để tổ chức thành viên trong câu lạc
-                bộ.
+                Create the first department to organize members in the club.
               </p>
 
               {canManageDepartments && (
                 <button type="button" onClick={openCreateModal}>
                   <CirclePlus size={18} />
-                  Tạo phòng ban đầu tiên
+                  Create First Department
                 </button>
               )}
             </div>
@@ -428,7 +422,7 @@ function DepartmentCard({
             type="button"
             className="department-edit-button"
             onClick={() => onEdit(department)}
-            title="Chỉnh sửa phòng ban"
+            title="Edit Department"
           >
             <Edit3 size={17} />
           </button>
@@ -437,13 +431,13 @@ function DepartmentCard({
 
       <h2>{department.name}</h2>
 
-      <p>{department.description || "Phòng ban chưa có mô tả."}</p>
+      <p>{department.description || "Department has no description."}</p>
 
       <div className="department-info-row">
         <UserRound size={17} />
 
         <div>
-          <span>Trưởng ban</span>
+          <span>Department Head</span>
 
           <strong>{department.headMemberName}</strong>
         </div>
@@ -453,9 +447,9 @@ function DepartmentCard({
         <Users size={17} />
 
         <div>
-          <span>Thành viên</span>
+          <span>Members</span>
 
-          <strong>{department.memberCount} người</strong>
+          <strong>{department.memberCount} people</strong>
         </div>
       </div>
 
@@ -468,12 +462,12 @@ function DepartmentCard({
         {checkingChat ? (
           <>
             <LoaderCircle size={17} className="spin-icon" />
-            Đang kiểm tra...
+            Checking...
           </>
         ) : (
           <>
             <MessageCircle size={17} />
-            Kiểm tra quyền Chat
+            Check Chat Access
           </>
         )}
       </button>
@@ -521,9 +515,9 @@ function DepartmentModal({
             <Building2 size={25} />
 
             <div>
-              <h2>{department ? "Chỉnh sửa phòng ban" : "Tạo phòng ban"}</h2>
+              <h2>{department ? "Edit Department" : "Create Department"}</h2>
 
-              <p>Thiết lập tên, mô tả và trưởng ban.</p>
+              <p>Set the name, description, and department head.</p>
             </div>
           </div>
 
@@ -534,28 +528,28 @@ function DepartmentModal({
 
         <div className="department-modal-body">
           <label htmlFor="department-name">
-            Tên phòng ban <span>*</span>
+            Department Name <span>*</span>
           </label>
 
           <input
             id="department-name"
             type="text"
             value={form.name}
-            placeholder="Ví dụ: Ban Truyền Thông"
+            placeholder="Example: Communications Department"
             onChange={(event) => setField("name", event.target.value)}
           />
 
-          <label htmlFor="department-description">Mô tả</label>
+          <label htmlFor="department-description">Description</label>
 
           <textarea
             id="department-description"
             rows="4"
             value={form.description}
-            placeholder="Nhập mô tả phòng ban..."
+            placeholder="Enter department description..."
             onChange={(event) => setField("description", event.target.value)}
           />
 
-          <label htmlFor="department-head">Trưởng ban</label>
+          <label htmlFor="department-head">Department Head</label>
 
           <select
             id="department-head"
@@ -565,8 +559,8 @@ function DepartmentModal({
           >
             <option value="">
               {loadingMembers
-                ? "Đang tải thành viên..."
-                : "Chưa chọn trưởng ban"}
+                ? "Loading members..."
+                : "No department head selected"}
             </option>
 
             {members.map((member) => (
@@ -584,7 +578,7 @@ function DepartmentModal({
             disabled={saving}
             onClick={onClose}
           >
-            Hủy
+            Cancel
           </button>
 
           <button
@@ -594,10 +588,10 @@ function DepartmentModal({
             onClick={() => onSave(form)}
           >
             {saving
-              ? "Đang lưu..."
+              ? "Saving..."
               : department
-                ? "Lưu thay đổi"
-                : "Tạo phòng ban"}
+                ? "Save Changes"
+                : "Create Department"}
           </button>
         </footer>
       </div>
@@ -607,12 +601,12 @@ function DepartmentModal({
 
 function formatRole(role) {
   const labels = {
-    PRESIDENT: "Chủ nhiệm",
-    CLUB_MANAGER: "Quản lý CLB",
-    DEPARTMENT_HEAD: "Trưởng ban",
-    TREASURER: "Thủ quỹ",
-    MEMBER: "Thành viên",
+    PRESIDENT: "President",
+    CLUB_MANAGER: "Club Manager",
+    DEPARTMENT_HEAD: "Department Head",
+    TREASURER: "Treasurer",
+    MEMBER: "Member",
   };
 
-  return labels[String(role || "").toUpperCase()] || role || "Thành viên";
+  return labels[String(role || "").toUpperCase()] || role || "Member";
 }

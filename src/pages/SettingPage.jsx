@@ -55,11 +55,11 @@ export default function SettingPage() {
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
 
-      toast.success("Đã lưu cài đặt thông báo.");
+      toast.success("Settings saved.");
     } catch (error) {
       console.error("SAVE SETTINGS ERROR:", error);
 
-      toast.error("Không thể lưu cài đặt.");
+      toast.error("Cannot save settings.");
     } finally {
       setSaving(false);
     }
@@ -81,8 +81,8 @@ export default function SettingPage() {
                 <h1>Settings</h1>
 
                 <p>
-                  Quản lý cách ClubSync gửi thông báo và nhắc nhở đến tài khoản
-                  của bạn.
+                  Manage how ClubSync sends notifications and reminders to your
+                  account.
                 </p>
               </div>
             </div>
@@ -94,7 +94,7 @@ export default function SettingPage() {
                 <div>
                   <h2>Notification Settings</h2>
 
-                  <p>Chọn loại thông báo bạn muốn nhận.</p>
+                  <p>Choose the types of notifications you want to receive.</p>
                 </div>
 
                 <Bell size={23} />
@@ -104,7 +104,7 @@ export default function SettingPage() {
                 <SettingOption
                   icon={<Mail size={21} />}
                   title="Email Notification"
-                  description="Nhận thông báo sự kiện, công việc và cập nhật qua email."
+                  description="Receive event, task, and update notifications via email."
                   checked={settings.emailNotification}
                   onChange={(checked) => setField("emailNotification", checked)}
                 />
@@ -112,7 +112,7 @@ export default function SettingPage() {
                 <SettingOption
                   icon={<Bell size={21} />}
                   title="System Notification"
-                  description="Hiển thị thông báo trực tiếp trong hệ thống ClubSync."
+                  description="Display notifications directly in the ClubSync system."
                   checked={settings.systemNotification}
                   onChange={(checked) =>
                     setField("systemNotification", checked)
@@ -122,7 +122,7 @@ export default function SettingPage() {
                 <SettingOption
                   icon={<CheckCircle2 size={21} />}
                   title="Event Reminder"
-                  description="Nhắc bạn trước khi sự kiện của câu lạc bộ bắt đầu."
+                  description="Remind you before your club's events begin."
                   checked={settings.eventReminder}
                   onChange={(checked) => setField("eventReminder", checked)}
                 />
@@ -130,7 +130,7 @@ export default function SettingPage() {
                 <SettingOption
                   icon={<ShieldCheck size={21} />}
                   title="Task Reminder"
-                  description="Thông báo công việc sắp đến hạn hoặc đã quá hạn."
+                  description="Remind you about upcoming or overdue tasks."
                   checked={settings.taskReminder}
                   onChange={(checked) => setField("taskReminder", checked)}
                 />
@@ -145,7 +145,7 @@ export default function SettingPage() {
                 >
                   <Save size={18} />
 
-                  {saving ? "Đang lưu..." : "Lưu cài đặt"}
+                  {saving ? "Saving..." : "Save Settings"}
                 </button>
               </div>
             </section>
@@ -155,17 +155,16 @@ export default function SettingPage() {
                 <ShieldCheck size={27} />
               </div>
 
-              <h2>Thông tin quyền riêng tư</h2>
+              <h2>Privacy Information</h2>
 
               <p>
-                Bạn có thể thay đổi tùy chọn thông báo bất kỳ lúc nào. Những
-                thông báo quan trọng liên quan đến bảo mật tài khoản vẫn có thể
-                được gửi.
+                You can change your notification preferences at any time.
+                Important security-related notifications will still be sent.
               </p>
 
               <div className="setting-info-status">
                 <CheckCircle2 size={17} />
-                Cài đặt được lưu trên trình duyệt
+                Settings are saved in your browser
               </div>
             </aside>
           </div>

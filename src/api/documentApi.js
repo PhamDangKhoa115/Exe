@@ -5,11 +5,11 @@ function getRequiredContext() {
   const clubId = localStorage.getItem("selectedClubId");
 
   if (!userId) {
-    throw new Error("Không tìm thấy userId. Vui lòng đăng nhập lại.");
+    throw new Error("Please login first.");
   }
 
   if (!clubId) {
-    throw new Error("Vui lòng chọn câu lạc bộ trước.");
+    throw new Error("Please select a club first.");
   }
 
   return {
@@ -32,11 +32,11 @@ export async function createDocument({ title, eventId, category, type }) {
   const { userId, clubId } = getRequiredContext();
 
   if (!title?.trim()) {
-    throw new Error("Vui lòng nhập tiêu đề tài liệu.");
+    throw new Error("Please enter a document title.");
   }
 
   if (!type) {
-    throw new Error("Vui lòng chọn loại tài liệu.");
+    throw new Error("Please select a document type.");
   }
 
   const params = {
@@ -152,7 +152,7 @@ export async function shareDocument(id, role = "reader") {
   const allowedRoles = ["reader", "commenter", "writer"];
 
   if (!allowedRoles.includes(role)) {
-    throw new Error("Quyền chia sẻ không hợp lệ.");
+    throw new Error("Invalid sharing role.");
   }
 
   const response = await API.post(`/api/documents/${id}/share`, null, {

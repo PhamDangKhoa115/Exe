@@ -49,7 +49,7 @@ export default function GoogleFormsPage() {
 
   const loadForms = async () => {
     if (!userId) {
-      toast.error("Không tìm thấy userId. Vui lòng đăng nhập lại.");
+      toast.error("Please log in to load Google Forms");
       return;
     }
 
@@ -60,7 +60,7 @@ export default function GoogleFormsPage() {
 
       setForms(Array.isArray(data) ? data : []);
     } catch (error) {
-      const message = getApiError(error, "Không thể tải Google Forms");
+      const message = getApiError(error, "Failed to load Google Forms");
 
       console.log("LOAD GOOGLE FORMS ERROR:", message);
       toast.error(message);
@@ -111,12 +111,12 @@ export default function GoogleFormsPage() {
     event.preventDefault();
 
     if (!title.trim()) {
-      toast.warning("Vui lòng nhập tên Form");
+      toast.warning("Please enter a form name");
       return;
     }
 
     if (!userId) {
-      toast.error("Không tìm thấy userId. Vui lòng đăng nhập lại.");
+      toast.error("User ID not found. Please log in again.");
       return;
     }
 
@@ -127,7 +127,7 @@ export default function GoogleFormsPage() {
         title: title.trim(),
         type,
       });
-      toast.success("Tạo Google Form thành công");
+      toast.success("Successfully created Google Form");
 
       setTitle("");
       setShowCreate(false);
@@ -138,7 +138,7 @@ export default function GoogleFormsPage() {
         window.open(createdForm.formUrl, "_blank", "noopener,noreferrer");
       }
     } catch (error) {
-      const message = getApiError(error, "Không thể tạo Google Form");
+      const message = getApiError(error, "Failed to create Google Form");
 
       console.log("CREATE GOOGLE FORM ERROR:", message);
       toast.error(message);
@@ -149,7 +149,7 @@ export default function GoogleFormsPage() {
 
   const handleOpenEditor = (form) => {
     if (!form.formUrl) {
-      toast.warning("Google Form chưa có đường dẫn chỉnh sửa");
+      toast.warning("Google Form does not have an edit link");
       return;
     }
 
@@ -158,7 +158,7 @@ export default function GoogleFormsPage() {
 
   const handleOpenResponder = (form) => {
     if (!form.responderUri) {
-      toast.warning("Google Form chưa có đường dẫn trả lời");
+      toast.warning("Google Form does not have a response link");
       return;
     }
 
@@ -171,12 +171,12 @@ export default function GoogleFormsPage() {
       console.log("FORM RESPONSES:", data);
 
       if (Array.isArray(data)) {
-        toast.info(`Form có ${data.length} phản hồi`);
+        toast.info(`Form has ${data.length} responses`);
       } else {
-        toast.info("Đã tải dữ liệu phản hồi của Form");
+        toast.info("Successfully loaded form responses");
       }
     } catch (error) {
-      const message = getApiError(error, "Không thể tải phản hồi");
+      const message = getApiError(error, "Failed to load responses");
 
       console.log("LOAD FORM RESPONSES ERROR:", message);
       toast.error(message);
@@ -184,7 +184,7 @@ export default function GoogleFormsPage() {
   };
   const handleOpenQuestionModal = (form) => {
     if (!form?.formId) {
-      toast.error("Không tìm thấy ID của Google Form");
+      toast.error("Form ID not found");
       return;
     }
 
@@ -201,7 +201,7 @@ export default function GoogleFormsPage() {
 
   const handleAddQuestion = async (question) => {
     if (!selectedForm?.formId) {
-      toast.error("Không tìm thấy Google Form");
+      toast.error("Form ID not found");
       return;
     }
 
@@ -210,14 +210,14 @@ export default function GoogleFormsPage() {
 
       await addGoogleFormQuestion(selectedForm.formId, question);
 
-      toast.success("Thêm câu hỏi thành công");
+      toast.success("Question added successfully");
 
       setShowQuestionModal(false);
       setSelectedForm(null);
 
       await loadForms();
     } catch (error) {
-      const message = getApiError(error, "Không thể thêm câu hỏi");
+      const message = getApiError(error, "Failed to add question");
 
       console.log("ADD FORM QUESTION ERROR:", message);
       toast.error(message);
@@ -229,7 +229,7 @@ export default function GoogleFormsPage() {
     toast(
       ({ closeToast }) => (
         <ConfirmToast
-          message={`Bạn có chắc muốn xóa Google Form "${form.title}" không?`}
+          message={`Are you sure you want to delete Google Form "${form.title}"?`}
           closeToast={closeToast}
           onConfirm={async () => {
             try {
@@ -241,9 +241,12 @@ export default function GoogleFormsPage() {
                 ),
               );
 
-              toast.success("Xóa Google Form thành công");
+              toast.success("Successfully deleted Google Form");
             } catch (error) {
-              const message = getApiError(error, "Không thể xóa Google Form");
+              const message = getApiError(
+                error,
+                "Failed to delete Google Form",
+              );
 
               console.log("DELETE GOOGLE FORM ERROR:", message);
               toast.error(message);
@@ -304,13 +307,13 @@ export default function GoogleFormsPage() {
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Tìm kiếm Google Forms..."
+                placeholder="Search Google Forms..."
               />
             </div>
           </div>
 
           <div className="workspace-content">
-            <h3 className="workspace-section-title">Tạo Google Form mới</h3>
+            <h3 className="workspace-section-title">Create New Google Form</h3>
 
             <div className="template-list">
               <button
@@ -322,17 +325,17 @@ export default function GoogleFormsPage() {
                   <Plus size={64} />
                 </div>
 
-                <span>Form mới</span>
+                <span>New Form</span>
               </button>
 
-              <FormTemplate title="Đăng ký sự kiện" />
-              <FormTemplate title="Khảo sát thành viên" />
-              <FormTemplate title="Phản hồi CLB" />
-              <FormTemplate title="Điểm danh" />
+              <FormTemplate title="Registration Form" />
+              <FormTemplate title="Member Survey" />
+              <FormTemplate title="CLB Feedback" />
+              <FormTemplate title="Attendance Sheet" />
             </div>
 
             <div className="recent-header">
-              <h3>Google Form gần đây</h3>
+              <h3>Recent Forms</h3>
 
               <div className="workspace-owner-sort">
                 <span>Owner</span>
@@ -358,14 +361,14 @@ export default function GoogleFormsPage() {
                       type="button"
                       className={showSortMenu ? "active" : ""}
                       onClick={() => setShowSortMenu((current) => !current)}
-                      title="Sắp xếp"
+                      title="Sort"
                     >
                       <ArrowDownAZ size={20} />
                     </button>
 
                     {showSortMenu && (
                       <div className="workspace-sort-menu">
-                        <p>Sắp xếp theo</p>
+                        <p>Sort by</p>
 
                         <button
                           type="button"
@@ -375,7 +378,7 @@ export default function GoogleFormsPage() {
                             setShowSortMenu(false);
                           }}
                         >
-                          Ngày tạo
+                          Date created
                         </button>
 
                         <button
@@ -386,10 +389,10 @@ export default function GoogleFormsPage() {
                             setShowSortMenu(false);
                           }}
                         >
-                          Tên
+                          Name
                         </button>
 
-                        <p>Thứ tự</p>
+                        <p>Order</p>
 
                         <button
                           type="button"
@@ -399,7 +402,7 @@ export default function GoogleFormsPage() {
                             setShowSortMenu(false);
                           }}
                         >
-                          Tăng dần
+                          Ascending
                         </button>
 
                         <button
@@ -410,7 +413,7 @@ export default function GoogleFormsPage() {
                             setShowSortMenu(false);
                           }}
                         >
-                          Giảm dần
+                          Descending
                         </button>
                       </div>
                     )}
@@ -419,7 +422,7 @@ export default function GoogleFormsPage() {
                   <button
                     type="button"
                     onClick={() => setShowPicker(true)}
-                    title="Mở tệp"
+                    title="Open File"
                   >
                     <FolderOpen size={20} />
                   </button>
@@ -428,20 +431,20 @@ export default function GoogleFormsPage() {
             </div>
 
             {loading ? (
-              <div className="workspace-status">Đang tải Google Forms...</div>
+              <div className="workspace-status">Loading Google Forms...</div>
             ) : filteredForms.length === 0 ? (
               <div className="workspace-empty">
                 <ClipboardList size={50} />
 
-                <h2>Chưa có Google Form</h2>
+                <h2>No Google Forms Found</h2>
 
                 <p>
-                  Không có Form thuộc loại{" "}
+                  There are no forms of type{" "}
                   {type === "EVENT" ? "Event" : "Club Activity"}.
                 </p>
 
                 <button type="button" onClick={() => setShowCreate(true)}>
-                  Tạo Google Form
+                  Create Google Form
                 </button>
               </div>
             ) : view === "grid" ? (
@@ -518,9 +521,9 @@ function FormsList({
     <div className="workspace-list-view">
       <div className="workspace-list-header">
         <span />
-        <span>Tên</span>
-        <span className="owner-column">Chủ sở hữu</span>
-        <span className="date-column">Ngày cập nhật</span>
+        <span>Name</span>
+        <span className="owner-column">Owner</span>
+        <span className="date-column">Last Updated</span>
         <span />
       </div>
 
@@ -592,7 +595,7 @@ function FormListRow({
               }}
             >
               <Eye size={16} />
-              Chỉnh sửa Form
+              Edit Form
             </button>
             <button
               type="button"
@@ -602,7 +605,7 @@ function FormListRow({
               }}
             >
               <CirclePlus size={16} />
-              Thêm câu hỏi
+              Add Question
             </button>
             <button
               type="button"
@@ -612,7 +615,7 @@ function FormListRow({
               }}
             >
               <ExternalLink size={16} />
-              Mở Form trả lời
+              Open Form Responses
             </button>
 
             <button
@@ -623,7 +626,7 @@ function FormListRow({
               }}
             >
               <ClipboardList size={16} />
-              Xem phản hồi
+              View Responses
             </button>
 
             <button
@@ -635,7 +638,7 @@ function FormListRow({
               }}
             >
               <Trash2 size={16} />
-              Xóa
+              Delete
             </button>
           </div>
         )}
@@ -718,7 +721,7 @@ function FormCard({
                   }}
                 >
                   <Eye size={16} />
-                  Chỉnh sửa Form
+                  Edit Form
                 </button>
 
                 <button
@@ -729,7 +732,7 @@ function FormCard({
                   }}
                 >
                   <ExternalLink size={16} />
-                  Mở Form trả lời
+                  Open Form Responses
                 </button>
                 <button
                   type="button"
@@ -739,7 +742,7 @@ function FormCard({
                   }}
                 >
                   <CirclePlus size={16} />
-                  Thêm câu hỏi
+                  Add Question
                 </button>
                 <button
                   type="button"
@@ -749,7 +752,7 @@ function FormCard({
                   }}
                 >
                   <ClipboardList size={16} />
-                  Xem phản hồi
+                  View Responses
                 </button>
 
                 <button
@@ -761,7 +764,7 @@ function FormCard({
                   }}
                 >
                   <Trash2 size={16} />
-                  Xóa
+                  Delete
                 </button>
               </div>
             )}
@@ -798,29 +801,29 @@ function CreateFormModal({
         <div className="workspace-modal-icon">
           <GoogleFormsIcon size={34} />
         </div>
-        <h2>Tạo Google Form</h2>
+        <h2>Create Google Form</h2>
 
         <p className="workspace-modal-description">
-          Loại: {type === "EVENT" ? "Event" : "Club Activity"}
+          Type: {type === "EVENT" ? "Event" : "Club Activity"}
         </p>
 
-        <label>Tiêu đề</label>
+        <label>Title</label>
 
         <input
           autoFocus
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          placeholder="Nhập tiêu đề Form..."
+          placeholder="Enter Form Title..."
           disabled={loading}
         />
 
         <div className="workspace-modal-actions">
           <button type="button" onClick={onClose} disabled={loading}>
-            Hủy
+            Cancel
           </button>
 
           <button type="submit" disabled={loading}>
-            {loading ? "Đang tạo..." : "Tạo Form"}
+            {loading ? "Creating..." : "Create Form"}
           </button>
         </div>
       </form>
@@ -877,7 +880,7 @@ function AddQuestionModal({ form, loading, onClose, onSubmit }) {
     event.preventDefault();
 
     if (!question.title.trim()) {
-      toast.warning("Vui lòng nhập nội dung câu hỏi");
+      toast.warning("Please enter the question content");
       return;
     }
 
@@ -886,7 +889,7 @@ function AddQuestionModal({ form, loading, onClose, onSubmit }) {
       : [];
 
     if (needOptions && cleanedOptions.length < 2) {
-      toast.warning("Câu hỏi lựa chọn phải có ít nhất 2 đáp án");
+      toast.warning("The question must have at least 2 options");
       return;
     }
 
@@ -918,22 +921,22 @@ function AddQuestionModal({ form, loading, onClose, onSubmit }) {
           <GoogleFormsIcon size={34} />
         </div>
 
-        <h2>Thêm câu hỏi</h2>
+        <h2>Add Question</h2>
 
         <p className="workspace-modal-description">Form: {form.title}</p>
 
-        <label>Nội dung câu hỏi</label>
+        <label>Question Content</label>
 
         <input
           autoFocus
           name="title"
           value={question.title}
           onChange={handleChange}
-          placeholder="Ví dụ: Bạn có tham gia sự kiện không?"
+          placeholder="Example: Do you want to participate in the event?"
           disabled={loading}
         />
 
-        <label>Loại câu hỏi</label>
+        <label>Question Type</label>
 
         <select
           name="type"
@@ -941,21 +944,21 @@ function AddQuestionModal({ form, loading, onClose, onSubmit }) {
           onChange={handleChange}
           disabled={loading}
         >
-          <option value="TEXT">Câu trả lời ngắn</option>
+          <option value="TEXT">Short Answer</option>
 
-          <option value="PARAGRAPH">Đoạn văn</option>
+          <option value="PARAGRAPH">Paragraph</option>
 
-          <option value="MULTIPLE_CHOICE">Trắc nghiệm</option>
+          <option value="MULTIPLE_CHOICE">Multiple Choice</option>
 
-          <option value="CHECKBOX">Hộp kiểm</option>
+          <option value="CHECKBOX">Checkbox</option>
 
-          <option value="DROPDOWN">Danh sách thả xuống</option>
+          <option value="DROPDOWN">Dropdown</option>
         </select>
 
         {needOptions && (
           <div className="question-options">
             <div className="question-options-header">
-              <label>Các lựa chọn</label>
+              <label>Options</label>
 
               <button
                 type="button"
@@ -963,7 +966,7 @@ function AddQuestionModal({ form, loading, onClose, onSubmit }) {
                 disabled={loading}
               >
                 <Plus size={16} />
-                Thêm lựa chọn
+                Add Option
               </button>
             </div>
 
@@ -974,7 +977,7 @@ function AddQuestionModal({ form, loading, onClose, onSubmit }) {
                   onChange={(event) =>
                     handleOptionChange(index, event.target.value)
                   }
-                  placeholder={`Lựa chọn ${index + 1}`}
+                  placeholder={`Option ${index + 1}`}
                   disabled={loading}
                 />
 
@@ -983,7 +986,7 @@ function AddQuestionModal({ form, loading, onClose, onSubmit }) {
                     type="button"
                     onClick={() => handleRemoveOption(index)}
                     disabled={loading}
-                    aria-label="Xóa lựa chọn"
+                    aria-label="Remove option"
                   >
                     <X size={17} />
                   </button>
@@ -1002,16 +1005,16 @@ function AddQuestionModal({ form, loading, onClose, onSubmit }) {
             disabled={loading}
           />
 
-          <span>Bắt buộc trả lời</span>
+          <span>Required</span>
         </label>
 
         <div className="workspace-modal-actions">
           <button type="button" onClick={onClose} disabled={loading}>
-            Hủy
+            Cancel
           </button>
 
           <button type="submit" disabled={loading}>
-            {loading ? "Đang thêm..." : "Thêm câu hỏi"}
+            {loading ? "Adding..." : "Add Question"}
           </button>
         </div>
       </form>
@@ -1019,7 +1022,7 @@ function AddQuestionModal({ form, loading, onClose, onSubmit }) {
   );
 }
 function formatWorkspaceDate(value) {
-  if (!value) return "Không rõ ngày";
+  if (!value) return "Unknown date";
 
   return new Date(value).toLocaleDateString("vi-VN", {
     day: "2-digit",

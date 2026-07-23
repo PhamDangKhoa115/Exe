@@ -14,12 +14,12 @@ import { getClubDocuments } from "../api/documentApi";
 import { getApiError } from "../utils/getApiError";
 
 const FILTERS = [
-  { value: "ALL", label: "Tất cả tài liệu" },
-  { value: "MEETING_MINUTES", label: "Biên bản cuộc họp" },
-  { value: "EVENT_PLAN", label: "Kế hoạch sự kiện" },
-  { value: "REPORT", label: "Báo cáo" },
-  { value: "FINANCE", label: "Tài chính" },
-  { value: "OTHER", label: "Khác" },
+  { value: "ALL", label: "All Documents" },
+  { value: "MEETING_MINUTES", label: "Meeting Minutes" },
+  { value: "EVENT_PLAN", label: "Event Plan" },
+  { value: "REPORT", label: "Report" },
+  { value: "FINANCE", label: "Finance" },
+  { value: "OTHER", label: "Other" },
 ];
 
 export default function DocumentPickerModal({ open, onClose, onSelect }) {
@@ -39,7 +39,7 @@ export default function DocumentPickerModal({ open, onClose, onSelect }) {
 
     const loadDocuments = async () => {
       if (!userId || !clubId) {
-        toast.error("Không tìm thấy người dùng hoặc câu lạc bộ");
+        toast.error("User or club not found");
         return;
       }
 
@@ -57,7 +57,7 @@ export default function DocumentPickerModal({ open, onClose, onSelect }) {
 
         setDocuments(Array.isArray(data) ? data : []);
       } catch (error) {
-        toast.error(getApiError(error, "Không thể tải danh sách tài liệu"));
+        toast.error(getApiError(error, "Failed to load document list"));
         setDocuments([]);
       } finally {
         setLoading(false);
@@ -97,7 +97,7 @@ export default function DocumentPickerModal({ open, onClose, onSelect }) {
         <header className="drive-picker-header">
           <div className="drive-picker-title">
             <FileText size={23} />
-            <h2>Mở tệp</h2>
+            <h2>Open File</h2>
           </div>
 
           <button
@@ -116,7 +116,7 @@ export default function DocumentPickerModal({ open, onClose, onSelect }) {
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Tìm trong tài liệu hoặc dán URL"
+              placeholder="Search documents or paste URL"
             />
 
             <button
@@ -129,7 +129,7 @@ export default function DocumentPickerModal({ open, onClose, onSelect }) {
 
           {showFilters && (
             <div className="drive-picker-filter-menu">
-              <p>Lọc kết quả theo</p>
+              <p>Filter results by</p>
 
               {FILTERS.map((filter) => (
                 <button
@@ -150,33 +150,33 @@ export default function DocumentPickerModal({ open, onClose, onSelect }) {
 
         <nav className="drive-picker-tabs">
           <button type="button" className="active">
-            Gần đây
+            Recently
           </button>
 
           <button
             type="button"
             onClick={() => toast.info("Tính năng đang phát triển")}
           >
-            Drive của tôi
+            My Drive
           </button>
 
           <button
             type="button"
             onClick={() => toast.info("Tính năng đang phát triển")}
           >
-            Được chia sẻ với tôi
+            Shared with me
           </button>
 
           <button
             type="button"
             onClick={() => toast.info("Tính năng đang phát triển")}
           >
-            Có gắn dấu sao
+            Starred
           </button>
         </nav>
 
         <div className="drive-picker-toolbar">
-          <strong>Tên</strong>
+          <strong>Name</strong>
 
           <div>
             <button
@@ -199,11 +199,11 @@ export default function DocumentPickerModal({ open, onClose, onSelect }) {
 
         <div className={`drive-picker-files ${view}`}>
           {loading ? (
-            <div className="drive-picker-status">Đang tải tài liệu...</div>
+            <div className="drive-picker-status">Loading documents...</div>
           ) : filteredDocuments.length === 0 ? (
             <div className="drive-picker-empty">
               <FolderOpen size={48} />
-              <h3>Không tìm thấy tài liệu</h3>
+              <h3>No documents found</h3>
             </div>
           ) : (
             filteredDocuments.map((document) => (
@@ -238,14 +238,14 @@ export default function DocumentPickerModal({ open, onClose, onSelect }) {
 
 function getDocumentTypeLabel(type) {
   const labels = {
-    MEETING_MINUTES: "Biên bản cuộc họp",
-    EVENT_PLAN: "Kế hoạch sự kiện",
-    REPORT: "Báo cáo",
-    FINANCE: "Tài chính",
-    OTHER: "Tài liệu khác",
+    MEETING_MINUTES: "Meeting Minutes",
+    EVENT_PLAN: "Event Plan",
+    REPORT: "Report",
+    FINANCE: "Finance",
+    OTHER: "Other",
   };
 
-  return labels[type] || "Tài liệu";
+  return labels[type] || "Document";
 }
 
 function formatDate(value) {

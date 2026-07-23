@@ -7,7 +7,7 @@ import { login, loginWithGoogle } from "../api/authApi";
 export default function LoginPage() {
   const navigate = useNavigate();
   const googleButtonRef = useRef(null);
-
+  const googleContainerRef = useRef(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -31,7 +31,7 @@ export default function LoginPage() {
 
   const handleLoginSuccess = (data) => {
     saveAuthData(data);
-    toast.success("Đăng nhập thành công");
+    toast.success("Login successful! Redirecting to club selection...");
     navigate("/select-club", { replace: true });
   };
 
@@ -39,7 +39,7 @@ export default function LoginPage() {
     event.preventDefault();
 
     if (!email.trim() || !password) {
-      toast.warning("Vui lòng nhập tài khoản và mật khẩu");
+      toast.warning("Please enter your account and password");
       return;
     }
 
@@ -53,9 +53,7 @@ export default function LoginPage() {
       console.log("LOGIN ERROR:", error.response?.data || error);
 
       toast.error(
-        error.response?.data?.message ||
-          error.response?.data ||
-          "Đăng nhập thất bại",
+        error.response?.data?.message || error.response?.data || "Login failed",
       );
     } finally {
       setLoading(false);
@@ -67,7 +65,7 @@ export default function LoginPage() {
       setLoading(true);
 
       if (!response?.credential) {
-        throw new Error("Google không trả về credential");
+        throw new Error("Google does not return credential");
       }
 
       const googleProfile = decodeGoogleCredential(response.credential);
@@ -89,7 +87,7 @@ export default function LoginPage() {
         error.response?.data?.message ||
           error.response?.data ||
           error.message ||
-          "Đăng nhập Google thất bại",
+          "Google login failed",
       );
     } finally {
       setLoading(false);
@@ -105,7 +103,38 @@ export default function LoginPage() {
     }
 
     let retryTimer;
+    let resizeObserver;
     let cancelled = false;
+
+    const renderGoogleButton = () => {
+      if (
+        cancelled ||
+        !window.google?.accounts?.id ||
+        !googleButtonRef.current ||
+        !googleContainerRef.current
+      ) {
+        return;
+      }
+
+      const containerWidth =
+        googleContainerRef.current.getBoundingClientRect().width;
+
+      if (containerWidth <= 0) {
+        return;
+      }
+
+      googleButtonRef.current.innerHTML = "";
+
+      window.google.accounts.id.renderButton(googleButtonRef.current, {
+        type: "standard",
+        theme: "outline",
+        size: "large",
+        text: "continue_with",
+        shape: "rectangular",
+        width: Math.floor(containerWidth),
+        locale: "vi",
+      });
+    };
 
     const initializeGoogleButton = () => {
       if (cancelled) return;
@@ -122,18 +151,14 @@ export default function LoginPage() {
         auto_select: false,
       });
 
-      if (googleButtonRef.current) {
-        googleButtonRef.current.innerHTML = "";
+      renderGoogleButton();
 
-        window.google.accounts.id.renderButton(googleButtonRef.current, {
-          type: "standard",
-          theme: "outline",
-          size: "large",
-          text: "continue_with",
-          shape: "rectangular",
-          width: 320,
-          locale: "vi",
+      if (googleContainerRef.current) {
+        resizeObserver = new ResizeObserver(() => {
+          renderGoogleButton();
         });
+
+        resizeObserver.observe(googleContainerRef.current);
       }
     };
 
@@ -145,35 +170,39 @@ export default function LoginPage() {
       if (retryTimer) {
         window.clearTimeout(retryTimer);
       }
+
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
     };
   }, []);
-
   return (
     <div className="auth-page">
       <form className="auth-card" onSubmit={handleLogin}>
         <img src="/logo.png" alt="S-Club Logo" className="auth-logo" />
 
         <h1>S-Club</h1>
-        <p>STUDENT CLUBS OS</p>
         <div className="auth-inner">
           <h2>Welcome to S-Club</h2>
 
           <span>Log in to manage your campus organizations.</span>
 
-          <input
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            placeholder="Email or Username"
-            disabled={loading}
-          />
+          <div className="auth-fields">
+            <input
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="Email or Username"
+              disabled={loading}
+            />
 
-          <input
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder="Password"
-            disabled={loading}
-          />
+            <input
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="Password"
+              disabled={loading}
+            />
+          </div>
 
           <div className="auth-row">
             <label className="checkbox-label">
@@ -187,12 +216,13 @@ export default function LoginPage() {
           </div>
 
           <button className="main-btn full" type="submit" disabled={loading}>
-            {loading ? "Đang đăng nhập..." : "Login"}
+            {loading ? "Logging in..." : "Login"}
           </button>
 
           <div className="divider">OR</div>
-
-          <div ref={googleButtonRef} className="google-login-container" />
+          <div ref={googleContainerRef} className="google-login-container">
+            <div ref={googleButtonRef} />
+          </div>
         </div>
 
         <p className="auth-footer">

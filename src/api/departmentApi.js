@@ -5,11 +5,11 @@ function getRequiredContext() {
   const userId = localStorage.getItem("userId");
 
   if (!clubId) {
-    throw new Error("Vui lòng chọn câu lạc bộ trước.");
+    throw new Error("Please select a club first.");
   }
 
   if (!userId) {
-    throw new Error("Không tìm thấy userId. Vui lòng đăng nhập lại.");
+    throw new Error("Please login first.");
   }
 
   return {

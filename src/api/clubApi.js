@@ -4,7 +4,7 @@ function getRequiredUserId() {
   const userId = localStorage.getItem("userId");
 
   if (!userId) {
-    throw new Error("Không tìm thấy userId. Vui lòng đăng nhập lại.");
+    throw new Error("Please login first.");
   }
 
   return Number(userId);
@@ -14,7 +14,7 @@ function getRequiredClubId() {
   const clubId = localStorage.getItem("selectedClubId");
 
   if (!clubId) {
-    throw new Error("Vui lòng chọn câu lạc bộ trước.");
+    throw new Error("Please select a club first.");
   }
 
   return Number(clubId);

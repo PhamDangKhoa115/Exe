@@ -32,11 +32,11 @@ import {
 import { getApiError } from "../utils/getApiError";
 
 const TYPE_LABELS = {
-  MEETING_MINUTES: "Biên bản",
-  EVENT_PLAN: "Kế hoạch",
-  REPORT: "Báo cáo",
-  FINANCE: "Tài chính",
-  OTHER: "Khác",
+  MEETING_MINUTES: "Meeting Minutes",
+  EVENT_PLAN: "Event Plan",
+  REPORT: "Report",
+  FINANCE: "Finance",
+  OTHER: "Other",
 };
 
 export default function GoogleDocsPage() {
@@ -44,7 +44,7 @@ export default function GoogleDocsPage() {
 
   const userId = localStorage.getItem("userId");
   const clubId = localStorage.getItem("selectedClubId");
-  const clubName = localStorage.getItem("selectedClubName") || "Câu lạc bộ";
+  const clubName = localStorage.getItem("selectedClubName") || "Club";
   const role = localStorage.getItem("selectedClubRole") || "MEMBER";
   const [documentTypes, setDocumentTypes] = useState([]);
   const [documentCategories, setDocumentCategories] = useState([]);
@@ -76,7 +76,7 @@ export default function GoogleDocsPage() {
 
   const loadDocuments = useCallback(async () => {
     if (!userId || !clubId) {
-      toast.error("Vui lòng chọn câu lạc bộ trước");
+      toast.error("Please select a club first");
       return;
     }
 
@@ -92,7 +92,7 @@ export default function GoogleDocsPage() {
       });
       setDocuments(Array.isArray(data) ? data : []);
     } catch (error) {
-      const message = getApiError(error, "Không thể tải danh sách tài liệu");
+      const message = getApiError(error, "Failed to load document list");
 
       console.log("LOAD DOCUMENTS ERROR:", message);
       toast.error(message);
@@ -137,7 +137,7 @@ export default function GoogleDocsPage() {
   };
   const handleDelete = async (document) => {
     const confirmed = window.confirm(
-      `Bạn có chắc muốn xóa tài liệu "${document.title}" không?`,
+      `Are you sure you want to delete the document "${document.title}"?`,
     );
 
     if (!confirmed) return;
@@ -147,11 +147,11 @@ export default function GoogleDocsPage() {
 
       await deleteDocument(document.id);
 
-      toast.success("Xóa tài liệu thành công.");
+      toast.success("Document deleted successfully.");
 
       await loadDocuments();
     } catch (error) {
-      const message = getApiError(error, "Không thể xóa tài liệu");
+      const message = getApiError(error, "Failed to delete document");
 
       console.error("DELETE DOCUMENT ERROR:", error?.response?.data || error);
 
@@ -163,7 +163,7 @@ export default function GoogleDocsPage() {
   };
   const handleOpenDocument = (document) => {
     if (!document.documentUrl) {
-      toast.warning("Tài liệu chưa có đường dẫn Google Docs");
+      toast.warning("Document does not have a Google Docs link");
       return;
     }
 
@@ -187,11 +187,11 @@ export default function GoogleDocsPage() {
 
       await syncDocument(document.id);
 
-      toast.success(`Đã đồng bộ "${document.title}"`);
+      toast.success(`Document synchronized: "${document.title}"`);
 
       await loadDocuments();
     } catch (error) {
-      const message = getApiError(error, "Không thể đồng bộ tài liệu");
+      const message = getApiError(error, "Failed to synchronize document");
 
       console.log("SYNC DOCUMENT ERROR:", message);
       toast.error(message);
@@ -208,10 +208,10 @@ export default function GoogleDocsPage() {
       toast.success(
         typeof result === "string"
           ? result
-          : `Đã chia sẻ tài liệu với quyền ${shareRole}`,
+          : `Document shared with role ${shareRole}`,
       );
     } catch (error) {
-      const message = getApiError(error, "Không thể chia sẻ tài liệu");
+      const message = getApiError(error, "Failed to share document");
 
       console.log("SHARE DOCUMENT ERROR:", message);
       toast.error(message);
@@ -224,7 +224,7 @@ export default function GoogleDocsPage() {
   const handleCreated = async (createdDocument) => {
     await loadDocuments();
 
-    toast.success("Tạo tài liệu thành công");
+    toast.success("Document created successfully");
 
     if (createdDocument?.documentUrl) {
       window.open(createdDocument.documentUrl, "_blank", "noopener,noreferrer");
@@ -309,7 +309,7 @@ export default function GoogleDocsPage() {
                 value={type}
                 onChange={(event) => setType(event.target.value)}
               >
-                <option value="">Tất cả loại tài liệu</option>
+                <option value="">All document types</option>
 
                 {documentTypes.map((item) => (
                   <option key={item.value} value={item.value}>
@@ -321,9 +321,9 @@ export default function GoogleDocsPage() {
                 value={sortBy}
                 onChange={(event) => setSortBy(event.target.value)}
               >
-                <option value="date">Sắp xếp theo ngày</option>
+                <option value="date">Sort by date</option>
 
-                <option value="title">Sắp xếp theo tên</option>
+                <option value="title">Sort by title</option>
               </select>
 
               <select
@@ -332,7 +332,7 @@ export default function GoogleDocsPage() {
               >
                 <option value="desc">Descending</option>
 
-                <option value="asc">Tăng dần</option>
+                <option value="asc">Ascending</option>
               </select>
             </div>
 
@@ -344,7 +344,7 @@ export default function GoogleDocsPage() {
                   type="button"
                   className={viewMode === "grid" ? "active" : ""}
                   onClick={() => setViewMode("grid")}
-                  title="Hiển thị dạng lưới"
+                  title="Display as grid"
                 >
                   <FaThLarge size={18} />
                 </button>
@@ -353,7 +353,7 @@ export default function GoogleDocsPage() {
                   type="button"
                   className={viewMode === "list" ? "active" : ""}
                   onClick={() => setViewMode("list")}
-                  title="Hiển thị dạng danh sách"
+                  title="Display as list"
                 >
                   <FaList size={18} />
                 </button>
@@ -361,7 +361,7 @@ export default function GoogleDocsPage() {
                 <button
                   type="button"
                   onClick={() => setShowPicker(true)}
-                  title="Mở tệp"
+                  title="Open file"
                 >
                   <FaFolderOpen size={19} />
                 </button>
@@ -372,20 +372,20 @@ export default function GoogleDocsPage() {
               <div className="documents-loading">
                 <div className="documents-spinner" />
 
-                <p>Đang tải tài liệu...</p>
+                <p>Loading documents...</p>
               </div>
             ) : documents.length === 0 ? (
               <div className="documents-empty">
                 <FaFolderOpen />
 
-                <h2>Chưa có tài liệu</h2>
+                <h2>No documents available</h2>
 
                 <p>
                   {search || type
-                    ? "Không tìm thấy tài liệu phù hợp với bộ lọc."
+                    ? "No documents found matching the filter."
                     : category === "EVENT"
-                      ? "Chưa có tài liệu gắn với sự kiện."
-                      : "Chưa có tài liệu hoạt động câu lạc bộ."}
+                      ? "No documents available for this event."
+                      : "No documents available for this club activity."}
                 </p>
 
                 {canManageDocuments && !search && !type && (
@@ -395,7 +395,7 @@ export default function GoogleDocsPage() {
                     onClick={() => setCreating(true)}
                   >
                     <FaPlus />
-                    Tạo tài liệu đầu tiên
+                    Create first document
                   </button>
                 )}
               </div>
@@ -422,7 +422,7 @@ export default function GoogleDocsPage() {
                       <div className="document-type-badge">
                         {TYPE_LABELS[document.documentType] ||
                           document.documentType ||
-                          "Tài liệu"}
+                          "Document"}
                       </div>
                     </button>
 
@@ -461,7 +461,7 @@ export default function GoogleDocsPage() {
                                 }}
                               >
                                 <FaExternalLinkAlt />
-                                Mở Google Docs
+                                Open Google Docs
                               </button>
 
                               <button
@@ -472,7 +472,7 @@ export default function GoogleDocsPage() {
                                 }}
                               >
                                 <FaFileAlt />
-                                Xem trước
+                                Preview
                               </button>
 
                               <button
@@ -483,8 +483,8 @@ export default function GoogleDocsPage() {
                                 <FaSyncAlt />
 
                                 {syncingId === document.id
-                                  ? "Đang đồng bộ..."
-                                  : "Đồng bộ"}
+                                  ? "Loading..."
+                                  : "Sync"}
                               </button>
 
                               {canManageDocuments && (
@@ -497,7 +497,7 @@ export default function GoogleDocsPage() {
                                     }
                                   >
                                     <FaShareAlt />
-                                    Chia sẻ chỉ xem
+                                    Share for viewing
                                   </button>
 
                                   <button
@@ -508,7 +508,7 @@ export default function GoogleDocsPage() {
                                     }
                                   >
                                     <FaShareAlt />
-                                    Chia sẻ bình luận
+                                    Share for commenting
                                   </button>
 
                                   <button
@@ -519,7 +519,7 @@ export default function GoogleDocsPage() {
                                     }
                                   >
                                     <FaShareAlt />
-                                    Chia sẻ chỉnh sửa
+                                    Share for editing
                                   </button>
                                 </>
                               )}
@@ -529,13 +529,13 @@ export default function GoogleDocsPage() {
                       </div>
 
                       <p className="document-summary">
-                        {document.contentSummary || "Chưa có nội dung tóm tắt."}
+                        {document.contentSummary ||
+                          "No content summary available."}
                       </p>
 
                       <div className="document-card-meta">
                         <span>
-                          Người tạo:{" "}
-                          {document.createdByName || "Không xác định"}
+                          Người tạo: {document.createdByName || "unknown user"}
                         </span>
 
                         <span>
@@ -613,11 +613,11 @@ function DocumentsList({
       <div className="workspace-list-header">
         <span />
 
-        <span>Tên</span>
+        <span>Name</span>
 
-        <span className="owner-column">Chủ sở hữu</span>
+        <span className="owner-column">Owner</span>
 
-        <span className="date-column">Ngày cập nhật</span>
+        <span className="date-column">Last Updated</span>
 
         <span />
       </div>
@@ -666,7 +666,7 @@ function DocumentListRow({
       </button>
 
       <span className="workspace-list-owner">
-        {document.createdByName || "Tôi"}
+        {document.createdByName || "unknown user"}
       </span>
 
       <span className="workspace-list-date">
@@ -692,7 +692,7 @@ function DocumentListRow({
               }}
             >
               <FaFileAlt />
-              Xem trước
+              Preview
             </button>
 
             <button
@@ -703,7 +703,7 @@ function DocumentListRow({
               }}
             >
               <FaExternalLinkAlt />
-              Mở Google Docs
+              Open Google Docs
             </button>
 
             <button
@@ -715,7 +715,7 @@ function DocumentListRow({
               }}
             >
               <FaSyncAlt />
-              {syncing ? "Đang đồng bộ..." : "Đồng bộ"}
+              {syncing ? "Loading..." : "Sync"}
             </button>
 
             {canManageDocuments && (
@@ -729,7 +729,7 @@ function DocumentListRow({
                   }}
                 >
                   <FaShareAlt />
-                  Chia sẻ chỉ xem
+                  Share for viewing
                 </button>
 
                 <button
@@ -741,7 +741,7 @@ function DocumentListRow({
                   }}
                 >
                   <FaShareAlt />
-                  Chia sẻ chỉnh sửa
+                  Share for editing
                 </button>
               </>
             )}
@@ -756,7 +756,7 @@ function DocumentListRow({
                 }}
               >
                 <FaTrash />
-                {deleting ? "Đang xóa..." : "Xóa tài liệu"}
+                {deleting ? "Deleting..." : "Delete Document"}
               </button>
             )}
           </div>
@@ -790,21 +790,21 @@ function DocumentTemplateCard({ title, subtitle }) {
 function getSyncLabel(status) {
   switch (status) {
     case "SYNCED":
-      return "Đã đồng bộ";
+      return "Synchronized";
 
     case "FAILED":
-      return "Đồng bộ lỗi";
+      return "Sync Failed";
 
     case "NOT_SYNCED":
-      return "Chưa đồng bộ";
+      return "Not Synchronized";
 
     default:
-      return status || "Chưa đồng bộ";
+      return status || "Not Synchronized";
   }
 }
 
 function formatDate(value) {
-  if (!value) return "Không có ngày";
+  if (!value) return "No date available";
 
   return new Date(value).toLocaleString("vi-VN", {
     day: "2-digit",
@@ -816,7 +816,7 @@ function formatDate(value) {
 }
 
 function formatWorkspaceDate(value) {
-  if (!value) return "Không rõ ngày";
+  if (!value) return "No date available";
 
   return new Date(value).toLocaleDateString("vi-VN", {
     day: "2-digit",

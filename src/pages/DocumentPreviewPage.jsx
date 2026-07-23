@@ -33,7 +33,7 @@ export default function DocumentPreviewPage() {
 
       setDocument(data);
     } catch (error) {
-      const message = getApiError(error, "Không thể tải tài liệu");
+      const message = getApiError(error, "cannot load document preview");
 
       console.log("LOAD DOCUMENT PREVIEW ERROR:", message);
       toast.error(message);
@@ -54,9 +54,9 @@ export default function DocumentPreviewPage() {
       const updatedDocument = await syncDocument(id, userId);
 
       setDocument(updatedDocument);
-      toast.success("Đồng bộ tài liệu thành công");
+      toast.success("Document synced successfully");
     } catch (error) {
-      const message = getApiError(error, "Không thể đồng bộ tài liệu");
+      const message = getApiError(error, "cannot sync document");
 
       console.log("SYNC DOCUMENT ERROR:", message);
       toast.error(message);
@@ -67,7 +67,7 @@ export default function DocumentPreviewPage() {
 
   const handleOpenGoogleDocs = () => {
     if (!document?.documentUrl) {
-      toast.warning("Tài liệu chưa có đường dẫn Google Docs");
+      toast.warning("Document does not have a Google Docs link");
       return;
     }
 
@@ -84,7 +84,7 @@ export default function DocumentPreviewPage() {
 
           <div className="documents-loading">
             <div className="documents-spinner" />
-            <p>Đang tải bản xem trước...</p>
+            <p>Loading preview...</p>
           </div>
         </main>
       </div>
@@ -102,14 +102,14 @@ export default function DocumentPreviewPage() {
           <div className="documents-empty">
             <FaFileAlt />
 
-            <h2>Không tìm thấy tài liệu</h2>
+            <h2>Document not found</h2>
 
             <button
               type="button"
               className="document-button primary"
               onClick={() => navigate("/google-docs")}
             >
-              Quay lại danh sách
+              Back to list
             </button>
           </div>
         </main>
@@ -131,14 +131,14 @@ export default function DocumentPreviewPage() {
             <div className="document-preview-toolbar-left">
               <button type="button" onClick={() => navigate("/google-docs")}>
                 <FaArrowLeft />
-                Quay lại
+                Back to list
               </button>
 
               <div>
                 <h1>{document.title}</h1>
 
                 <p>
-                  {document.clubName || "Câu lạc bộ"}
+                  {document.clubName || "Club"}
                   {document.eventTitle ? ` · ${document.eventTitle}` : ""}
                 </p>
               </div>
@@ -147,7 +147,7 @@ export default function DocumentPreviewPage() {
             <div className="document-preview-toolbar-actions">
               <button type="button" onClick={handleSync} disabled={syncing}>
                 <FaSyncAlt />
-                {syncing ? "Đang đồng bộ..." : "Đồng bộ"}
+                {syncing ? "Syncing..." : "Sync"}
               </button>
 
               <button
@@ -156,7 +156,7 @@ export default function DocumentPreviewPage() {
                 onClick={handleOpenGoogleDocs}
               >
                 <FaExternalLinkAlt />
-                Mở để chỉnh sửa
+                Open to Edit
               </button>
             </div>
           </div>
@@ -174,12 +174,12 @@ export default function DocumentPreviewPage() {
               <div className="document-preview-fallback">
                 <FaFileAlt />
 
-                <h2>Không thể tạo bản xem trước</h2>
+                <h2>Cannot create preview</h2>
 
                 <p>
-                  Backend chưa trả về
+                  Backend has not returned
                   <code> googleDocumentId </code>
-                  hoặc
+                  or
                   <code> documentUrl</code>.
                 </p>
 

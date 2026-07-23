@@ -31,15 +31,15 @@ const PAGE_SIZE_OPTIONS = [10, 20, 50];
 const ROLE_OPTIONS = [
   {
     value: "MEMBER",
-    label: "Thành viên",
+    label: "Member",
   },
   {
     value: "DEPARTMENT_HEAD",
-    label: "Trưởng ban",
+    label: "Department Head",
   },
   {
     value: "TREASURER",
-    label: "Thủ quỹ",
+    label: "Treasurer",
   },
 ];
 
@@ -114,7 +114,7 @@ export default function MemberManagementPage() {
   const [editingMember, setEditingMember] = useState(null);
   const handleExportMembers = () => {
     if (members.length === 0) {
-      toast.warning("Không có dữ liệu thành viên để xuất.");
+      toast.warning("No member data to export.");
       return;
     }
 
@@ -169,7 +169,7 @@ export default function MemberManagementPage() {
 
     URL.revokeObjectURL(url);
 
-    toast.success("Xuất danh sách thành viên thành công.");
+    toast.success("Export member list successful.");
   };
 
   const loadMembers = useCallback(async () => {
@@ -187,9 +187,7 @@ export default function MemberManagementPage() {
     } catch (error) {
       console.error("LOAD MEMBERS ERROR:", error?.response?.data || error);
 
-      toast.error(
-        getErrorMessage(error, "Không thể tải danh sách thành viên."),
-      );
+      toast.error(getErrorMessage(error, "Cannot load member list."));
     } finally {
       setLoading(false);
     }
@@ -241,15 +239,15 @@ export default function MemberManagementPage() {
 
       toast.success(
         approve
-          ? `Đã chấp nhận ${member.fullName}.`
-          : `Đã từ chối yêu cầu của ${member.fullName}.`,
+          ? `Approved ${member.fullName}.`
+          : `Rejected ${member.fullName}'s request.`,
       );
 
       await loadMembers();
     } catch (error) {
       console.error("APPROVE MEMBER ERROR:", error?.response?.data || error);
 
-      toast.error(getErrorMessage(error, "Không thể xử lý yêu cầu tham gia."));
+      toast.error(getErrorMessage(error, "Cannot process membership request."));
     } finally {
       setActionMemberId(null);
     }
@@ -260,8 +258,8 @@ export default function MemberManagementPage() {
 
     const confirmed = window.confirm(
       nextLock
-        ? `Khóa thành viên "${member.fullName}"?`
-        : `Mở khóa thành viên "${member.fullName}"?`,
+        ? `Lock member "${member.fullName}"?`
+        : `Unlock member "${member.fullName}"?`,
     );
 
     if (!confirmed) return;
@@ -271,17 +269,13 @@ export default function MemberManagementPage() {
 
       await lockClubMember(member.memberId, nextLock);
 
-      toast.success(
-        nextLock ? "Đã khóa thành viên." : "Đã mở khóa thành viên.",
-      );
+      toast.success(nextLock ? "Member locked." : "Member unlocked.");
 
       await loadMembers();
     } catch (error) {
       console.error("LOCK MEMBER ERROR:", error?.response?.data || error);
 
-      toast.error(
-        getErrorMessage(error, "Không thể cập nhật trạng thái thành viên."),
-      );
+      toast.error(getErrorMessage(error, "Cannot update member status."));
     } finally {
       setActionMemberId(null);
     }
@@ -298,14 +292,14 @@ export default function MemberManagementPage() {
         departmentId: form.departmentId || null,
       });
 
-      toast.success("Cập nhật thành viên thành công.");
+      toast.success("Member updated successfully.");
 
       setEditingMember(null);
       await loadMembers();
     } catch (error) {
       console.error("UPDATE MEMBER ERROR:", error?.response?.data || error);
 
-      toast.error(getErrorMessage(error, "Không thể cập nhật thành viên."));
+      toast.error(getErrorMessage(error, "Cannot update member."));
     } finally {
       setActionMemberId(null);
     }
@@ -316,7 +310,7 @@ export default function MemberManagementPage() {
       <Sidebar />
 
       <main className="main-content">
-        <Topbar title="Trang chủ / Members" />
+        <Topbar title="Home / Members" />
 
         <section className="member-page">
           <div className="member-page-tabs">
@@ -326,7 +320,7 @@ export default function MemberManagementPage() {
               onClick={() => setActiveTab("MEMBERS")}
             >
               <Users size={18} />
-              Thành viên
+              Members
               <span>{members.length}</span>
             </button>
 
@@ -363,8 +357,8 @@ export default function MemberManagementPage() {
 
                 <p>
                   {activeTab === "MEMBERS"
-                    ? "Theo dõi và quản lý thành viên trong câu lạc bộ."
-                    : "Phê duyệt các yêu cầu tham gia câu lạc bộ."}
+                    ? "Track and manage members in the club."
+                    : "Approve membership requests."}
                 </p>
               </div>
 
@@ -386,7 +380,7 @@ export default function MemberManagementPage() {
                   type="text"
                   value={searchText}
                   onChange={(event) => setSearchText(event.target.value)}
-                  placeholder="Tìm tên, email, vai trò, bộ phận..."
+                  placeholder="Search by name, email, role, or department..."
                 />
               </div>
             </div>
@@ -395,7 +389,7 @@ export default function MemberManagementPage() {
               <div className="member-loading">
                 <RefreshCw size={30} className="spin-icon" />
 
-                <p>Đang tải thành viên...</p>
+                <p>Loading members...</p>
               </div>
             ) : paginatedMembers.length === 0 ? (
               <div className="member-empty">
@@ -403,8 +397,8 @@ export default function MemberManagementPage() {
 
                 <h2>
                   {activeTab === "MEMBERS"
-                    ? "Chưa có thành viên"
-                    : "Không có yêu cầu chờ duyệt"}
+                    ? "No members found"
+                    : "No pending applications"}
                 </h2>
               </div>
             ) : (
@@ -435,14 +429,14 @@ export default function MemberManagementPage() {
                         <td>{(page - 1) * pageSize + index + 1}</td>
 
                         <td>
-                          <strong>{member.fullName || "Không xác định"}</strong>
+                          <strong>{member.fullName || "Unknown"}</strong>
                         </td>
 
                         {activeTab === "MEMBERS" && (
                           <>
                             <td>{formatRole(member.role)}</td>
 
-                            <td>{member.email || "Không có"}</td>
+                            <td>{member.email || "None"}</td>
 
                             <td>{member.departmentName || "None"}</td>
                           </>
@@ -462,7 +456,7 @@ export default function MemberManagementPage() {
                                 <button
                                   type="button"
                                   className="approve"
-                                  title="Chấp nhận"
+                                  title="Approve"
                                   disabled={actionMemberId === member.memberId}
                                   onClick={() => handleApprove(member, true)}
                                 >
@@ -472,7 +466,7 @@ export default function MemberManagementPage() {
                                 <button
                                   type="button"
                                   className="reject"
-                                  title="Từ chối"
+                                  title="Reject"
                                   disabled={actionMemberId === member.memberId}
                                   onClick={() => handleApprove(member, false)}
                                 >
@@ -484,7 +478,7 @@ export default function MemberManagementPage() {
                                 <>
                                   <button
                                     type="button"
-                                    title="Chỉnh sửa"
+                                    title="Edit"
                                     onClick={() => setEditingMember(member)}
                                   >
                                     <Edit3 size={16} />
@@ -495,7 +489,7 @@ export default function MemberManagementPage() {
                                     className={
                                       member.locked ? "unlock" : "lock"
                                     }
-                                    title={member.locked ? "Mở khóa" : "Khóa"}
+                                    title={member.locked ? "Unlock" : "Lock"}
                                     disabled={
                                       actionMemberId === member.memberId
                                     }
@@ -619,7 +613,7 @@ function EditMemberModal({ member, saving, onClose, onSave }) {
       <div className="member-modal">
         <header>
           <div>
-            <h2>Chỉnh sửa thành viên</h2>
+            <h2>Edit Member</h2>
             <p>{member.fullName}</p>
           </div>
 
@@ -629,7 +623,7 @@ function EditMemberModal({ member, saving, onClose, onSave }) {
         </header>
 
         <div className="member-modal-body">
-          <label>Vai trò</label>
+          <label>Role</label>
 
           <select
             value={form.role}
@@ -653,7 +647,7 @@ function EditMemberModal({ member, saving, onClose, onSave }) {
             type="number"
             min="1"
             value={form.departmentId}
-            placeholder="Có thể để trống"
+            placeholder="Can be left empty"
             onChange={(event) =>
               setForm((current) => ({
                 ...current,
@@ -663,7 +657,7 @@ function EditMemberModal({ member, saving, onClose, onSave }) {
           />
 
           <small>
-            Có thể để trống nếu thành viên chưa thuộc phòng ban nào.
+            Can be left empty if the member is not assigned to any department.
           </small>
         </div>
 
@@ -674,7 +668,7 @@ function EditMemberModal({ member, saving, onClose, onSave }) {
             onClick={onClose}
             disabled={saving}
           >
-            Hủy
+            Cancel
           </button>
 
           <button
@@ -683,7 +677,7 @@ function EditMemberModal({ member, saving, onClose, onSave }) {
             disabled={saving}
             onClick={() => onSave(form)}
           >
-            {saving ? "Đang lưu..." : "Lưu thay đổi"}
+            {saving ? "Saving..." : "Save Changes"}
           </button>
         </footer>
       </div>
@@ -693,12 +687,12 @@ function EditMemberModal({ member, saving, onClose, onSave }) {
 
 function formatRole(role) {
   const labels = {
-    PRESIDENT: "Chủ nhiệm",
-    CLUB_MANAGER: "Quản lý CLB",
-    DEPARTMENT_HEAD: "Trưởng ban",
-    TREASURER: "Thủ quỹ",
-    MEMBER: "Thành viên",
+    PRESIDENT: "President",
+    CLUB_MANAGER: "Club Manager",
+    DEPARTMENT_HEAD: "Department Head",
+    TREASURER: "Treasurer",
+    MEMBER: "Member",
   };
 
-  return labels[String(role).toUpperCase()] || role || "Thành viên";
+  return labels[String(role).toUpperCase()] || role || "Member";
 }

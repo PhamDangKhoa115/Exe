@@ -43,7 +43,7 @@ export default function DocumentDetailPage() {
       const data = await getDocumentDetail(id, userId);
       setDocument(data);
     } catch (error) {
-      const message = getApiError(error, "Không thể tải chi tiết tài liệu");
+      const message = getApiError(error, "cannot load document detail");
 
       toast.error(message);
     } finally {
@@ -62,9 +62,9 @@ export default function DocumentDetailPage() {
       const data = await syncDocument(id, userId);
       setDocument(data);
 
-      toast.success("Đồng bộ nội dung thành công");
+      toast.success("Content synchronized successfully");
     } catch (error) {
-      toast.error(getApiError(error, "Không thể đồng bộ tài liệu"));
+      toast.error(getApiError(error, "cannot synchronize document"));
     } finally {
       setSyncing(false);
     }
@@ -78,10 +78,10 @@ export default function DocumentDetailPage() {
       setRevisions(Array.isArray(data) ? data : []);
 
       if (!data?.length) {
-        toast.info("Tài liệu chưa có lịch sử đồng bộ");
+        toast.info("Document has no synchronization history");
       }
     } catch (error) {
-      toast.error(getApiError(error, "Không thể tải lịch sử tài liệu"));
+      toast.error(getApiError(error, "cannot load document revisions"));
     } finally {
       setLoadingRevisions(false);
     }
@@ -94,10 +94,10 @@ export default function DocumentDetailPage() {
       toast.success(
         typeof result === "string"
           ? result
-          : `Đã chia sẻ với quyền ${shareRole}`,
+          : `Document shared with ${shareRole} permissions`,
       );
     } catch (error) {
-      toast.error(getApiError(error, "Không thể chia sẻ tài liệu"));
+      toast.error(getApiError(error, "cannot share document"));
     }
   };
 
@@ -111,7 +111,7 @@ export default function DocumentDetailPage() {
 
           <div className="documents-loading">
             <div className="documents-spinner" />
-            <p>Đang tải tài liệu...</p>
+            <p>Loading document...</p>
           </div>
         </main>
       </div>
@@ -127,13 +127,13 @@ export default function DocumentDetailPage() {
           <Topbar title="Google Docs / Document Detail" />
 
           <div className="documents-empty">
-            <h2>Không tìm thấy tài liệu</h2>
+            <h2>Document not found</h2>
 
             <button
               className="document-button primary"
               onClick={() => navigate("/google-docs")}
             >
-              Quay lại
+              Back to List
             </button>
           </div>
         </main>
@@ -155,7 +155,7 @@ export default function DocumentDetailPage() {
             onClick={() => navigate("/google-docs")}
           >
             <FaArrowLeft />
-            Quay lại danh sách
+            Back to List
           </button>
 
           <div className="document-detail-header">
@@ -167,8 +167,8 @@ export default function DocumentDetailPage() {
               <h1>{document.title}</h1>
 
               <p>
-                {document.clubName} · Người tạo:{" "}
-                {document.createdByName || "Không xác định"}
+                {document.clubName} · Created by:{" "}
+                {document.createdByName || "Not specified"}
               </p>
             </div>
 
@@ -184,12 +184,12 @@ export default function DocumentDetailPage() {
                 }
               >
                 <FaExternalLinkAlt />
-                Mở Google Docs
+                Open Google Docs
               </button>
 
               <button type="button" onClick={handleSync} disabled={syncing}>
                 <FaSyncAlt />
-                {syncing ? "Đang đồng bộ..." : "Đồng bộ"}
+                {syncing ? "Syncing..." : "Sync Content"}
               </button>
 
               <button
@@ -198,7 +198,7 @@ export default function DocumentDetailPage() {
                 disabled={loadingRevisions}
               >
                 <FaHistory />
-                Lịch sử
+                Revision History
               </button>
             </div>
           </div>
@@ -208,79 +208,79 @@ export default function DocumentDetailPage() {
               <div>
                 <FaShareAlt />
                 <div>
-                  <h3>Chia sẻ tài liệu</h3>
-                  <p>Chọn quyền truy cập cho người có đường dẫn.</p>
+                  <h3>Share Document</h3>
+                  <p>Select access permissions for those with the link.</p>
                 </div>
               </div>
 
               <div className="document-share-actions">
-                <button onClick={() => handleShare("reader")}>Chỉ xem</button>
+                <button onClick={() => handleShare("reader")}>View Only</button>
 
                 <button onClick={() => handleShare("commenter")}>
-                  Bình luận
+                  Comment
                 </button>
 
-                <button onClick={() => handleShare("writer")}>Chỉnh sửa</button>
+                <button onClick={() => handleShare("writer")}>Edit</button>
               </div>
             </div>
           )}
 
           <div className="document-detail-grid">
             <article className="document-content-card">
-              <h2>Nội dung đồng bộ</h2>
+              <h2>Synced Content</h2>
 
               <div className="document-local-content">
                 {document.localContent ? (
                   <pre>{document.localContent}</pre>
                 ) : (
-                  <p>Chưa có nội dung được đồng bộ.</p>
+                  <p>No synced content available.</p>
                 )}
               </div>
             </article>
 
             <aside className="document-info-card">
-              <h2>Thông tin tài liệu</h2>
+              <h2>Document Information</h2>
 
               <dl>
                 <div>
-                  <dt>Trạng thái</dt>
-                  <dd>{document.syncStatus || "Chưa xác định"}</dd>
+                  <dt>Status</dt>
+                  <dd>{document.syncStatus || "Not specified"}</dd>
                 </div>
 
                 <div>
-                  <dt>Sự kiện</dt>
-                  <dd>{document.eventTitle || "Không có"}</dd>
+                  <dt>Event</dt>
+                  <dd>{document.eventTitle || "None"}</dd>
                 </div>
 
                 <div>
-                  <dt>Ngày tạo</dt>
+                  <dt>Created Date</dt>
                   <dd>{formatDate(document.createdAt)}</dd>
                 </div>
 
                 <div>
-                  <dt>Cập nhật gần nhất</dt>
+                  <dt>Last Updated</dt>
                   <dd>{formatDate(document.updatedAt)}</dd>
                 </div>
               </dl>
 
-              <h3>Tóm tắt</h3>
+              <h3>Summary</h3>
 
-              <p>{document.contentSummary || "Chưa có nội dung tóm tắt."}</p>
+              <p>{document.contentSummary || "No summary available."}</p>
             </aside>
           </div>
 
           {revisions.length > 0 && (
             <section className="document-revisions">
-              <h2>Lịch sử đồng bộ</h2>
+              <h2>Revision History</h2>
 
               {revisions.map((revision) => (
                 <article key={revision.id}>
                   <div>
-                    <strong>Phiên bản {revision.version}</strong>
+                    <strong>Version {revision.version}</strong>
                     <span>{formatDate(revision.syncedAt)}</span>
                   </div>
 
-                  <pre>{revision.content || "Không có nội dung"}</pre>
+                  <pre>{revision.content || "No content available"}</pre>
                 </article>
               ))}
             </section>
@@ -292,7 +292,7 @@ export default function DocumentDetailPage() {
 }
 
 function formatDate(value) {
-  if (!value) return "Không có";
+  if (!value) return "Not specified";
 
   return new Date(value).toLocaleString("vi-VN");
 }

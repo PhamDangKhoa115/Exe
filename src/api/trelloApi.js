@@ -5,11 +5,11 @@ function getRequiredContext() {
   const clubId = localStorage.getItem("selectedClubId");
 
   if (!userId) {
-    throw new Error("Không tìm thấy userId. Vui lòng đăng nhập lại.");
+    throw new Error("Please login first.");
   }
 
   if (!clubId) {
-    throw new Error("Vui lòng chọn câu lạc bộ trước.");
+    throw new Error("Please select a club first.");
   }
 
   return {
@@ -47,7 +47,7 @@ export async function connectTrello() {
     );
 
   if (!url) {
-    throw new Error("Backend không trả về URL kết nối Trello.");
+    throw new Error("No trello connect URL found.");
   }
 
   window.location.href = url;

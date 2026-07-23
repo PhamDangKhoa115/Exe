@@ -92,7 +92,7 @@ export default function RegisterPage() {
   const handleGoogleCredential = async (response) => {
     try {
       if (!response?.credential) {
-        throw new Error("Google không trả về thông tin tài khoản");
+        throw new Error("Google does not return credential");
       }
 
       setGoogleLoading(true);
@@ -108,7 +108,7 @@ export default function RegisterPage() {
 
       saveAuthData(data);
 
-      toast.success("Đăng ký bằng Google thành công");
+      toast.success("Register with Google successfully");
       navigate("/select-club", { replace: true });
     } catch (err) {
       console.log("GOOGLE REGISTER ERROR:", err.response?.data || err);
@@ -117,7 +117,7 @@ export default function RegisterPage() {
         err.response?.data?.message ||
           err.response?.data?.error ||
           err.message ||
-          "Đăng ký bằng Google thất bại",
+          "Register with Google failed",
       );
     } finally {
       setGoogleLoading(false);
@@ -213,7 +213,6 @@ export default function RegisterPage() {
         <img src="/logo.png" alt="S-Club Logo" className="auth-logo" />
 
         <h1>Join S-Club</h1>
-        <p className="auth-subtitle">The unified student clubs OS.</p>
 
         <div className="register-fields">
           <div className="auth-field">
@@ -286,8 +285,6 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <div className="role-box">Default role: New User</div>
-
           <button
             type="submit"
             className="main-btn full"
@@ -302,12 +299,12 @@ export default function RegisterPage() {
 
           <div className="google-register-wrapper" ref={googleButtonRef}>
             {googleLoading && (
-              <span className="google-loading-overlay">Đang đăng ký...</span>
+              <span className="google-loading-overlay">Registering...</span>
             )}
           </div>
 
           {googleLoading && (
-            <p className="google-login-status">Đang đăng ký bằng Google...</p>
+            <p className="google-login-status">Registering with Google...</p>
           )}
 
           <p className="auth-footer">
@@ -323,7 +320,7 @@ function decodeGoogleCredential(credential) {
   const parts = credential.split(".");
 
   if (parts.length !== 3) {
-    throw new Error("Thông tin đăng nhập Google không hợp lệ");
+    throw new Error("Google credential is invalid");
   }
 
   const payload = parts[1].replace(/-/g, "+").replace(/_/g, "/");

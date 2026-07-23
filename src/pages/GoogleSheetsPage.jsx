@@ -58,7 +58,7 @@ export default function GoogleSheetsPage() {
   const [dataMode, setDataMode] = useState("view");
   const loadSheets = async () => {
     if (!userId) {
-      toast.error("Không tìm thấy userId. Vui lòng đăng nhập lại.");
+      toast.error("Please log in to load spreadsheets");
       setLoading(false);
       return;
     }
@@ -72,7 +72,7 @@ export default function GoogleSheetsPage() {
 
       setSheets(Array.isArray(data) ? data : []);
     } catch (error) {
-      const message = getApiError(error, "Không thể tải Spreadsheet");
+      const message = getApiError(error, "Failed to load spreadsheets");
 
       console.log("LOAD SHEETS ERROR:", message);
 
@@ -124,12 +124,12 @@ export default function GoogleSheetsPage() {
     event.preventDefault();
 
     if (!title.trim()) {
-      toast.warning("Vui lòng nhập tên Spreadsheet");
+      toast.warning("Please enter a name for the spreadsheet");
       return;
     }
 
     if (!userId) {
-      toast.error("Không tìm thấy userId");
+      toast.error("User ID not found. Please log in again.");
       return;
     }
 
@@ -142,7 +142,7 @@ export default function GoogleSheetsPage() {
       });
       console.log("CREATED SHEET:", createdSheet);
 
-      toast.success("Tạo Spreadsheet thành công");
+      toast.success("Spreadsheet created successfully");
 
       setTitle("");
       setShowCreate(false);
@@ -157,7 +157,7 @@ export default function GoogleSheetsPage() {
         );
       }
     } catch (error) {
-      const message = getApiError(error, "Không thể tạo Spreadsheet");
+      const message = getApiError(error, "Failed to create spreadsheet");
 
       console.log("CREATE SHEET ERROR:", message);
 
@@ -169,7 +169,7 @@ export default function GoogleSheetsPage() {
 
   const handleOpen = (sheet) => {
     if (!sheet.spreadsheetUrl) {
-      toast.warning("Spreadsheet chưa có đường dẫn");
+      toast.warning("Spreadsheet does not have a URL");
       return;
     }
 
@@ -177,7 +177,7 @@ export default function GoogleSheetsPage() {
   };
   const handleOpenDataModal = async (sheet, mode = "view") => {
     if (!sheet?.spreadsheetId) {
-      toast.error("Không tìm thấy spreadsheetId");
+      toast.error("Spreadsheet ID not found");
       return;
     }
 
@@ -193,12 +193,12 @@ export default function GoogleSheetsPage() {
     range = sheetRange,
   ) => {
     if (!sheet?.spreadsheetId) {
-      toast.error("Không tìm thấy Spreadsheet");
+      toast.error("Spreadsheet ID not found");
       return;
     }
 
     if (!range.trim()) {
-      toast.warning("Vui lòng nhập vùng dữ liệu");
+      toast.warning("Please enter a data range");
       return;
     }
 
@@ -220,7 +220,7 @@ export default function GoogleSheetsPage() {
 
       setSheetValues(values);
     } catch (error) {
-      const message = getApiError(error, "Không thể đọc dữ liệu Spreadsheet");
+      const message = getApiError(error, "Failed to read spreadsheet data");
 
       console.log("LOAD SHEET VALUES ERROR:", message);
 
@@ -233,12 +233,12 @@ export default function GoogleSheetsPage() {
 
   const handleSaveValues = async () => {
     if (!selectedSheet?.spreadsheetId) {
-      toast.error("Không tìm thấy Spreadsheet");
+      toast.error("Spreadsheet ID not found");
       return;
     }
 
     if (!sheetRange.trim()) {
-      toast.warning("Vui lòng nhập vùng dữ liệu");
+      toast.warning("Please enter a data range");
       return;
     }
 
@@ -251,14 +251,11 @@ export default function GoogleSheetsPage() {
         values: sheetValues,
       });
 
-      toast.success("Cập nhật dữ liệu Spreadsheet thành công");
+      toast.success("Spreadsheet data updated successfully");
 
       setDataMode("view");
     } catch (error) {
-      const message = getApiError(
-        error,
-        "Không thể cập nhật dữ liệu Spreadsheet",
-      );
+      const message = getApiError(error, "Failed to update spreadsheet data");
 
       console.log("SAVE SHEET VALUES ERROR:", message);
 
@@ -281,7 +278,7 @@ export default function GoogleSheetsPage() {
     toast(
       ({ closeToast }) => (
         <ConfirmToast
-          message={`Bạn có chắc muốn xóa Spreadsheet "${sheet.title}" không?`}
+          message={`Are you sure you want to delete the spreadsheet "${sheet.title}"?`}
           closeToast={closeToast}
           onConfirm={async () => {
             try {
@@ -294,9 +291,12 @@ export default function GoogleSheetsPage() {
                 ),
               );
 
-              toast.success("Xóa Spreadsheet thành công");
+              toast.success("Spreadsheet deleted successfully");
             } catch (error) {
-              const message = getApiError(error, "Không thể xóa Spreadsheet");
+              const message = getApiError(
+                error,
+                "Failed to delete spreadsheet",
+              );
 
               console.log("DELETE SHEET ERROR:", message);
               toast.error(message);
@@ -354,13 +354,13 @@ export default function GoogleSheetsPage() {
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Tìm kiếm Spreadsheet..."
+                placeholder="Search Spreadsheets..."
               />
             </div>
           </div>
 
           <div className="workspace-content">
-            <h3 className="workspace-section-title">Tạo Spreadsheet mới</h3>
+            <h3 className="workspace-section-title">Create New Spreadsheet</h3>
 
             <div className="template-list">
               <button
@@ -372,7 +372,7 @@ export default function GoogleSheetsPage() {
                   <Plus size={64} />
                 </div>
 
-                <span>Spreadsheet mới</span>
+                <span>New Spreadsheet</span>
               </button>
 
               <TemplateCard title="Annual budget" />
@@ -387,7 +387,7 @@ export default function GoogleSheetsPage() {
             </div>
 
             <div className="recent-header">
-              <h3>Spreadsheet gần đây</h3>
+              <h3>Recent Spreadsheets</h3>
 
               <div className="workspace-owner-sort">
                 <span>Owner</span>
@@ -397,7 +397,7 @@ export default function GoogleSheetsPage() {
                     type="button"
                     className={view === "grid" ? "active" : ""}
                     onClick={() => setView("grid")}
-                    title="Dạng lưới"
+                    title="Grid View"
                   >
                     <Grid3X3 size={19} />
                   </button>
@@ -405,7 +405,7 @@ export default function GoogleSheetsPage() {
                     type="button"
                     className={view === "list" ? "active" : ""}
                     onClick={() => setView("list")}
-                    title="Dạng danh sách"
+                    title="List View"
                   >
                     <List size={20} />
                   </button>
@@ -415,14 +415,14 @@ export default function GoogleSheetsPage() {
                       type="button"
                       className={showSortMenu ? "active" : ""}
                       onClick={() => setShowSortMenu((current) => !current)}
-                      title="Sắp xếp"
+                      title="Sort"
                     >
                       <ArrowDownAZ size={20} />
                     </button>
 
                     {showSortMenu && (
                       <div className="workspace-sort-menu">
-                        <p>Sắp xếp theo</p>
+                        <p>Sort by </p>
 
                         <button
                           type="button"
@@ -432,7 +432,7 @@ export default function GoogleSheetsPage() {
                             setShowSortMenu(false);
                           }}
                         >
-                          Ngày tạo
+                          Date Created
                         </button>
 
                         <button
@@ -443,10 +443,10 @@ export default function GoogleSheetsPage() {
                             setShowSortMenu(false);
                           }}
                         >
-                          Tên
+                          Name
                         </button>
 
-                        <p>Thứ tự</p>
+                        <p>Order</p>
 
                         <button
                           type="button"
@@ -456,7 +456,7 @@ export default function GoogleSheetsPage() {
                             setShowSortMenu(false);
                           }}
                         >
-                          Tăng dần
+                          Ascending
                         </button>
 
                         <button
@@ -467,7 +467,7 @@ export default function GoogleSheetsPage() {
                             setShowSortMenu(false);
                           }}
                         >
-                          Giảm dần
+                          Descending
                         </button>
                       </div>
                     )}
@@ -476,7 +476,7 @@ export default function GoogleSheetsPage() {
                   <button
                     type="button"
                     onClick={() => setShowPicker(true)}
-                    title="Mở tệp"
+                    title="Open File"
                   >
                     <FolderOpen size={20} />
                   </button>
@@ -484,20 +484,20 @@ export default function GoogleSheetsPage() {
               </div>
             </div>
             {loading ? (
-              <div className="workspace-status">Đang tải Spreadsheet...</div>
+              <div className="workspace-status">Loading Spreadsheets...</div>
             ) : filteredSheets.length === 0 ? (
               <div className="workspace-empty">
                 <FileSpreadsheet size={50} />
 
-                <h2>Chưa có Spreadsheet</h2>
+                <h2>No Spreadsheets Found</h2>
 
                 <p>
-                  Không có Spreadsheet thuộc loại{" "}
+                  There are no spreadsheets of type{" "}
                   {type === "EVENT" ? "Event" : "Club Activity"}.
                 </p>
 
                 <button type="button" onClick={() => setShowCreate(true)}>
-                  Tạo Spreadsheet
+                  Create Spreadsheet
                 </button>
               </div>
             ) : view === "grid" ? (
@@ -591,7 +591,7 @@ function SheetCard({ sheet, onOpen, onViewData, onEditData, onDelete }) {
 
   const formattedDate = sheet.createdAt
     ? new Date(sheet.createdAt).toLocaleDateString("vi-VN")
-    : "Không rõ ngày";
+    : "No date available";
 
   return (
     <article className="workspace-file-card">
@@ -616,7 +616,7 @@ function SheetCard({ sheet, onOpen, onViewData, onEditData, onDelete }) {
           <div className="workspace-card-menu">
             <button
               type="button"
-              aria-label={`Mở menu của ${sheet.title}`}
+              aria-label={`Open menu for ${sheet.title}`}
               onClick={() => setMenu((current) => !current)}
             >
               <MoreVertical size={18} />
@@ -632,7 +632,7 @@ function SheetCard({ sheet, onOpen, onViewData, onEditData, onDelete }) {
                   }}
                 >
                   <Edit3 size={16} />
-                  Chỉnh sửa dữ liệu
+                  Edit Data
                 </button>
                 <button
                   type="button"
@@ -642,7 +642,7 @@ function SheetCard({ sheet, onOpen, onViewData, onEditData, onDelete }) {
                   }}
                 >
                   <FileSpreadsheet size={16} />
-                  Xem Spreadsheet
+                  View Spreadsheet
                 </button>
 
                 <button
@@ -654,7 +654,7 @@ function SheetCard({ sheet, onOpen, onViewData, onEditData, onDelete }) {
                   }}
                 >
                   <Trash2 size={16} />
-                  xóa spreadsheet
+                  Delete Spreadsheet
                 </button>
               </div>
             )}
@@ -670,11 +670,11 @@ function SheetsList({ sheets, onOpen, onViewData, onEditData, onDelete }) {
       <div className="workspace-list-header">
         <span />
 
-        <span>Tên</span>
+        <span>Name</span>
 
-        <span className="owner-column">Chủ sở hữu</span>
+        <span className="owner-column">Owner</span>
 
-        <span className="date-column">Ngày cập nhật</span>
+        <span className="date-column">Last Updated</span>
 
         <span />
       </div>
@@ -708,7 +708,7 @@ function SheetListRow({ sheet, onOpen, onViewData, onEditData, onDelete }) {
 
       <span className="workspace-list-owner">
         {sheet.userId === Number(localStorage.getItem("userId"))
-          ? "Tôi"
+          ? "I"
           : `User ${sheet.userId}`}
       </span>
 
@@ -735,7 +735,7 @@ function SheetListRow({ sheet, onOpen, onViewData, onEditData, onDelete }) {
               }}
             >
               <FileSpreadsheet size={16} />
-              Mở Spreadsheet
+              Open Spreadsheet
             </button>
             <button
               type="button"
@@ -745,7 +745,7 @@ function SheetListRow({ sheet, onOpen, onViewData, onEditData, onDelete }) {
               }}
             >
               <Eye size={16} />
-              Xem dữ liệu
+              View Data
             </button>
 
             <button
@@ -756,7 +756,7 @@ function SheetListRow({ sheet, onOpen, onViewData, onEditData, onDelete }) {
               }}
             >
               <Edit3 size={16} />
-              Chỉnh sửa dữ liệu
+              Edit Data
             </button>
             <button
               type="button"
@@ -767,7 +767,7 @@ function SheetListRow({ sheet, onOpen, onViewData, onEditData, onDelete }) {
               }}
             >
               <Trash2 size={16} />
-              Xóa
+              Delete
             </button>
           </div>
         )}
@@ -776,7 +776,7 @@ function SheetListRow({ sheet, onOpen, onViewData, onEditData, onDelete }) {
   );
 }
 function formatWorkspaceDate(value) {
-  if (!value) return "Không rõ ngày";
+  if (!value) return "No date available";
 
   return new Date(value).toLocaleDateString("vi-VN", {
     day: "2-digit",
@@ -815,7 +815,7 @@ function CreateWorkspaceModal({
         <h2>Create Spreadsheet</h2>
 
         <p className="workspace-modal-description">
-          Loại: {type === "EVENT" ? "Event" : "Club Activity"}
+          Type: {type === "EVENT" ? "Event" : "Club Activity"}
         </p>
 
         <label>Title</label>
@@ -824,7 +824,7 @@ function CreateWorkspaceModal({
           autoFocus
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          placeholder="Nhập tên Spreadsheet..."
+          placeholder="Enter Spreadsheet name..."
           disabled={loading}
         />
 
@@ -934,15 +934,15 @@ function CreateWorkspaceModal({
 
               <p className="workspace-modal-description">
                 {mode === "edit"
-                  ? "Chỉnh sửa dữ liệu Spreadsheet"
-                  : "Xem dữ liệu Spreadsheet"}
+                  ? "Edit Spreadsheet data"
+                  : "View Spreadsheet data"}
               </p>
             </div>
           </div>
 
           <div className="spreadsheet-range-row">
             <div>
-              <label>Vùng dữ liệu</label>
+              <label>Data range</label>
 
               <input
                 value={range}
@@ -957,13 +957,13 @@ function CreateWorkspaceModal({
               onClick={onReload}
               disabled={loading || saving}
             >
-              {loading ? "Đang đọc..." : "Đọc dữ liệu"}
+              {loading ? "Loading..." : "Load Data"}
             </button>
           </div>
 
           <div className="spreadsheet-modal-toolbar">
             <span>
-              {normalizedValues.length} hàng, {columnCount} cột
+              {normalizedValues.length} rows, {columnCount} columns
             </span>
 
             <div>
@@ -975,7 +975,7 @@ function CreateWorkspaceModal({
                     disabled={saving}
                   >
                     <Plus size={16} />
-                    Thêm hàng
+                    Add Row
                   </button>
 
                   <button
@@ -984,7 +984,7 @@ function CreateWorkspaceModal({
                     disabled={saving}
                   >
                     <Plus size={16} />
-                    Thêm cột
+                    Add Column
                   </button>
                 </>
               )}
@@ -992,7 +992,7 @@ function CreateWorkspaceModal({
               {canEdit && mode === "view" && (
                 <button type="button" onClick={() => onModeChange("edit")}>
                   <Edit3 size={16} />
-                  Chỉnh sửa
+                  Edit
                 </button>
               )}
             </div>
@@ -1000,13 +1000,13 @@ function CreateWorkspaceModal({
 
           {!canEdit && mode === "edit" && (
             <div className="spreadsheet-permission-warning">
-              Bạn không có quyền ghi dữ liệu.
+              You do not have permission to edit data.
             </div>
           )}
 
           <div className="spreadsheet-table-wrap">
             {loading ? (
-              <div className="workspace-status">Đang tải dữ liệu...</div>
+              <div className="workspace-status">Loading data...</div>
             ) : (
               <table className="spreadsheet-data-table">
                 <thead>
@@ -1056,7 +1056,7 @@ function CreateWorkspaceModal({
               onClick={onClose}
               disabled={loading || saving}
             >
-              Đóng
+              Close
             </button>
 
             {mode === "edit" && canEdit && (
@@ -1067,7 +1067,7 @@ function CreateWorkspaceModal({
               >
                 <Save size={17} />
 
-                {saving ? "Đang lưu..." : "Lưu dữ liệu"}
+                {saving ? "Saving..." : "Save Data"}
               </button>
             )}
           </div>

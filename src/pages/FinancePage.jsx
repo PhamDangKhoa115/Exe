@@ -26,9 +26,9 @@ import "../styles.css";
 const INITIAL_TRANSACTIONS = [
   {
     id: 1,
-    title: "Phí thành viên tháng 7",
+    title: "Membership Fee - July",
     category: "MEMBERSHIP",
-    categoryLabel: "Phí thành viên",
+    categoryLabel: "Membership Fee",
     type: "INCOME",
     amount: 12500000,
     date: "20/07/2026",
@@ -37,9 +37,9 @@ const INITIAL_TRANSACTIONS = [
   },
   {
     id: 2,
-    title: "Thu tài trợ sự kiện",
+    title: "Sponsorship Income - Event",
     category: "SPONSOR",
-    categoryLabel: "Tài trợ",
+    categoryLabel: "Sponsorship",
     type: "INCOME",
     amount: 30000000,
     date: "18/07/2026",
@@ -48,9 +48,9 @@ const INITIAL_TRANSACTIONS = [
   },
   {
     id: 3,
-    title: "Chi phí thuê hội trường",
+    title: "Rental Fee - Conference Room",
     category: "EVENT",
-    categoryLabel: "Sự kiện",
+    categoryLabel: "Event",
     type: "EXPENSE",
     amount: 8500000,
     date: "17/07/2026",
@@ -59,9 +59,9 @@ const INITIAL_TRANSACTIONS = [
   },
   {
     id: 4,
-    title: "In banner và tài liệu",
+    title: "Printing Banners and Documents",
     category: "MEDIA",
-    categoryLabel: "Truyền thông",
+    categoryLabel: "Media",
     type: "EXPENSE",
     amount: 3200000,
     date: "15/07/2026",
@@ -70,9 +70,9 @@ const INITIAL_TRANSACTIONS = [
   },
   {
     id: 5,
-    title: "Mua vật dụng văn phòng",
+    title: "Office Supplies Purchase",
     category: "OFFICE",
-    categoryLabel: "Văn phòng",
+    categoryLabel: "Office",
     type: "EXPENSE",
     amount: 1800000,
     date: "12/07/2026",
@@ -159,24 +159,24 @@ export default function FinancePage() {
 
   const handleSave = () => {
     if (!form.title.trim()) {
-      alert("Vui lòng nhập nội dung giao dịch.");
+      alert("Please enter the transaction description.");
       return;
     }
 
     const amount = Number(form.amount);
 
     if (!amount || amount <= 0) {
-      alert("Số tiền phải lớn hơn 0.");
+      alert("The amount must be a positive number.");
       return;
     }
 
     const labels = {
-      MEMBERSHIP: "Phí thành viên",
-      SPONSOR: "Tài trợ",
-      EVENT: "Sự kiện",
-      MEDIA: "Truyền thông",
-      OFFICE: "Văn phòng",
-      OTHER: "Khác",
+      MEMBERSHIP: "Membership Fee",
+      SPONSOR: "Sponsorship",
+      EVENT: "Event",
+      MEDIA: "Media",
+      OFFICE: "Office",
+      OTHER: "Other",
     };
 
     if (editingTransaction) {
@@ -200,7 +200,7 @@ export default function FinancePage() {
           amount,
           categoryLabel: labels[form.category],
           date: new Date().toLocaleDateString("vi-VN"),
-          createdBy: localStorage.getItem("fullName") || "Người dùng",
+          createdBy: localStorage.getItem("fullName") || "User",
         },
         ...current,
       ]);
@@ -211,7 +211,7 @@ export default function FinancePage() {
 
   const handleDelete = (transaction) => {
     const confirmed = window.confirm(
-      `Bạn có chắc muốn xóa giao dịch "${transaction.title}" không?`,
+      `Are you sure you want to delete the transaction "${transaction.title}"?`,
     );
 
     if (!confirmed) return;
@@ -224,13 +224,13 @@ export default function FinancePage() {
   const handleExport = () => {
     const headers = [
       "No",
-      "Nội dung",
-      "Loại",
-      "Danh mục",
-      "Số tiền",
-      "Ngày",
-      "Người tạo",
-      "Trạng thái",
+      "Description",
+      "Type",
+      "Category",
+      "Amount",
+      "Date",
+      "Created By",
+      "Status",
     ];
 
     const rows = filteredTransactions.map((transaction, index) => [
@@ -281,7 +281,7 @@ export default function FinancePage() {
             <div>
               <h1>Finance Management</h1>
 
-              <p>Theo dõi thu, chi và số dư tài chính của câu lạc bộ.</p>
+              <p>Track income, expenses, and financial balance of the club.</p>
             </div>
 
             <div className="finance-header-actions">
@@ -307,33 +307,33 @@ export default function FinancePage() {
 
           <div className="finance-stat-grid">
             <FinanceStatCard
-              label="Số dư hiện tại"
+              label="Current Balance"
               value={formatMoney(balance)}
-              description="Tổng số tiền còn lại"
+              description="Total remaining amount"
               icon={<WalletCards />}
               className="balance"
             />
 
             <FinanceStatCard
-              label="Tổng thu"
+              label="Total Income"
               value={formatMoney(totalIncome)}
-              description="+12.5% so với tháng trước"
+              description="+12.5%  compare to last Month "
               icon={<TrendingUp />}
               className="income"
             />
 
             <FinanceStatCard
-              label="Tổng chi"
+              label="Total Expense"
               value={formatMoney(totalExpense)}
-              description="-4.2% so với tháng trước"
+              description="-4.2% compare to last Month"
               icon={<TrendingDown />}
               className="expense"
             />
 
             <FinanceStatCard
-              label="Chờ duyệt"
+              label="Pending Transactions"
               value="1"
-              description="Giao dịch chưa hoàn tất"
+              description="Income/Expense transactions pending approval"
               icon={<ReceiptText />}
               className="pending"
             />
@@ -343,8 +343,8 @@ export default function FinancePage() {
             <article className="finance-panel finance-chart-panel">
               <div className="finance-panel-header">
                 <div>
-                  <h2>Biểu đồ thu chi</h2>
-                  <p>Tổng quan 6 tháng gần nhất</p>
+                  <h2>Expense Overview</h2>
+                  <p>Summary of expenses over the last 6 months</p>
                 </div>
 
                 <CalendarDays size={21} />
@@ -372,24 +372,24 @@ export default function FinancePage() {
                 </svg>
 
                 <div className="finance-chart-months">
-                  <span>T2</span>
-                  <span>T3</span>
-                  <span>T4</span>
-                  <span>T5</span>
-                  <span>T6</span>
-                  <span>T7</span>
+                  <span>Jan</span>
+                  <span>Feb</span>
+                  <span>Mar</span>
+                  <span>Apr</span>
+                  <span>May</span>
+                  <span>Jun</span>
                 </div>
               </div>
 
               <div className="finance-chart-legend">
                 <span>
                   <i className="income" />
-                  Thu
+                  Income
                 </span>
 
                 <span>
                   <i className="expense" />
-                  Chi
+                  Expense
                 </span>
               </div>
             </article>
@@ -397,8 +397,8 @@ export default function FinancePage() {
             <article className="finance-panel finance-breakdown-panel">
               <div className="finance-panel-header">
                 <div>
-                  <h2>Cơ cấu chi phí</h2>
-                  <p>Phân bổ theo danh mục</p>
+                  <h2>Expense Breakdown</h2>
+                  <p>Allocation by category</p>
                 </div>
 
                 <CircleDollarSign size={21} />
@@ -408,27 +408,19 @@ export default function FinancePage() {
                 <div className="finance-donut">
                   <div>
                     <strong>{formatCompactMoney(totalExpense)}</strong>
-                    <span>Tổng chi</span>
+                    <span>Total Expenses</span>
                   </div>
                 </div>
               </div>
 
               <div className="finance-breakdown-list">
-                <BreakdownRow label="Sự kiện" value="42%" className="event" />
+                <BreakdownRow label="Events" value="42%" className="event" />
 
-                <BreakdownRow
-                  label="Truyền thông"
-                  value="28%"
-                  className="media"
-                />
+                <BreakdownRow label="Media" value="28%" className="media" />
 
-                <BreakdownRow
-                  label="Văn phòng"
-                  value="18%"
-                  className="office"
-                />
+                <BreakdownRow label="Office" value="18%" className="office" />
 
-                <BreakdownRow label="Khác" value="12%" className="other" />
+                <BreakdownRow label="Other" value="12%" className="other" />
               </div>
             </article>
           </div>
@@ -436,8 +428,8 @@ export default function FinancePage() {
           <article className="finance-panel finance-table-panel">
             <div className="finance-table-header">
               <div>
-                <h2>Giao dịch gần đây</h2>
-                <p>{filteredTransactions.length} giao dịch</p>
+                <h2>Recent Transactions</h2>
+                <p>{filteredTransactions.length} transactions</p>
               </div>
 
               <div className="finance-table-filters">
@@ -448,7 +440,7 @@ export default function FinancePage() {
                     type="text"
                     value={searchText}
                     onChange={(event) => setSearchText(event.target.value)}
-                    placeholder="Tìm kiếm giao dịch..."
+                    placeholder="Search transactions..."
                   />
                 </div>
 
@@ -459,9 +451,9 @@ export default function FinancePage() {
                     value={typeFilter}
                     onChange={(event) => setTypeFilter(event.target.value)}
                   >
-                    <option value="ALL">Tất cả</option>
-                    <option value="INCOME">Thu</option>
-                    <option value="EXPENSE">Chi</option>
+                    <option value="ALL">All</option>
+                    <option value="INCOME">Income</option>
+                    <option value="EXPENSE">Expense</option>
                   </select>
                 </div>
               </div>
@@ -471,13 +463,13 @@ export default function FinancePage() {
               <table className="finance-table">
                 <thead>
                   <tr>
-                    <th>Nội dung</th>
-                    <th>Danh mục</th>
-                    <th>Loại</th>
-                    <th>Số tiền</th>
-                    <th>Ngày</th>
-                    <th>Người tạo</th>
-                    <th>Trạng thái</th>
+                    <th>Description</th>
+                    <th>Category</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                    <th>Created By</th>
+                    <th>Status</th>
                     <th />
                   </tr>
                 </thead>
@@ -501,7 +493,7 @@ export default function FinancePage() {
                             <ArrowUpRight size={14} />
                           )}
 
-                          {transaction.type === "INCOME" ? "Thu" : "Chi"}
+                          {transaction.type === "INCOME" ? "Income" : "Expense"}
                         </span>
                       </td>
 
@@ -524,8 +516,8 @@ export default function FinancePage() {
                           className={`finance-status ${transaction.status.toLowerCase()}`}
                         >
                           {transaction.status === "COMPLETED"
-                            ? "Hoàn tất"
-                            : "Chờ duyệt"}
+                            ? "Completed"
+                            : "Pending"}
                         </span>
                       </td>
 
@@ -615,8 +607,8 @@ function FinanceModal({ form, setForm, editing, onClose, onSave }) {
       <div className="finance-modal">
         <header>
           <div>
-            <h2>{editing ? "Chỉnh sửa giao dịch" : "Thêm giao dịch"}</h2>
-            <p>Dữ liệu được lưu tạm trong state frontend.</p>
+            <h2>{editing ? "Edit Transaction" : "Add Transaction"}</h2>
+            <p>Data is saved temporarily in the frontend state.</p>
           </div>
 
           <button type="button" onClick={onClose}>
@@ -625,65 +617,65 @@ function FinanceModal({ form, setForm, editing, onClose, onSave }) {
         </header>
 
         <div className="finance-modal-body">
-          <label>Nội dung giao dịch</label>
+          <label>Description</label>
 
           <input
             type="text"
             value={form.title}
             onChange={(event) => setField("title", event.target.value)}
-            placeholder="Ví dụ: Chi phí thuê hội trường"
+            placeholder="Example: Venue rental cost"
           />
 
           <div className="finance-form-grid">
             <div>
-              <label>Loại giao dịch</label>
+              <label>Transaction Type</label>
 
               <select
                 value={form.type}
                 onChange={(event) => setField("type", event.target.value)}
               >
-                <option value="INCOME">Thu</option>
-                <option value="EXPENSE">Chi</option>
+                <option value="INCOME">Income</option>
+                <option value="EXPENSE">Expense</option>
               </select>
             </div>
 
             <div>
-              <label>Số tiền</label>
+              <label>Amount</label>
 
               <input
                 type="number"
                 min="1"
                 value={form.amount}
                 onChange={(event) => setField("amount", event.target.value)}
-                placeholder="Nhập số tiền"
+                placeholder="Enter amount in VND"
               />
             </div>
 
             <div>
-              <label>Danh mục</label>
+              <label>Category</label>
 
               <select
                 value={form.category}
                 onChange={(event) => setField("category", event.target.value)}
               >
-                <option value="MEMBERSHIP">Phí thành viên</option>
-                <option value="SPONSOR">Tài trợ</option>
-                <option value="EVENT">Sự kiện</option>
-                <option value="MEDIA">Truyền thông</option>
-                <option value="OFFICE">Văn phòng</option>
-                <option value="OTHER">Khác</option>
+                <option value="MEMBERSHIP">Membership Fee</option>
+                <option value="SPONSOR">Sponsorship</option>
+                <option value="EVENT">Event</option>
+                <option value="MEDIA">Media</option>
+                <option value="OFFICE">Office</option>
+                <option value="OTHER">Other</option>
               </select>
             </div>
 
             <div>
-              <label>Trạng thái</label>
+              <label>Status</label>
 
               <select
                 value={form.status}
                 onChange={(event) => setField("status", event.target.value)}
               >
-                <option value="COMPLETED">Hoàn tất</option>
-                <option value="PENDING">Chờ duyệt</option>
+                <option value="COMPLETED">Completed</option>
+                <option value="PENDING">Pending</option>
               </select>
             </div>
           </div>
@@ -691,11 +683,11 @@ function FinanceModal({ form, setForm, editing, onClose, onSave }) {
 
         <footer>
           <button type="button" className="secondary" onClick={onClose}>
-            Hủy
+            Cancel
           </button>
 
           <button type="button" className="primary" onClick={onSave}>
-            {editing ? "Lưu thay đổi" : "Thêm giao dịch"}
+            {editing ? "Save Changes" : "Add Transaction"}
           </button>
         </footer>
       </div>

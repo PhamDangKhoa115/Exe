@@ -36,7 +36,7 @@ export default function HomePage() {
 
     if (!userId) {
       setCheckingGoogle(false);
-      toast.error("Không tìm thấy userId. Vui lòng đăng nhập lại.");
+      toast.error("Please log in again.");
       return;
     }
 
@@ -54,7 +54,7 @@ export default function HomePage() {
     } catch (error) {
       const message = getApiError(
         error,
-        "Không thể kiểm tra trạng thái kết nối Google.",
+        "Cannot check Google connection status.",
       );
 
       console.log("GOOGLE STATUS ERROR:", error.response?.data || error);
@@ -82,7 +82,7 @@ export default function HomePage() {
 
       await connectGoogle();
     } catch (error) {
-      const message = getApiError(error, "Không thể kết nối tài khoản Google.");
+      const message = getApiError(error, "Cannot connect to Google account.");
 
       console.log("CONNECT GOOGLE ERROR:", error.response?.data || error);
 
@@ -112,9 +112,9 @@ export default function HomePage() {
               <LoaderCircle size={32} className="google-status-spinner" />
 
               <div>
-                <h3>Đang kiểm tra kết nối Google</h3>
+                <h3>Checking Google connection</h3>
 
-                <p>Vui lòng chờ trong giây lát.</p>
+                <p>Please wait a moment.</p>
               </div>
             </section>
           ) : googleStatus.isConnected ? (
@@ -144,31 +144,31 @@ function GoogleConnectionRequired({ onConnect, connecting, onRefresh }) {
       </div>
 
       <div className="google-connect-content">
-        <span className="google-connect-label">Thiết lập Google Workspace</span>
+        <span className="google-connect-label">Set up Google Workspace</span>
 
-        <h2>Kết nối tài khoản Google để tiếp tục</h2>
+        <h2>Connect your Google account to continue</h2>
 
         <p>
-          Liên kết tài khoản Google để sử dụng Google Calendar, Google Docs,
-          Google Sheets và Google Forms trong câu lạc bộ.
+          Link your Google account to use Google Calendar, Google Docs, Google
+          Sheets and Google Forms in the club.
         </p>
 
         <div className="google-feature-list">
           <GoogleFeature
             icon={CalendarDays}
-            text="Đồng bộ sự kiện với Google Calendar"
+            text="Sync events with Google Calendar"
           />
 
-          <GoogleFeature icon={FileText} text="Tạo và quản lý Google Docs" />
+          <GoogleFeature icon={FileText} text="Create and manage Google Docs" />
 
           <GoogleFeature
             icon={FileSpreadsheet}
-            text="Đọc và cập nhật Google Sheets"
+            text="Read and update Google Sheets"
           />
 
           <GoogleFeature
             icon={CheckCircle2}
-            text="Tạo và quản lý Google Forms"
+            text="Create and manage Google Forms"
           />
         </div>
 
@@ -179,7 +179,7 @@ function GoogleConnectionRequired({ onConnect, connecting, onRefresh }) {
             onClick={onConnect}
             disabled={connecting}
           >
-            {connecting ? "Đang chuyển hướng..." : "Kết nối tài khoản Google"}
+            {connecting ? "Redirecting..." : "Connect Google Account"}
           </button>
 
           <button
@@ -189,7 +189,7 @@ function GoogleConnectionRequired({ onConnect, connecting, onRefresh }) {
             disabled={connecting}
           >
             <RefreshCw size={17} />
-            Kiểm tra lại
+            Refresh Status
           </button>
         </div>
       </div>
@@ -207,25 +207,25 @@ function GoogleConnectedCard({ status, onRefresh, refreshing }) {
       <div className="google-status-content">
         <span className="google-status-label">Google Workspace</span>
 
-        <h3>Tài khoản Google đã được kết nối</h3>
+        <h3>Google account is connected</h3>
 
-        <p>Bạn có thể sử dụng Calendar, Docs, Sheets và Forms trong CLB.</p>
+        <p>You can use Calendar, Docs, Sheets and Forms in the club.</p>
 
         <div className="google-account-details">
           <div>
-            <span>Tài khoản</span>
+            <span>Account</span>
 
-            <strong>{status.googleEmail || "Không rõ email"}</strong>
+            <strong>{status.googleEmail || "Unknown email"}</strong>
           </div>
 
           <div>
             <span>Refresh token</span>
 
-            <strong>{status.hasRefreshToken ? "Đã cấp" : "Chưa có"}</strong>
+            <strong>{status.hasRefreshToken ? "Issued" : "Not issued"}</strong>
           </div>
 
           <div>
-            <span>Cập nhật gần nhất</span>
+            <span>Last updated</span>
 
             <strong>{formatGoogleUpdatedAt(status.updatedAt)}</strong>
           </div>
@@ -237,7 +237,7 @@ function GoogleConnectedCard({ status, onRefresh, refreshing }) {
         className="google-status-refresh icon-only"
         onClick={onRefresh}
         disabled={refreshing}
-        title="Kiểm tra lại trạng thái"
+        title="Refresh Status"
       >
         <RefreshCw size={19} className={refreshing ? "rotating" : ""} />
       </button>
@@ -255,12 +255,12 @@ function GoogleFeature({ icon: Icon, text }) {
 }
 
 function formatGoogleUpdatedAt(value) {
-  if (!value) return "Không rõ";
+  if (!value) return "Unknown";
 
   const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) {
-    return "Không rõ";
+    return "Unknown";
   }
 
   return date.toLocaleString("vi-VN", {

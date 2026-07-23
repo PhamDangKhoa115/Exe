@@ -21,30 +21,30 @@ import "../styles.css";
 const RECENT_ACTIVITIES = [
   {
     id: 1,
-    title: "Nguyễn Văn An hoàn thành công việc",
-    description: "Thiết kế Banner Sự kiện Chào Tân",
-    time: "10 phút trước",
+    title: "Nguyễn Văn An completed a task",
+    description: "Design the new club logo",
+    time: "10 minutes ago",
     type: "TASK",
   },
   {
     id: 2,
-    title: "Một thành viên mới đã tham gia",
-    description: "Trần Minh Khoa được phê duyệt vào CLB",
-    time: "35 phút trước",
+    title: "A new member has joined",
+    description: "Trần Minh Khoa was approved to join the club",
+    time: "35 minutes ago",
     type: "MEMBER",
   },
   {
     id: 3,
-    title: "Tài liệu mới được tạo",
-    description: "Biên bản họp tháng 7",
-    time: "1 giờ trước",
+    title: "A new document has been created",
+    description: "Meeting minutes for July",
+    time: "1 hour ago",
     type: "DOCUMENT",
   },
   {
     id: 4,
-    title: "Sự kiện mới được lên lịch",
-    description: "Workshop Kỹ năng lãnh đạo",
-    time: "3 giờ trước",
+    title: "A new event has been scheduled",
+    description: "Leadership Skills Workshop",
+    time: "3 hours ago",
     type: "EVENT",
   },
 ];
@@ -52,48 +52,48 @@ const RECENT_ACTIVITIES = [
 const UPCOMING_EVENTS = [
   {
     id: 1,
-    title: "Workshop Kỹ năng lãnh đạo",
+    title: "Workshop leadership skills",
     date: "25",
-    month: "THÁNG 7",
+    month: "AUGUST",
     time: "18:30 - 20:30",
   },
   {
     id: 2,
-    title: "Họp Ban Truyền Thông",
+    title: "Meeting with the new club members",
     date: "27",
-    month: "THÁNG 7",
+    month: "JULY",
     time: "19:00 - 20:00",
   },
   {
     id: 3,
-    title: "Sự kiện Chào Tân Sinh Viên",
+    title: "Orientation for New Students",
     date: "02",
-    month: "THÁNG 8",
+    month: "AUGUST",
     time: "08:00 - 17:00",
   },
 ];
 
 const DEPARTMENT_PROGRESS = [
   {
-    name: "Ban Truyền Thông",
+    name: "department of Marketing",
     completed: 18,
     total: 22,
     percentage: 82,
   },
   {
-    name: "Ban Sự Kiện",
+    name: "department of Events",
     completed: 14,
     total: 20,
     percentage: 70,
   },
   {
-    name: "Ban Tài Chính",
+    name: "department of Finance",
     completed: 11,
     total: 15,
     percentage: 73,
   },
   {
-    name: "Ban Nhân Sự",
+    name: "department of Human Resources",
     completed: 8,
     total: 14,
     percentage: 57,
@@ -114,20 +114,19 @@ export default function DashboardPage() {
               <h1>Club Dashboard</h1>
 
               <p>
-                Tổng quan hoạt động, thành viên, tài chính và tiến độ của câu
-                lạc bộ.
+                Overview of club activities, members, finances, and progress.
               </p>
             </div>
 
             <div className="dashboard-date">
               <CalendarDays size={18} />
-              22 tháng 7, 2026
+              July 22, 2026
             </div>
           </header>
 
           <div className="dashboard-stat-grid">
             <StatCard
-              title="Tổng thành viên"
+              title="Total Members"
               value="128"
               change="+12.5%"
               positive
@@ -136,16 +135,16 @@ export default function DashboardPage() {
             />
 
             <StatCard
-              title="Sự kiện tháng này"
+              title="Events This Month"
               value="8"
-              change="+2 sự kiện"
+              change="+2 events"
               positive
               icon={<CalendarDays />}
               className="events"
             />
 
             <StatCard
-              title="Công việc hoàn thành"
+              title="Tasks Completed"
               value="74%"
               change="+8.2%"
               positive
@@ -154,7 +153,7 @@ export default function DashboardPage() {
             />
 
             <StatCard
-              title="Số dư hiện tại"
+              title="Current Balance"
               value="42.5M"
               change="-4.1%"
               positive={false}
@@ -167,25 +166,25 @@ export default function DashboardPage() {
             <article className="dashboard-panel dashboard-finance-chart">
               <div className="dashboard-panel-header">
                 <div>
-                  <h2>Thu chi 6 tháng gần nhất</h2>
-                  <p>Đơn vị: triệu đồng</p>
+                  <h2>Income and Expenses (Last 6 Months)</h2>
+                  <p>Unit: Million VND</p>
                 </div>
 
                 <select defaultValue="6_MONTHS">
-                  <option value="6_MONTHS">6 tháng</option>
-                  <option value="12_MONTHS">12 tháng</option>
+                  <option value="6_MONTHS">6 months</option>
+                  <option value="12_MONTHS">12 months</option>
                 </select>
               </div>
 
               <div className="dashboard-chart-legend">
                 <span>
                   <i className="income" />
-                  Thu
+                  Income
                 </span>
 
                 <span>
                   <i className="expense" />
-                  Chi
+                  Expenses
                 </span>
               </div>
 
@@ -202,8 +201,8 @@ export default function DashboardPage() {
             <article className="dashboard-panel dashboard-task-summary">
               <div className="dashboard-panel-header">
                 <div>
-                  <h2>Tiến độ công việc</h2>
-                  <p>Tổng quan trạng thái task</p>
+                  <h2>Task Progress</h2>
+                  <p>Overview of task status</p>
                 </div>
 
                 <ListTodo size={22} />
@@ -213,21 +212,17 @@ export default function DashboardPage() {
                 <div className="task-donut">
                   <div>
                     <strong>50</strong>
-                    <span>Tổng task</span>
+                    <span>Total Tasks</span>
                   </div>
                 </div>
               </div>
 
               <div className="task-summary-list">
-                <SummaryRow label="Hoàn thành" value="28" className="done" />
+                <SummaryRow label="Completed" value="28" className="done" />
 
-                <SummaryRow
-                  label="Đang thực hiện"
-                  value="14"
-                  className="doing"
-                />
+                <SummaryRow label="In Progress" value="14" className="doing" />
 
-                <SummaryRow label="Chưa thực hiện" value="8" className="todo" />
+                <SummaryRow label="To Do" value="8" className="todo" />
               </div>
             </article>
           </div>
@@ -236,8 +231,8 @@ export default function DashboardPage() {
             <article className="dashboard-panel">
               <div className="dashboard-panel-header">
                 <div>
-                  <h2>Hoạt động gần đây</h2>
-                  <p>Cập nhật mới nhất trong câu lạc bộ</p>
+                  <h2>Recent Activities</h2>
+                  <p>Latest updates in the club</p>
                 </div>
 
                 <Activity size={21} />
@@ -253,8 +248,8 @@ export default function DashboardPage() {
             <article className="dashboard-panel">
               <div className="dashboard-panel-header">
                 <div>
-                  <h2>Sự kiện sắp tới</h2>
-                  <p>Lịch hoạt động trong thời gian tới</p>
+                  <h2>Upcoming Events</h2>
+                  <p>Schedule of upcoming activities</p>
                 </div>
 
                 <CalendarDays size={21} />
@@ -270,8 +265,8 @@ export default function DashboardPage() {
             <article className="dashboard-panel">
               <div className="dashboard-panel-header">
                 <div>
-                  <h2>Hiệu suất phòng ban</h2>
-                  <p>Tỷ lệ hoàn thành công việc</p>
+                  <h2>Department Performance</h2>
+                  <p>Task completion rates</p>
                 </div>
 
                 <TrendingUp size={21} />
@@ -396,7 +391,7 @@ function DepartmentProgress({ department }) {
         <strong>{department.name}</strong>
 
         <span>
-          {department.completed}/{department.total} công việc
+          {department.completed}/{department.total} tasks
         </span>
       </div>
 

@@ -20,12 +20,12 @@ export default function CreateClubPage() {
     const clubName = form.name.trim();
 
     if (!userId) {
-      alert("Không tìm thấy userId. Vui lòng đăng nhập lại.");
+      alert("No userId found. Please log in again.");
       return;
     }
 
     if (!clubName) {
-      alert("Vui lòng nhập tên câu lạc bộ.");
+      alert("Please enter a club name.");
       return;
     }
 
@@ -50,7 +50,9 @@ export default function CreateClubPage() {
       const createdClubName = club?.name ?? club?.clubName ?? clubName;
 
       if (!clubId) {
-        throw new Error("Backend không trả về ID câu lạc bộ.");
+        throw new Error(
+          "No clubId returned from backend after creating a club.",
+        );
       }
 
       localStorage.setItem("selectedClubId", String(clubId));
@@ -69,7 +71,7 @@ export default function CreateClubPage() {
       alert(
         error?.response?.data?.message ||
           error?.message ||
-          "Không thể tạo câu lạc bộ.",
+          "Cannot create club.",
       );
     }
   };
@@ -119,7 +121,7 @@ export default function CreateClubPage() {
             placeholder="https://example.com/logo.png"
           />
 
-          <small>Chỉ nhập đường dẫn ảnh ngắn</small>
+          <small>Only enter a short image URL</small>
 
           <div className="radio-row">
             <label>

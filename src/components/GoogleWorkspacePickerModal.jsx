@@ -86,7 +86,7 @@ export default function GoogleWorkspacePickerModal({
               <FileQuestion size={23} />
             )}
 
-            <h2>Mở {isSheet ? "Spreadsheet" : "Google Form"}</h2>
+            <h2>Open {isSheet ? "Spreadsheet" : "Google Form"}</h2>
           </div>
 
           <button
@@ -106,13 +106,13 @@ export default function GoogleWorkspacePickerModal({
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder={
-                isSheet ? "Tìm Spreadsheet..." : "Tìm Google Form..."
+                isSheet ? "Search Spreadsheet..." : "Search Google Form..."
               }
             />
 
             <button
               type="button"
-              title="Sắp xếp"
+              title="Sort"
               onClick={() => setShowFilter((current) => !current)}
             >
               <SlidersHorizontal size={20} />
@@ -121,14 +121,14 @@ export default function GoogleWorkspacePickerModal({
 
           {showFilter && (
             <div className="drive-picker-filter-menu workspace-picker-sort">
-              <p>Sắp xếp theo</p>
+              <p>Sort by</p>
 
               <button
                 type="button"
                 className={sortBy === "date" ? "active" : ""}
                 onClick={() => setSortBy("date")}
               >
-                Ngày tạo
+                Date created
               </button>
 
               <button
@@ -136,17 +136,17 @@ export default function GoogleWorkspacePickerModal({
                 className={sortBy === "title" ? "active" : ""}
                 onClick={() => setSortBy("title")}
               >
-                Tên
+                Name
               </button>
 
-              <p>Thứ tự</p>
+              <p>Order</p>
 
               <button
                 type="button"
                 className={sortDir === "asc" ? "active" : ""}
                 onClick={() => setSortDir("asc")}
               >
-                Tăng dần
+                Ascending
               </button>
 
               <button
@@ -154,7 +154,7 @@ export default function GoogleWorkspacePickerModal({
                 className={sortDir === "desc" ? "active" : ""}
                 onClick={() => setSortDir("desc")}
               >
-                Giảm dần
+                Descending
               </button>
             </div>
           )}
@@ -162,24 +162,24 @@ export default function GoogleWorkspacePickerModal({
 
         <nav className="drive-picker-tabs">
           <button type="button" className="active">
-            Gần đây
+            Recently
           </button>
 
           <button type="button" disabled>
-            Drive của tôi
+            My Drive
           </button>
 
           <button type="button" disabled>
-            Được chia sẻ với tôi
+            Shared with me
           </button>
 
           <button type="button" disabled>
-            Có gắn dấu sao
+            Starred
           </button>
         </nav>
 
         <div className="drive-picker-toolbar">
-          <strong>Tên</strong>
+          <strong>Name</strong>
 
           <div>
             <button
@@ -202,11 +202,11 @@ export default function GoogleWorkspacePickerModal({
 
         <div className={`drive-picker-files ${view}`}>
           {loading ? (
-            <div className="drive-picker-status">Đang tải dữ liệu...</div>
+            <div className="drive-picker-status">Loading data...</div>
           ) : normalizedItems.length === 0 ? (
             <div className="drive-picker-empty">
               <FolderOpen size={48} />
-              <h3>Không tìm thấy tệp</h3>
+              <h3>No files found</h3>
             </div>
           ) : (
             normalizedItems.map((item) => (
@@ -246,7 +246,7 @@ export default function GoogleWorkspacePickerModal({
 
         <footer className="drive-picker-footer">
           <button type="button" className="secondary" onClick={onClose}>
-            Hủy
+            Cancel
           </button>
 
           <button
@@ -255,7 +255,7 @@ export default function GoogleWorkspacePickerModal({
             disabled={!selectedItem}
             onClick={handleOpen}
           >
-            Mở
+            Open
           </button>
         </footer>
       </section>

@@ -101,22 +101,22 @@ export default function CreateDocumentModal({ open, onClose, onCreated }) {
     event.preventDefault();
 
     if (!form.title.trim()) {
-      toast.error("Vui lòng nhập tiêu đề tài liệu.");
+      toast.error("Please enter a document title.");
       return;
     }
 
     if (!form.category) {
-      toast.error("Vui lòng chọn danh mục.");
+      toast.error("Please select a document category.");
       return;
     }
 
     if (!form.type) {
-      toast.error("Vui lòng chọn loại tài liệu.");
+      toast.error("Please select a document type.");
       return;
     }
 
     if (form.category === "EVENT" && !form.eventId) {
-      toast.error("Tài liệu thuộc sự kiện phải chọn Event ID.");
+      toast.error("Documents under events must select an Event name.");
       return;
     }
 
@@ -133,14 +133,14 @@ export default function CreateDocumentModal({ open, onClose, onCreated }) {
             : null,
       });
 
-      toast.success("Tạo tài liệu thành công.");
+      toast.success("Document created successfully.");
 
       setForm(EMPTY_FORM);
       onClose();
 
       await onCreated?.(createdDocument);
     } catch (error) {
-      const message = getApiError(error, "Không thể tạo tài liệu");
+      const message = getApiError(error, "Failed to create document");
 
       console.error("CREATE DOCUMENT ERROR:", error?.response?.data || error);
 
@@ -165,8 +165,8 @@ export default function CreateDocumentModal({ open, onClose, onCreated }) {
             <FaFileAlt />
 
             <div>
-              <h2>Tạo tài liệu mới</h2>
-              <p>Tài liệu sẽ được tạo trên Google Docs.</p>
+              <h2>Create New Document</h2>
+              <p>The document will be created on Google Docs.</p>
             </div>
           </div>
 
@@ -177,19 +177,19 @@ export default function CreateDocumentModal({ open, onClose, onCreated }) {
 
         <div className="document-modal-body">
           <label htmlFor="document-title">
-            Tiêu đề <span>*</span>
+            Title <span>*</span>
           </label>
 
           <input
             id="document-title"
             type="text"
             value={form.title}
-            placeholder="Ví dụ: Biên bản họp tháng 7"
+            placeholder="Example: Meeting minutes July"
             onChange={(event) => setField("title", event.target.value)}
           />
 
           <label htmlFor="document-category">
-            Danh mục <span>*</span>
+            Category <span>*</span>
           </label>
 
           <select
@@ -206,15 +206,15 @@ export default function CreateDocumentModal({ open, onClose, onCreated }) {
               ))
             ) : (
               <>
-                <option value="EVENT">Sự kiện</option>
+                <option value="EVENT">Event</option>
 
-                <option value="CLUB_ACTIVITY">Hoạt động câu lạc bộ</option>
+                <option value="CLUB_ACTIVITY">Club Activity</option>
               </>
             )}
           </select>
 
           <label htmlFor="document-type">
-            Loại tài liệu <span>*</span>
+            Document Type <span>*</span>
           </label>
 
           <select
@@ -231,15 +231,15 @@ export default function CreateDocumentModal({ open, onClose, onCreated }) {
               ))
             ) : (
               <>
-                <option value="MEETING_MINUTES">Biên bản cuộc họp</option>
+                <option value="MEETING_MINUTES">Meeting Minutes</option>
 
-                <option value="EVENT_PLAN">Kế hoạch sự kiện</option>
+                <option value="EVENT_PLAN">Event Plan</option>
 
-                <option value="REPORT">Báo cáo</option>
+                <option value="REPORT">Report</option>
 
-                <option value="FINANCE">Tài chính</option>
+                <option value="FINANCE">Finance</option>
 
-                <option value="OTHER">Khác</option>
+                <option value="OTHER">Other</option>
               </>
             )}
           </select>
@@ -255,7 +255,7 @@ export default function CreateDocumentModal({ open, onClose, onCreated }) {
                 type="number"
                 min="1"
                 value={form.eventId}
-                placeholder="Nhập ID sự kiện"
+                placeholder="Enter event"
                 onChange={(event) => setField("eventId", event.target.value)}
               />
             </>
@@ -269,7 +269,7 @@ export default function CreateDocumentModal({ open, onClose, onCreated }) {
             onClick={handleClose}
             disabled={submitting}
           >
-            Hủy
+            Cancel
           </button>
 
           <button
@@ -277,7 +277,7 @@ export default function CreateDocumentModal({ open, onClose, onCreated }) {
             className="document-create-button"
             disabled={submitting || loadingOptions}
           >
-            {submitting ? "Đang tạo..." : "Tạo tài liệu"}
+            {submitting ? "Creating..." : "Create Document"}
           </button>
         </div>
       </form>

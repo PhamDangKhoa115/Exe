@@ -51,7 +51,7 @@ export default function SelectClubPage() {
 
   const loadData = useCallback(async () => {
     if (!userId) {
-      toast.error("Không tìm thấy userId.");
+      toast.error("Cannot find user ID.");
       return;
     }
 
@@ -73,8 +73,8 @@ export default function SelectClubPage() {
           "";
 
         const isNoClubError =
-          String(message).toLowerCase().includes("chưa tham gia câu lạc bộ") ||
-          String(message).toLowerCase().includes("không có câu lạc bộ") ||
+          String(message).toLowerCase().includes("have not joined any clubs") ||
+          String(message).toLowerCase().includes("No clubs") ||
           error?.response?.status === 404;
 
         if (isNoClubError) {
@@ -85,7 +85,7 @@ export default function SelectClubPage() {
             error?.response?.data || error,
           );
 
-          toast.error("Không thể tải câu lạc bộ của bạn.");
+          toast.error("Cannot load your clubs.");
         }
       }
 
@@ -97,10 +97,7 @@ export default function SelectClubPage() {
         console.error("LOAD ALL CLUBS ERROR:", error?.response?.data || error);
 
         toast.error(
-          getErrorMessage(
-            error,
-            "Không thể tải danh sách câu lạc bộ để khám phá.",
-          ),
+          getErrorMessage(error, "Cannot load club list for exploration."),
         );
       }
 
@@ -164,7 +161,7 @@ export default function SelectClubPage() {
     ).toUpperCase();
 
     if (status !== "ACTIVE" && status !== "APPROVED") {
-      toast.warning("Yêu cầu tham gia câu lạc bộ chưa được phê duyệt.");
+      toast.warning("Membership request not approved.");
       return;
     }
 
@@ -193,17 +190,15 @@ export default function SelectClubPage() {
       toast.success(
         response?.message ||
           (isPrivate
-            ? "Đã gửi yêu cầu tham gia. Vui lòng chờ quản lý CLB phê duyệt."
-            : "Gia nhập câu lạc bộ thành công."),
+            ? "Membership request sent. Please wait for club management approval."
+            : "Successfully joined the club."),
       );
 
       await loadData();
     } catch (error) {
       console.error("JOIN CLUB ERROR:", error?.response?.data || error);
 
-      toast.error(
-        getErrorMessage(error, "Không thể gửi yêu cầu tham gia câu lạc bộ."),
-      );
+      toast.error(getErrorMessage(error, "Cannot send membership request."));
     } finally {
       setJoiningClubId(null);
     }
@@ -218,7 +213,7 @@ export default function SelectClubPage() {
           <header className="club-browser-header">
             <div>
               <h1>Choose your club</h1>
-              <p>Chọn câu lạc bộ hiện có hoặc khám phá cộng đồng mới.</p>
+              <p>Choose existing clubs or explore new communities.</p>
             </div>
 
             <button
@@ -228,7 +223,7 @@ export default function SelectClubPage() {
               disabled={loading}
             >
               <RefreshCw size={17} className={loading ? "spin-icon" : ""} />
-              Làm mới
+              Refresh
             </button>
           </header>
 
@@ -239,7 +234,7 @@ export default function SelectClubPage() {
               onClick={() => setActiveTab("MY_CLUBS")}
             >
               <Users size={18} />
-              Câu lạc bộ của tôi
+              My Clubs
               <span>{myClubs.length}</span>
             </button>
 
@@ -261,7 +256,7 @@ export default function SelectClubPage() {
                 type="text"
                 value={searchText}
                 onChange={(event) => setSearchText(event.target.value)}
-                placeholder="Tìm theo tên hoặc mô tả câu lạc bộ..."
+                placeholder="Search by name or description..."
               />
             </div>
           )}
@@ -269,7 +264,7 @@ export default function SelectClubPage() {
           {loading ? (
             <div className="club-page-loading">
               <RefreshCw className="spin-icon" size={30} />
-              <p>Đang tải câu lạc bộ...</p>
+              <p>Loading clubs...</p>
             </div>
           ) : activeTab === "MY_CLUBS" ? (
             <div
@@ -281,9 +276,9 @@ export default function SelectClubPage() {
                 <div className="empty-club-state">
                   <Users size={50} />
 
-                  <h2>Bạn chưa tham gia câu lạc bộ nào</h2>
+                  <h2>You have not joined any clubs</h2>
 
-                  <p>Khám phá câu lạc bộ hoặc tạo một câu lạc bộ mới.</p>
+                  <p>Explore clubs or create a new one.</p>
 
                   <button
                     type="button"
@@ -318,7 +313,7 @@ export default function SelectClubPage() {
                 </div>
 
                 <h2>Create Club</h2>
-                <p>Tạo một cộng đồng mới cho bạn.</p>
+                <p>Create a new community for you.</p>
               </button>
             </div>
           ) : (
@@ -327,10 +322,10 @@ export default function SelectClubPage() {
                 <div className="empty-club-state">
                   <Globe2 size={50} />
 
-                  <h2>Không tìm thấy câu lạc bộ</h2>
+                  <h2>No clubs found</h2>
 
                   <p>
-                    Bạn đã tham gia tất cả CLB hoặc không có kết quả phù hợp.
+                    You have joined all clubs or there are no matching results.
                   </p>
                 </div>
               ) : (
@@ -408,11 +403,11 @@ function PendingClubCard({ club }) {
       <div className="club-card-information">
         <h2>{clubName}</h2>
 
-        <span className="club-role-badge pending">Đang chờ phê duyệt</span>
+        <span className="club-role-badge pending">Pending Approval</span>
       </div>
 
       <button type="button" className="club-enter-button pending" disabled>
-        Chờ phê duyệt
+        Pending Approval
       </button>
     </article>
   );
@@ -446,17 +441,17 @@ function ExploreClubCard({ club, joining, onJoin }) {
       <div className="explore-club-content">
         <h2>{club.name}</h2>
 
-        <p>{club.description || "Câu lạc bộ chưa có mô tả."}</p>
+        <p>{club.description || "No description available."}</p>
 
         <small>
-          Quản lý bởi <strong>{club.createdByName || "Không xác định"}</strong>
+          Managed by <strong>{club.createdByName || "Not specified"}</strong>
         </small>
 
         <button type="button" disabled={joining} onClick={() => onJoin(club)}>
           {joining ? (
             <>
               <RefreshCw size={16} className="spin-icon" />
-              Đang xử lý...
+              Processing...
             </>
           ) : isPublic ? (
             <>
@@ -477,11 +472,11 @@ function ExploreClubCard({ club, joining, onJoin }) {
 
 function formatRole(role) {
   const roleLabels = {
-    PRESIDENT: "Chủ nhiệm",
-    CLUB_MANAGER: "Quản lý CLB",
-    DEPARTMENT_HEAD: "Trưởng ban",
-    TREASURER: "Thủ quỹ",
-    MEMBER: "Thành viên",
+    PRESIDENT: "President",
+    CLUB_MANAGER: "Club Manager",
+    DEPARTMENT_HEAD: "Department Head",
+    TREASURER: "Treasurer",
+    MEMBER: "Member",
   };
 
   return roleLabels[String(role).toUpperCase()] || role;

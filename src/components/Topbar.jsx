@@ -117,7 +117,7 @@ export default function Topbar({ title = "Home Page" }) {
           type="button"
           className="topbar-avatar-button"
           onClick={handleAvatarClick}
-          aria-label="Mở menu tài khoản"
+          aria-label="Open profile menu"
           aria-expanded={open}
         >
           <img

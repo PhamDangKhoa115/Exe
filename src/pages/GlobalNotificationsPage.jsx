@@ -25,7 +25,7 @@ const INITIAL_NOTIFICATIONS = [
     id: 1,
     title: "Annual Tech Symposium 2026: Call for Volunteers",
     description:
-      "Sự kiện công nghệ lớn nhất năm đang đến gần. Câu lạc bộ cần thành viên hỗ trợ hậu cần, truyền thông và vận hành sự kiện.",
+      "Big tech event coming up. We need volunteers for logistics, communications, and event management.",
     category: "CLUB_EVENT",
     categoryLabel: "Club Event",
     date: "24/07/2026",
@@ -39,7 +39,7 @@ const INITIAL_NOTIFICATIONS = [
     id: 2,
     title: "Weekly Progress Update",
     description:
-      "Tất cả trưởng ban cần gửi báo cáo tiến độ hàng tuần trước 17:00 thứ Sáu.",
+      "All department heads need to submit weekly progress reports before 5:00 PM on Fridays.",
     category: "REMINDER",
     categoryLabel: "Reminder",
     date: "22/07/2026",
@@ -51,7 +51,7 @@ const INITIAL_NOTIFICATIONS = [
     id: 3,
     title: "New Member Onboarding",
     description:
-      "Chào mừng 15 thành viên mới. Buổi hướng dẫn sẽ được tổ chức vào tuần tới.",
+      "Welcome 15 new members. The onboarding session will be held next week.",
     category: "MEMBER",
     categoryLabel: "Member",
     date: "21/07/2026",
@@ -63,7 +63,7 @@ const INITIAL_NOTIFICATIONS = [
     id: 4,
     title: "Urgent: Server Maintenance",
     description:
-      "Hệ thống CLB sẽ tạm ngừng hoạt động từ 23:00 đến 01:00 để bảo trì.",
+      "The club system will be temporarily unavailable from 11:00 PM to 1:00 AM for maintenance.",
     category: "URGENT",
     categoryLabel: "Urgent",
     date: "20/07/2026",
@@ -74,7 +74,7 @@ const INITIAL_NOTIFICATIONS = [
   {
     id: 5,
     title: "Partnership Announcement",
-    description: "Câu lạc bộ chính thức hợp tác với Global Innovation Network.",
+    description: "The club officially partners with Global Innovation Network.",
     category: "ANNOUNCEMENT",
     categoryLabel: "Announcement",
     date: "18/07/2026",
@@ -161,12 +161,12 @@ export default function GlobalNotificationsPage() {
 
   const handleSave = () => {
     if (!form.title.trim()) {
-      alert("Vui lòng nhập tiêu đề thông báo.");
+      alert("Please enter a title for the notification.");
       return;
     }
 
     if (!form.description.trim()) {
-      alert("Vui lòng nhập nội dung thông báo.");
+      alert("Please enter the content for the notification.");
       return;
     }
 
@@ -207,7 +207,7 @@ export default function GlobalNotificationsPage() {
 
   const handleDelete = (notification) => {
     const confirmed = window.confirm(
-      `Bạn có chắc muốn xóa thông báo "${notification.title}" không?`,
+      `Are you sure you want to delete the notification "${notification.title}"?`,
     );
 
     if (!confirmed) return;
@@ -233,8 +233,8 @@ export default function GlobalNotificationsPage() {
                 <h1>Notifications</h1>
 
                 <p>
-                  Quản lý thông báo, hoạt động và cập nhật dành cho thành viên
-                  câu lạc bộ.
+                  Manage notifications, activities, and updates for club
+                  members.
                 </p>
               </div>
             </div>
@@ -291,8 +291,8 @@ export default function GlobalNotificationsPage() {
           {filteredNotifications.length === 0 ? (
             <div className="notification-empty">
               <Bell size={46} />
-              <h2>Không có thông báo</h2>
-              <p>Chưa có thông báo phù hợp với bộ lọc hiện tại.</p>
+              <h2>no notifications</h2>
+              <p>There are no notifications to display.</p>
             </div>
           ) : (
             <div className="notification-layout">
@@ -513,8 +513,8 @@ function NotificationModal({ form, setForm, editing, onClose, onSave }) {
       <div className="notification-modal">
         <header>
           <div>
-            <h2>{editing ? "Chỉnh sửa thông báo" : "Tạo thông báo mới"}</h2>
-            <p>Thông báo này đang sử dụng dữ liệu code cứng trên frontend.</p>
+            <h2>{editing ? "Edit Notification" : "Create New Notification"}</h2>
+            <p>This notification is using hardcoded data on the frontend.</p>
           </div>
 
           <button type="button" onClick={onClose}>
@@ -523,27 +523,27 @@ function NotificationModal({ form, setForm, editing, onClose, onSave }) {
         </header>
 
         <div className="notification-modal-body">
-          <label>Tiêu đề</label>
+          <label>Title</label>
 
           <input
             type="text"
             value={form.title}
             onChange={(event) => setField("title", event.target.value)}
-            placeholder="Nhập tiêu đề thông báo..."
+            placeholder="Enter notification title..."
           />
 
-          <label>Nội dung</label>
+          <label>Content</label>
 
           <textarea
             rows="5"
             value={form.description}
             onChange={(event) => setField("description", event.target.value)}
-            placeholder="Nhập nội dung thông báo..."
+            placeholder="Enter notification content..."
           />
 
           <div className="notification-form-grid">
             <div>
-              <label>Loại thông báo</label>
+              <label>Notification Type</label>
 
               <select
                 value={form.category}
@@ -558,7 +558,7 @@ function NotificationModal({ form, setForm, editing, onClose, onSave }) {
             </div>
 
             <div>
-              <label>Trạng thái</label>
+              <label>Status</label>
 
               <select
                 value={form.status}
@@ -571,7 +571,7 @@ function NotificationModal({ form, setForm, editing, onClose, onSave }) {
             </div>
           </div>
 
-          <label>URL hình ảnh</label>
+          <label>Image URL</label>
 
           <input
             type="url"
@@ -586,17 +586,17 @@ function NotificationModal({ form, setForm, editing, onClose, onSave }) {
               checked={form.featured}
               onChange={(event) => setField("featured", event.target.checked)}
             />
-            Đặt làm bài nổi bật
+            Set as Featured
           </label>
         </div>
 
         <footer>
           <button type="button" className="secondary" onClick={onClose}>
-            Hủy
+            Cancel
           </button>
 
           <button type="button" className="primary" onClick={onSave}>
-            {editing ? "Lưu thay đổi" : "Đăng thông báo"}
+            {editing ? "Save Changes" : "Publish Notification"}
           </button>
         </footer>
       </div>

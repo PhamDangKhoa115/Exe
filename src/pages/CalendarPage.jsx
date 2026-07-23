@@ -118,7 +118,7 @@ export default function CalendarPage() {
 
       const mappedEvents = sourceEvents.map((event) => ({
         id: String(event.id),
-        title: event.title || "Không có tiêu đề",
+        title: event.title || "no title",
         start: event.startTime,
         end: event.endTime,
         location: event.location || "",
@@ -153,7 +153,7 @@ export default function CalendarPage() {
       toast.error(
         error.response?.data?.message ||
           error.response?.data?.error ||
-          "Không thể tải danh sách sự kiện",
+          "Cannot load event list",
       );
 
       setEvents([]);
@@ -210,9 +210,7 @@ export default function CalendarPage() {
     } catch (error) {
       console.log("GET EVENT DETAIL ERROR:", error.response?.data || error);
 
-      toast.error(
-        error.response?.data?.message || "Không thể tải chi tiết sự kiện",
-      );
+      toast.error(error.response?.data?.message || "Cannot load event detail");
     }
   };
 
@@ -245,7 +243,7 @@ export default function CalendarPage() {
     if (saving) return;
 
     if (!form.title.trim() || !form.start || !form.end) {
-      toast.error("Vui lòng nhập tiêu đề, thời gian bắt đầu và kết thúc.");
+      toast.error("Please enter a title, start time, and end time.");
       return;
     }
 
@@ -253,12 +251,12 @@ export default function CalendarPage() {
     const endDate = new Date(form.end);
 
     if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
-      toast.error("Thời gian sự kiện không hợp lệ.");
+      toast.error("Invalid event time.");
       return;
     }
 
     if (endDate <= startDate) {
-      toast.error("Thời gian kết thúc phải sau thời gian bắt đầu.");
+      toast.error("End time must be after start time.");
       return;
     }
 
@@ -275,10 +273,10 @@ export default function CalendarPage() {
 
       if (editingEvent) {
         await updateEvent(editingEvent, payload);
-        toast.success("Cập nhật sự kiện thành công.");
+        toast.success("Event updated successfully.");
       } else {
         await createEvent(payload);
-        toast.success("Tạo sự kiện thành công.");
+        toast.success("Event created successfully.");
       }
 
       setShowModal(false);
@@ -294,7 +292,7 @@ export default function CalendarPage() {
       toast.error(
         error.response?.data?.message ||
           error.response?.data?.error ||
-          "Bạn Chưa có quyền tạo sự kiện.",
+          "You do not have permission to create events.",
       );
     } finally {
       setSaving(false);
@@ -302,17 +300,19 @@ export default function CalendarPage() {
   };
   const handleSyncEvent = async () => {
     if (!connected) {
-      toast.warning("Vui lòng kết nối tài khoản Google tại Home Page trước.");
+      toast.warning(
+        "Please connect your Google account at the Home Page first.",
+      );
       return;
     }
 
     if (!editingEvent) {
-      toast.warning("Bạn cần lưu sự kiện trước khi đồng bộ.");
+      toast.warning("You need to save the event before syncing.");
       return;
     }
 
     if (!editingEvent) {
-      toast.warning("Bạn cần lưu sự kiện trước khi đồng bộ.");
+      toast.warning("You need to save the event before syncing.");
       return;
     }
 
@@ -338,7 +338,7 @@ export default function CalendarPage() {
 
       setConnected(true);
 
-      toast.success("Đồng bộ Google Calendar thành công.");
+      toast.success("Successfully synced with Google Calendar.");
 
       await loadGoogleEvents({
         date: currentDate,
@@ -352,7 +352,7 @@ export default function CalendarPage() {
       toast.error(
         error.response?.data?.message ||
           error.response?.data?.error ||
-          "Không thể đồng bộ Google Calendar",
+          "Cannot sync with Google Calendar",
       );
     } finally {
       setSyncingEventId(null);
@@ -361,7 +361,9 @@ export default function CalendarPage() {
   const handleDelete = async () => {
     if (!editingEvent) return;
 
-    const confirmed = window.confirm("Bạn có chắc muốn xóa sự kiện này?");
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this event?",
+    );
 
     if (!confirmed) return;
 
@@ -376,11 +378,11 @@ export default function CalendarPage() {
         calendarView: view,
       });
 
-      toast.success("Xóa sự kiện thành công.");
+      toast.success("Event deleted successfully.");
     } catch (error) {
       console.log("DELETE EVENT ERROR:", error.response?.data || error);
 
-      toast.error(error.response?.data?.message || "Không thể xóa sự kiện");
+      toast.error(error.response?.data?.message || "Cannot delete event");
     }
   };
 
@@ -408,7 +410,7 @@ export default function CalendarPage() {
 
       await updateEvent(info.event.id, payload);
 
-      toast.success("Đã cập nhật thời gian sự kiện.");
+      toast.success("Event time updated successfully.");
 
       await loadGoogleEvents({
         date: currentDate,
@@ -419,9 +421,7 @@ export default function CalendarPage() {
 
       info.revert();
 
-      toast.error(
-        error.response?.data?.message || "Không thể di chuyển sự kiện",
-      );
+      toast.error(error.response?.data?.message || "Cannot move event");
     }
   };
 
@@ -438,7 +438,7 @@ export default function CalendarPage() {
       const endDate = info.event.end;
 
       if (!startDate || !endDate) {
-        throw new Error("Thời gian sự kiện không hợp lệ");
+        throw new Error("Invalid event time");
       }
 
       const payload = {
@@ -451,7 +451,7 @@ export default function CalendarPage() {
 
       await updateEvent(info.event.id, payload);
 
-      toast.success("Đã cập nhật thời lượng sự kiện.");
+      toast.success("Event duration updated successfully.");
 
       await loadGoogleEvents({
         date: currentDate,
@@ -463,7 +463,7 @@ export default function CalendarPage() {
       info.revert();
 
       toast.error(
-        error.response?.data?.message || "Không thể thay đổi thời lượng",
+        error.response?.data?.message || "Cannot change event duration",
       );
     }
   };
@@ -518,17 +518,18 @@ export default function CalendarPage() {
             </button>
             {checkingGoogleStatus ? (
               <div className="gcal-google-connected">
-                <span>Đang kiểm tra Google...</span>
+                <span>Checking Google connection...</span>
               </div>
             ) : connected ? (
               <div className="gcal-google-connected">
-                <span>✓ Đã kết nối Google</span>
+                <span>✓ Google connected</span>
 
                 {googleEmail && <small>{googleEmail}</small>}
               </div>
             ) : (
               <div className="gcal-google-required">
-                Chưa kết nối Google. Vui lòng quay lại Home Page để thiết lập.
+                Not connected to Google. Please go back to the Home Page to set
+                up.
               </div>
             )}
 
@@ -543,7 +544,7 @@ export default function CalendarPage() {
               }
               disabled={loading}
             >
-              {loading ? "Đang tải..." : "Làm mới"}
+              {loading ? "Loading..." : "Refresh"}
             </button>
             <MiniCalendar onPickDate={goDate} />
 
@@ -602,8 +603,8 @@ export default function CalendarPage() {
 
             {!checkingGoogleStatus && !connected && (
               <div className="connect-warning">
-                Bạn vẫn có thể tạo sự kiện trong CLB. Vui lòng quay lại Home
-                Page để kết nối Google trước khi đồng bộ sự kiện.
+                You can still create events in the club. Please go back to the
+                Home Page to connect Google before syncing events.
               </div>
             )}
             <div className="gcal-box">
@@ -697,7 +698,7 @@ export default function CalendarPage() {
               {editingEvent && (
                 <div className="gcal-sync-status-box">
                   <div>
-                    <strong>Trạng thái đồng bộ</strong>
+                    <strong>Sync Status</strong>
 
                     <span
                       className={`sync-badge ${eventSyncStatus
@@ -715,13 +716,13 @@ export default function CalendarPage() {
                         target="_blank"
                         rel="noreferrer"
                       >
-                        Mở Google Calendar
+                        Open Google Calendar
                       </a>
                     )}
 
                     {meetLink && (
                       <a href={meetLink} target="_blank" rel="noreferrer">
-                        Tham gia Google Meet
+                        Join Google Meet
                       </a>
                     )}
                   </div>
@@ -751,7 +752,7 @@ export default function CalendarPage() {
                       onClick={handleDelete}
                       disabled={syncingEventId === editingEvent}
                     >
-                      Xóa
+                      Delete
                     </button>
                     <button
                       type="button"
@@ -760,17 +761,17 @@ export default function CalendarPage() {
                       disabled={!connected || syncingEventId === editingEvent}
                       title={
                         connected
-                          ? "Đồng bộ sự kiện lên Google Calendar"
-                          : "Vui lòng kết nối Google tại Home Page"
+                          ? "Sync event to Google Calendar"
+                          : "Please connect Google at the Home Page"
                       }
                     >
                       {syncingEventId === editingEvent
-                        ? "Đang đồng bộ..."
+                        ? "Syncing..."
                         : !connected
-                          ? "Chưa kết nối Google"
+                          ? "Not connected to Google"
                           : eventSyncStatus === "SYNCED"
-                            ? "Đồng bộ lại Google"
-                            : "Đồng bộ Google"}
+                            ? "Sync again with Google"
+                            : "Sync with Google"}
                     </button>
                   </>
                 )}
@@ -780,7 +781,7 @@ export default function CalendarPage() {
                   disabled={saving}
                   onClick={() => setShowModal(false)}
                 >
-                  Hủy
+                  Cancel
                 </button>
                 <button
                   className="primary"
@@ -788,10 +789,10 @@ export default function CalendarPage() {
                   disabled={saving}
                 >
                   {saving
-                    ? "Đang lưu..."
+                    ? "Saving..."
                     : editingEvent
-                      ? "Lưu thay đổi"
-                      : "Tạo sự kiện"}
+                      ? "Save Changes"
+                      : "Create Event"}
                 </button>
               </div>
             </div>
@@ -858,13 +859,13 @@ function toLocalInputValue(date) {
 }
 function formatSyncStatus(status) {
   const labels = {
-    SYNCED: "Đã đồng bộ",
-    NOT_SYNCED: "Chưa đồng bộ",
-    FAILED: "Đồng bộ thất bại",
-    PENDING: "Đang chờ đồng bộ",
+    SYNCED: "Synced",
+    NOT_SYNCED: "Not Synced",
+    FAILED: "Sync Failed",
+    PENDING: "Pending Sync",
   };
 
-  return labels[status] || status || "Không rõ";
+  return labels[status] || status || "Unknown";
 }
 function formatLocalDate(dateValue) {
   const date = new Date(dateValue);
