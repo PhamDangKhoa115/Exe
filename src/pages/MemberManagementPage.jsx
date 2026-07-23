@@ -483,24 +483,6 @@ export default function MemberManagementPage() {
                                   >
                                     <Edit3 size={16} />
                                   </button>
-
-                                  <button
-                                    type="button"
-                                    className={
-                                      member.locked ? "unlock" : "lock"
-                                    }
-                                    title={member.locked ? "Unlock" : "Lock"}
-                                    disabled={
-                                      actionMemberId === member.memberId
-                                    }
-                                    onClick={() => handleLock(member)}
-                                  >
-                                    {member.locked ? (
-                                      <Unlock size={16} />
-                                    ) : (
-                                      <Lock size={16} />
-                                    )}
-                                  </button>
                                 </>
                               )
                             )}

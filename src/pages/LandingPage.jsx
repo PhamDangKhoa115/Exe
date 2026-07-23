@@ -88,10 +88,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="cta-section">
-        <h2>Ready to take your club to the next level?</h2>
-        <Link to="/register">Start now</Link>
-      </section>
       <Footer />
     </div>
   );

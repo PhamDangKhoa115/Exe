@@ -1,106 +1,292 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
+
+import { useNavigate } from "react-router-dom";
 import {
-  Activity,
-  ArrowDownRight,
-  ArrowUpRight,
+  AlertTriangle,
+  CalendarCheck,
+  CalendarClock,
   CalendarDays,
   CheckCircle2,
-  CircleDollarSign,
   Clock3,
-  FileText,
+  FileClock,
   ListTodo,
-  TrendingUp,
+  RefreshCw,
+  UserPlus,
   Users,
-  WalletCards,
 } from "lucide-react";
+import { toast } from "react-toastify";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  LabelList,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
+import API from "../api/api";
+const FINANCE_CHART_DATA = [
+  {
+    month: "T2",
+    income: 54,
+    expense: 32,
+  },
+  {
+    month: "T3",
+    income: 64,
+    expense: 43,
+  },
+  {
+    month: "T4",
+    income: 51,
+    expense: 38,
+  },
+  {
+    month: "T5",
+    income: 75,
+    expense: 49,
+  },
+  {
+    month: "T6",
+    income: 62,
+    expense: 54,
+  },
+  {
+    month: "T7",
+    income: 81,
+    expense: 59,
+  },
+];
 
+const TASK_PROGRESS_DATA = [
+  {
+    name: "Completed",
+    value: 28,
+    color: "#22c55e",
+  },
+  {
+    name: "In Progress",
+    value: 14,
+    color: "#f59e0b",
+  },
+  {
+    name: "To Do",
+    value: 8,
+    color: "#cbd5e1",
+  },
+];
+
+const TOTAL_TASKS = TASK_PROGRESS_DATA.reduce(
+  (total, item) => total + item.value,
+  0,
+);
 import "../styles.css";
 
-const RECENT_ACTIVITIES = [
-  {
-    id: 1,
-    title: "Nguyễn Văn An completed a task",
-    description: "Design the new club logo",
-    time: "10 minutes ago",
-    type: "TASK",
-  },
-  {
-    id: 2,
-    title: "A new member has joined",
-    description: "Trần Minh Khoa was approved to join the club",
-    time: "35 minutes ago",
-    type: "MEMBER",
-  },
-  {
-    id: 3,
-    title: "A new document has been created",
-    description: "Meeting minutes for July",
-    time: "1 hour ago",
-    type: "DOCUMENT",
-  },
-  {
-    id: 4,
-    title: "A new event has been scheduled",
-    description: "Leadership Skills Workshop",
-    time: "3 hours ago",
-    type: "EVENT",
-  },
-];
-
-const UPCOMING_EVENTS = [
-  {
-    id: 1,
-    title: "Workshop leadership skills",
-    date: "25",
-    month: "AUGUST",
-    time: "18:30 - 20:30",
-  },
-  {
-    id: 2,
-    title: "Meeting with the new club members",
-    date: "27",
-    month: "JULY",
-    time: "19:00 - 20:00",
-  },
-  {
-    id: 3,
-    title: "Orientation for New Students",
-    date: "02",
-    month: "AUGUST",
-    time: "08:00 - 17:00",
-  },
-];
-
-const DEPARTMENT_PROGRESS = [
-  {
-    name: "department of Marketing",
-    completed: 18,
-    total: 22,
-    percentage: 82,
-  },
-  {
-    name: "department of Events",
-    completed: 14,
-    total: 20,
-    percentage: 70,
-  },
-  {
-    name: "department of Finance",
-    completed: 11,
-    total: 15,
-    percentage: 73,
-  },
-  {
-    name: "department of Human Resources",
-    completed: 8,
-    total: 14,
-    percentage: 57,
-  },
-];
+const INITIAL_DASHBOARD = {
+  members: [],
+  events: [],
+  tasks: [],
+  pendingApplications: 0,
+};
 
 export default function DashboardPage() {
+  const navigate = useNavigate();
+  const clubId = Number(localStorage.getItem("selectedClubId"));
+  const userId = Number(localStorage.getItem("userId"));
+  const clubName = localStorage.getItem("selectedClubName") || "S-Club";
+
+  const [data, setData] = useState(INITIAL_DASHBOARD);
+  const [loading, setLoading] = useState(true);
+
+  const loadDashboard = useCallback(async () => {
+    if (!clubId || !userId) {
+      toast.error("Không tìm thấy thông tin người dùng hoặc câu lạc bộ.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const [membersResponse, eventsResponse, tasksResponse] =
+        await Promise.all([
+          API.get(`/api/clubs/${clubId}/members`),
+
+          API.get(`/api/events/club/${clubId}`),
+
+          API.get("/api/tasks", {
+            params: {
+              clubId,
+              userId,
+              filterType: "ALL",
+            },
+          }),
+        ]);
+
+      setData({
+        members: Array.isArray(membersResponse.data)
+          ? membersResponse.data
+          : [],
+
+        events: Array.isArray(eventsResponse.data) ? eventsResponse.data : [],
+
+        tasks: Array.isArray(tasksResponse.data) ? tasksResponse.data : [],
+
+        // Chưa có API đơn xin gia nhập đang chờ duyệt.
+        // Khi có API, thay giá trị này bằng response tương ứng.
+        pendingApplications: 0,
+      });
+    } catch (error) {
+      console.error("LOAD DASHBOARD ERROR:", error.response?.data || error);
+
+      toast.error(
+        error.response?.data?.message ||
+          error.response?.data?.error ||
+          "Không thể tải dữ liệu Dashboard.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [clubId, userId]);
+
+  useEffect(() => {
+    loadDashboard();
+  }, [loadDashboard]);
+
+  const statistics = useMemo(() => {
+    const now = new Date();
+
+    const activeMembers = data.members.filter(
+      (member) => !member.status || member.status === "ACTIVE",
+    );
+
+    const newMembersThisMonth = activeMembers.filter(
+      (member) =>
+        member.joinedAt && isSameMonth(new Date(member.joinedAt), now),
+    );
+
+    const upcomingEvents = data.events.filter((event) => {
+      const startDate = new Date(event.startTime);
+
+      return (
+        isValidDate(startDate) &&
+        startDate >= startOfToday(now) &&
+        !isCancelledEvent(event)
+      );
+    });
+
+    const eventsThisWeek = upcomingEvents.filter((event) =>
+      isDateInCurrentWeek(new Date(event.startTime), now),
+    );
+
+    /*
+     * Tạm định nghĩa "Sự kiện cần chuẩn bị" là:
+     * sự kiện chưa diễn ra và bắt đầu trong vòng 7 ngày tới.
+     */
+    const preparationDeadline = addDays(now, 7);
+
+    const eventsNeedPreparation = upcomingEvents.filter((event) => {
+      const startDate = new Date(event.startTime);
+
+      return startDate <= preparationDeadline && startDate >= now;
+    });
+
+    const incompleteTasks = data.tasks.filter((task) => !isCompletedTask(task));
+
+    const overdueTasks = incompleteTasks.filter((task) => {
+      const dueDate = new Date(task.dueDate);
+
+      return isValidDate(dueDate) && dueDate < now;
+    });
+
+    const tasksDueThisWeek = incompleteTasks.filter((task) => {
+      const dueDate = new Date(task.dueDate);
+
+      return (
+        isValidDate(dueDate) &&
+        dueDate >= now &&
+        isDateInCurrentWeek(dueDate, now)
+      );
+    });
+
+    return {
+      totalMembers: activeMembers.length,
+      newMembersThisMonth: newMembersThisMonth.length,
+      pendingApplications: data.pendingApplications,
+
+      upcomingEvents: upcomingEvents.length,
+      eventsThisWeek: eventsThisWeek.length,
+      eventsNeedPreparation: eventsNeedPreparation.length,
+
+      incompleteTasks: incompleteTasks.length,
+      overdueTasks: overdueTasks.length,
+      tasksDueThisWeek: tasksDueThisWeek.length,
+
+      upcomingEventList: upcomingEvents
+        .sort((a, b) => new Date(a.startTime) - new Date(b.startTime))
+        .slice(0, 5),
+
+      urgentTaskList: incompleteTasks
+        .filter((task) => task.dueDate)
+        .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+        .slice(0, 5),
+
+      newMemberList: newMembersThisMonth
+        .sort((a, b) => new Date(b.joinedAt) - new Date(a.joinedAt))
+        .slice(0, 5),
+    };
+  }, [data]);
+  const memberChartData = [
+    {
+      name: "Tổng thành viên",
+      value: statistics.totalMembers,
+    },
+    {
+      name: "Mới trong tháng",
+      value: statistics.newMembersThisMonth,
+    },
+    {
+      name: "Chờ duyệt",
+      value: statistics.pendingApplications,
+    },
+  ];
+
+  const eventChartData = [
+    {
+      name: "Sắp diễn ra",
+      value: statistics.upcomingEvents,
+    },
+    {
+      name: "Trong tuần",
+      value: statistics.eventsThisWeek,
+    },
+    {
+      name: "Cần chuẩn bị",
+      value: statistics.eventsNeedPreparation,
+    },
+  ];
+
+  const taskChartData = [
+    {
+      name: "Chưa hoàn thành",
+      value: statistics.incompleteTasks,
+    },
+    {
+      name: "Quá hạn",
+      value: statistics.overdueTasks,
+    },
+    {
+      name: "Đến hạn tuần này",
+      value: statistics.tasksDueThisWeek,
+    },
+  ];
   return (
     <div className="app-layout">
       <Sidebar />
@@ -108,302 +294,609 @@ export default function DashboardPage() {
       <main className="main-content">
         <Topbar title="Home Page / Dashboard" />
 
-        <section className="dashboard-page">
+        <section className="dashboard-page club-dashboard-page">
           <header className="dashboard-heading">
             <div>
-              <h1>Club Dashboard</h1>
-
-              <p>
-                Overview of club activities, members, finances, and progress.
-              </p>
+              <h1>Dashboard {clubName}</h1>
             </div>
 
-            <div className="dashboard-date">
-              <CalendarDays size={18} />
-              July 22, 2026
+            <div className="dashboard-heading-actions">
+              <div className="dashboard-date">
+                <CalendarDays size={18} />
+                {formatCurrentDate(new Date())}
+              </div>
+
+              <button
+                type="button"
+                className="dashboard-refresh-button"
+                onClick={loadDashboard}
+                disabled={loading}
+              >
+                <RefreshCw
+                  size={17}
+                  className={loading ? "dashboard-spin" : ""}
+                />
+
+                {loading ? "Loading..." : "refresh"}
+              </button>
             </div>
           </header>
 
-          <div className="dashboard-stat-grid">
-            <StatCard
-              title="Total Members"
-              value="128"
-              change="+12.5%"
-              positive
-              icon={<Users />}
-              className="members"
-            />
+          {loading ? (
+            <div className="dashboard-loading-state">
+              <RefreshCw size={36} className="dashboard-spin" />
 
-            <StatCard
-              title="Events This Month"
-              value="8"
-              change="+2 events"
-              positive
-              icon={<CalendarDays />}
-              className="events"
-            />
+              <p>Loading Dashboard data...</p>
+            </div>
+          ) : (
+            <>
+              <div className="dashboard-overview-cards">
+                <OverviewCard
+                  label="Total Members"
+                  value={statistics.totalMembers}
+                  icon={<Users />}
+                  className="members"
+                />
 
-            <StatCard
-              title="Tasks Completed"
-              value="74%"
-              change="+8.2%"
-              positive
-              icon={<CheckCircle2 />}
-              className="tasks"
-            />
+                <OverviewCard
+                  label="Upcoming Events"
+                  value={statistics.upcomingEvents}
+                  icon={<CalendarDays />}
+                  className="events"
+                />
 
-            <StatCard
-              title="Current Balance"
-              value="42.5M"
-              change="-4.1%"
-              positive={false}
-              icon={<WalletCards />}
-              className="finance"
-            />
-          </div>
+                <OverviewCard
+                  label="Incomplete Tasks"
+                  value={statistics.incompleteTasks}
+                  icon={<ListTodo />}
+                  className="tasks"
+                />
 
-          <div className="dashboard-main-grid">
-            <article className="dashboard-panel dashboard-finance-chart">
-              <div className="dashboard-panel-header">
-                <div>
-                  <h2>Income and Expenses (Last 6 Months)</h2>
-                  <p>Unit: Million VND</p>
-                </div>
-
-                <select defaultValue="6_MONTHS">
-                  <option value="6_MONTHS">6 months</option>
-                  <option value="12_MONTHS">12 months</option>
-                </select>
+                <OverviewCard
+                  label="Overdue Tasks"
+                  value={statistics.overdueTasks}
+                  icon={<AlertTriangle />}
+                  className="danger"
+                />
               </div>
-
-              <div className="dashboard-chart-legend">
-                <span>
-                  <i className="income" />
-                  Income
-                </span>
-
-                <span>
-                  <i className="expense" />
-                  Expenses
-                </span>
-              </div>
-
-              <div className="finance-bar-chart">
-                <FinanceBar month="T2" income={62} expense={36} />
-                <FinanceBar month="T3" income={74} expense={48} />
-                <FinanceBar month="T4" income={58} expense={42} />
-                <FinanceBar month="T5" income={86} expense={54} />
-                <FinanceBar month="T6" income={72} expense={62} />
-                <FinanceBar month="T7" income={92} expense={67} />
-              </div>
-            </article>
-
-            <article className="dashboard-panel dashboard-task-summary">
-              <div className="dashboard-panel-header">
-                <div>
-                  <h2>Task Progress</h2>
-                  <p>Overview of task status</p>
-                </div>
-
-                <ListTodo size={22} />
-              </div>
-
-              <div className="task-donut-wrap">
-                <div className="task-donut">
-                  <div>
-                    <strong>50</strong>
-                    <span>Total Tasks</span>
+              <div className="dashboard-main-grid">
+                <article className="dashboard-panel dashboard-finance-chart">
+                  <div className="dashboard-panel-header">
+                    <div>
+                      <h2>Income and Expenses (Last 6 Months)</h2>
+                      <p>Unit: Million VND</p>
+                    </div>
                   </div>
-                </div>
+
+                  <div className="dashboard-chart-legend">
+                    <span>
+                      <i className="income" />
+                      Income
+                    </span>
+
+                    <span>
+                      <i className="expense" />
+                      Expenses
+                    </span>
+                  </div>
+
+                  <div className="dashboard-finance-chart-content">
+                    <ResponsiveContainer width="100%" height={360}>
+                      <BarChart
+                        data={FINANCE_CHART_DATA}
+                        barGap={10}
+                        barCategoryGap="38%"
+                        margin={{
+                          top: 20,
+                          right: 10,
+                          left: 0,
+                          bottom: 0,
+                        }}
+                      >
+                        <CartesianGrid vertical={false} stroke="#edf0f5" />
+
+                        <XAxis
+                          dataKey="month"
+                          axisLine={{
+                            stroke: "#dce2ea",
+                          }}
+                          tickLine={false}
+                          tick={{
+                            fill: "#64748b",
+                            fontSize: 14,
+                          }}
+                          dy={10}
+                        />
+
+                        <YAxis hide domain={[0, 100]} />
+
+                        <Tooltip
+                          cursor={{
+                            fill: "rgba(109, 40, 217, 0.04)",
+                          }}
+                          content={<FinanceTooltip />}
+                        />
+
+                        <Bar
+                          dataKey="income"
+                          name="Income"
+                          fill="#6d28d9"
+                          radius={[8, 8, 0, 0]}
+                          maxBarSize={28}
+                        />
+
+                        <Bar
+                          dataKey="expense"
+                          name="Expenses"
+                          fill="#b8a5ff"
+                          radius={[8, 8, 0, 0]}
+                          maxBarSize={28}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </article>
+
+                <article className="dashboard-panel dashboard-task-summary">
+                  <div className="dashboard-panel-header">
+                    <div>
+                      <h2>Task Progress</h2>
+                      <p>Overview of task status</p>
+                    </div>
+
+                    <ListTodo size={25} />
+                  </div>
+
+                  <div className="dashboard-task-chart-wrap">
+                    <ResponsiveContainer width="100%" height={270}>
+                      <PieChart>
+                        <Pie
+                          data={TASK_PROGRESS_DATA}
+                          dataKey="value"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={72}
+                          outerRadius={108}
+                          startAngle={90}
+                          endAngle={-270}
+                          stroke="none"
+                        >
+                          {TASK_PROGRESS_DATA.map((item) => (
+                            <Cell key={item.name} fill={item.color} />
+                          ))}
+                        </Pie>
+
+                        <Tooltip content={<TaskTooltip />} />
+                      </PieChart>
+                    </ResponsiveContainer>
+
+                    <div className="dashboard-donut-center">
+                      <strong>{TOTAL_TASKS}</strong>
+                      <span>Total Tasks</span>
+                    </div>
+                  </div>
+
+                  <div className="task-summary-list">
+                    {TASK_PROGRESS_DATA.map((item) => (
+                      <div className="task-summary-row" key={item.name}>
+                        <span>
+                          <i
+                            style={{
+                              backgroundColor: item.color,
+                            }}
+                          />
+
+                          {item.name}
+                        </span>
+
+                        <strong>{item.value}</strong>
+                      </div>
+                    ))}
+                  </div>
+                </article>
               </div>
 
-              <div className="task-summary-list">
-                <SummaryRow label="Completed" value="28" className="done" />
+              <div className="dashboard-detail-grid">
+                <DashboardListPanel
+                  title="Upcoming Events"
+                  description="The 5 nearest upcoming events"
+                  icon={<CalendarDays size={21} />}
+                  emptyText="No upcoming events"
+                  onNavigate={() => navigate("/calendar")}
+                  navigateTitle="Open Calendar"
+                >
+                  {statistics.upcomingEventList.map((event) => (
+                    <EventDashboardItem key={event.id} event={event} />
+                  ))}
+                </DashboardListPanel>
 
-                <SummaryRow label="In Progress" value="14" className="doing" />
+                <DashboardListPanel
+                  title="Tasks Requiring Attention"
+                  description="Sorted by the nearest due date"
+                  icon={<ListTodo size={21} />}
+                  emptyText="No tasks currently require attention"
+                  onNavigate={() => navigate("/trello")}
+                  navigateTitle="Open Task Board"
+                >
+                  {statistics.urgentTaskList.map((task) => (
+                    <TaskDashboardItem key={task.taskId} task={task} />
+                  ))}
+                </DashboardListPanel>
 
-                <SummaryRow label="To Do" value="8" className="todo" />
+                <DashboardListPanel
+                  title="New Members"
+                  description="Members who joined this month"
+                  icon={<UserPlus size={21} />}
+                  emptyText="No new members joined this month"
+                  onNavigate={() => navigate("/members")}
+                  navigateTitle="Open Members"
+                >
+                  {statistics.newMemberList.map((member) => (
+                    <MemberDashboardItem key={member.id} member={member} />
+                  ))}
+                </DashboardListPanel>
               </div>
-            </article>
-          </div>
-
-          <div className="dashboard-bottom-grid">
-            <article className="dashboard-panel">
-              <div className="dashboard-panel-header">
-                <div>
-                  <h2>Recent Activities</h2>
-                  <p>Latest updates in the club</p>
-                </div>
-
-                <Activity size={21} />
-              </div>
-
-              <div className="activity-list">
-                {RECENT_ACTIVITIES.map((activity) => (
-                  <ActivityItem key={activity.id} activity={activity} />
-                ))}
-              </div>
-            </article>
-
-            <article className="dashboard-panel">
-              <div className="dashboard-panel-header">
-                <div>
-                  <h2>Upcoming Events</h2>
-                  <p>Schedule of upcoming activities</p>
-                </div>
-
-                <CalendarDays size={21} />
-              </div>
-
-              <div className="upcoming-event-list">
-                {UPCOMING_EVENTS.map((event) => (
-                  <UpcomingEventItem key={event.id} event={event} />
-                ))}
-              </div>
-            </article>
-
-            <article className="dashboard-panel">
-              <div className="dashboard-panel-header">
-                <div>
-                  <h2>Department Performance</h2>
-                  <p>Task completion rates</p>
-                </div>
-
-                <TrendingUp size={21} />
-              </div>
-
-              <div className="department-progress-list">
-                {DEPARTMENT_PROGRESS.map((department) => (
-                  <DepartmentProgress
-                    key={department.name}
-                    department={department}
-                  />
-                ))}
-              </div>
-            </article>
-          </div>
+            </>
+          )}
         </section>
       </main>
     </div>
   );
 }
 
-function StatCard({ title, value, change, positive, icon, className }) {
+function DashboardGroup({ title, description, icon, className, children }) {
   return (
-    <article className={`dashboard-stat-card ${className}`}>
-      <div className="dashboard-stat-top">
-        <div className="dashboard-stat-icon">{icon}</div>
+    <section className={`dashboard-metric-group ${className}`}>
+      <header className="dashboard-group-header">
+        <div className="dashboard-group-icon">{icon}</div>
 
-        <span
-          className={`dashboard-stat-change ${
-            positive ? "positive" : "negative"
-          }`}
-        >
-          {positive ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+        <div>
+          <h2>{title}</h2>
+          <p>{description}</p>
+        </div>
+      </header>
 
-          {change}
-        </span>
+      <div className="dashboard-group-grid">{children}</div>
+    </section>
+  );
+}
+
+function DashboardMetric({
+  title,
+  value,
+  description,
+  icon,
+  className,
+  warning = false,
+}) {
+  return (
+    <article
+      className={`dashboard-metric-card ${className} ${
+        warning && value > 0 ? "warning" : ""
+      }`}
+    >
+      <div className="dashboard-metric-icon">{icon}</div>
+
+      <div className="dashboard-metric-content">
+        <strong>{value}</strong>
+        <h3>{title}</h3>
+        <p>{description}</p>
+      </div>
+    </article>
+  );
+}
+function DashboardChartPanel({ title, description, icon, children }) {
+  return (
+    <article className="dashboard-panel dashboard-chart-panel">
+      <div className="dashboard-panel-header">
+        <div>
+          <h2>{title}</h2>
+          <p>{description}</p>
+        </div>
+
+        <div className="dashboard-chart-panel-icon">{icon}</div>
       </div>
 
-      <strong>{value}</strong>
-      <p>{title}</p>
+      <div className="dashboard-chart-content">{children}</div>
+    </article>
+  );
+}
+function DashboardListPanel({
+  title,
+  description,
+  icon,
+  emptyText,
+  children,
+  onNavigate,
+  navigateTitle,
+}) {
+  const items = Array.isArray(children)
+    ? children.filter(Boolean)
+    : children
+      ? [children]
+      : [];
+
+  return (
+    <article className="dashboard-panel dashboard-list-panel">
+      <div className="dashboard-panel-header">
+        <div>
+          <h2>{title}</h2>
+          <p>{description}</p>
+        </div>
+
+        {onNavigate ? (
+          <button
+            type="button"
+            className="dashboard-panel-navigation"
+            onClick={onNavigate}
+            title={navigateTitle}
+            aria-label={navigateTitle}
+          >
+            {icon}
+          </button>
+        ) : (
+          <div className="dashboard-panel-static-icon">{icon}</div>
+        )}
+      </div>
+
+      {items.length === 0 ? (
+        <div className="dashboard-list-empty">
+          <CheckCircle2 size={30} />
+          <span>{emptyText}</span>
+        </div>
+      ) : (
+        <div className="dashboard-compact-list">{items}</div>
+      )}
     </article>
   );
 }
 
-function FinanceBar({ month, income, expense }) {
-  return (
-    <div className="finance-bar-item">
-      <div className="finance-bars">
-        <span className="income-bar" style={{ height: `${income}%` }} />
-
-        <span className="expense-bar" style={{ height: `${expense}%` }} />
-      </div>
-
-      <small>{month}</small>
-    </div>
-  );
-}
-
-function SummaryRow({ label, value, className }) {
-  return (
-    <div className="task-summary-row">
-      <span>
-        <i className={className} />
-        {label}
-      </span>
-
-      <strong>{value}</strong>
-    </div>
-  );
-}
-
-function ActivityItem({ activity }) {
-  const icons = {
-    TASK: <CheckCircle2 size={18} />,
-    MEMBER: <Users size={18} />,
-    DOCUMENT: <FileText size={18} />,
-    EVENT: <CalendarDays size={18} />,
-  };
+function EventDashboardItem({ event }) {
+  const startDate = new Date(event.startTime);
 
   return (
-    <div className="activity-item">
-      <div className={`activity-icon ${activity.type.toLowerCase()}`}>
-        {icons[activity.type]}
+    <div className="dashboard-list-item">
+      <div className="dashboard-event-date">
+        <strong>{String(startDate.getDate()).padStart(2, "0")}</strong>
+
+        <span>THG {startDate.getMonth() + 1}</span>
       </div>
 
-      <div>
-        <strong>{activity.title}</strong>
-        <p>{activity.description}</p>
-
-        <span>
-          <Clock3 size={13} />
-          {activity.time}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function UpcomingEventItem({ event }) {
-  return (
-    <div className="upcoming-event-item">
-      <div className="upcoming-event-date">
-        <strong>{event.date}</strong>
-        <span>{event.month}</span>
-      </div>
-
-      <div>
+      <div className="dashboard-list-item-content">
         <strong>{event.title}</strong>
+
         <span>
           <Clock3 size={13} />
-          {event.time}
+          {formatDateTime(event.startTime)}
         </span>
+
+        {event.location && <small>{event.location}</small>}
       </div>
     </div>
   );
 }
 
-function DepartmentProgress({ department }) {
-  return (
-    <div className="department-progress-item">
-      <div>
-        <strong>{department.name}</strong>
+function TaskDashboardItem({ task }) {
+  const overdue =
+    task.dueDate &&
+    !isCompletedTask(task) &&
+    new Date(task.dueDate) < new Date();
 
-        <span>
-          {department.completed}/{department.total} tasks
-        </span>
+  return (
+    <div className="dashboard-list-item">
+      <div className={`dashboard-task-status ${overdue ? "overdue" : ""}`}>
+        {overdue ? <AlertTriangle size={19} /> : <ListTodo size={19} />}
       </div>
 
-      <div className="department-progress-track">
+      <div className="dashboard-list-item-content">
+        <strong>{task.title}</strong>
+
+        <span className={overdue ? "danger-text" : ""}>
+          <Clock3 size={13} />
+
+          {task.dueDate ? formatDateTime(task.dueDate) : "Chưa có thời hạn"}
+        </span>
+
+        <small>{task.assignedUserName || `User #${task.assignedUserId}`}</small>
+      </div>
+    </div>
+  );
+}
+
+function MemberDashboardItem({ member }) {
+  return (
+    <div className="dashboard-list-item">
+      <div className="dashboard-member-avatar">
+        {getInitials(member.fullName)}
+      </div>
+
+      <div className="dashboard-list-item-content">
+        <strong>{member.fullName}</strong>
+
+        <span>{member.email}</span>
+
+        <small>
+          {formatRole(member.role)}
+          {member.departmentName && member.departmentName !== "None"
+            ? ` · ${member.departmentName}`
+            : ""}
+        </small>
+      </div>
+    </div>
+  );
+}
+
+function normalizeTaskStatus(status) {
+  return String(status || "")
+    .trim()
+    .toUpperCase()
+    .replaceAll("_", " ")
+    .replaceAll("-", " ");
+}
+
+function isCompletedTask(task) {
+  const status = normalizeTaskStatus(task.status);
+
+  return status === "DONE" || status === "COMPLETED" || status === "FINISHED";
+}
+
+function isCancelledEvent(event) {
+  const status = String(event.status || "").toUpperCase();
+
+  return status === "CANCELLED" || status === "CANCELED";
+}
+
+function isSameMonth(firstDate, secondDate) {
+  return (
+    isValidDate(firstDate) &&
+    isValidDate(secondDate) &&
+    firstDate.getFullYear() === secondDate.getFullYear() &&
+    firstDate.getMonth() === secondDate.getMonth()
+  );
+}
+function OverviewCard({ label, value, icon, className }) {
+  return (
+    <article className={`dashboard-overview-card ${className}`}>
+      <div className="dashboard-overview-icon">{icon}</div>
+
+      <div>
+        <strong>{value}</strong>
+        <span>{label}</span>
+      </div>
+    </article>
+  );
+}
+function isDateInCurrentWeek(date, referenceDate) {
+  if (!isValidDate(date)) return false;
+
+  const weekStart = startOfWeekMonday(referenceDate);
+  const weekEnd = addDays(weekStart, 7);
+
+  return date >= weekStart && date < weekEnd;
+}
+
+function startOfWeekMonday(dateValue) {
+  const date = startOfToday(dateValue);
+  const day = date.getDay();
+
+  const daysFromMonday = day === 0 ? 6 : day - 1;
+
+  date.setDate(date.getDate() - daysFromMonday);
+
+  return date;
+}
+
+function startOfToday(dateValue) {
+  const date = new Date(dateValue);
+
+  date.setHours(0, 0, 0, 0);
+
+  return date;
+}
+
+function addDays(dateValue, days) {
+  const date = new Date(dateValue);
+
+  date.setDate(date.getDate() + days);
+
+  return date;
+}
+
+function isValidDate(date) {
+  return date instanceof Date && !Number.isNaN(date.getTime());
+}
+
+function formatCurrentDate(date) {
+  return date.toLocaleDateString("vi-VN", {
+    weekday: "long",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
+function formatDateTime(value) {
+  if (!value) return "Không rõ";
+
+  const date = new Date(value);
+
+  if (!isValidDate(date)) return "Không rõ";
+
+  return date.toLocaleString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+function FinanceTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) {
+    return null;
+  }
+
+  return (
+    <div className="dashboard-custom-tooltip">
+      <strong>{label}</strong>
+
+      {payload.map((item) => (
+        <div key={item.dataKey}>
+          <span
+            style={{
+              backgroundColor: item.color,
+            }}
+          />
+
+          <p>
+            {item.name}: <strong>{item.value} triệu</strong>
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function TaskTooltip({ active, payload }) {
+  if (!active || !payload?.length) {
+    return null;
+  }
+
+  const item = payload[0]?.payload;
+
+  return (
+    <div className="dashboard-custom-tooltip">
+      <div>
         <span
           style={{
-            width: `${department.percentage}%`,
+            backgroundColor: item.color,
           }}
         />
-      </div>
 
-      <small>{department.percentage}%</small>
+        <p>
+          {item.name}: <strong>{item.value}</strong>
+        </p>
+      </div>
     </div>
   );
+}
+function formatRole(role) {
+  const labels = {
+    PRESIDENT: "Chủ nhiệm",
+    TREASURER: "Thủ quỹ",
+    MEMBER: "Thành viên",
+  };
+
+  return labels[role] || role || "Thành viên";
+}
+
+function getInitials(fullName) {
+  if (!fullName) return "?";
+
+  return fullName
+    .trim()
+    .split(/\s+/)
+    .slice(-2)
+    .map((word) => word[0]?.toUpperCase())
+    .join("");
 }

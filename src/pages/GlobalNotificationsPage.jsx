@@ -295,7 +295,7 @@ export default function GlobalNotificationsPage() {
               <p>There are no notifications to display.</p>
             </div>
           ) : (
-            <div className="notification-layout">
+            <div className="notification-layout single-column">
               <div className="notification-main-column">
                 {featuredNotification && (
                   <FeaturedNotificationCard
@@ -306,7 +306,7 @@ export default function GlobalNotificationsPage() {
                 )}
 
                 <div className="notification-small-grid">
-                  {secondaryNotifications.slice(2).map((notification) => (
+                  {secondaryNotifications.map((notification) => (
                     <SmallNotificationCard
                       key={notification.id}
                       notification={notification}
@@ -314,28 +314,8 @@ export default function GlobalNotificationsPage() {
                       onDelete={handleDelete}
                     />
                   ))}
-
-                  <button
-                    type="button"
-                    className="notification-create-card"
-                    onClick={openCreateModal}
-                  >
-                    <Plus size={34} />
-                    <span>Create another post</span>
-                  </button>
                 </div>
               </div>
-
-              <aside className="notification-side-column">
-                {secondaryNotifications.slice(0, 2).map((notification) => (
-                  <SideNotificationCard
-                    key={notification.id}
-                    notification={notification}
-                    onEdit={openEditModal}
-                    onDelete={handleDelete}
-                  />
-                ))}
-              </aside>
             </div>
           )}
         </section>
@@ -406,43 +386,6 @@ function FeaturedNotificationCard({ notification, onEdit, onDelete }) {
             Seen by {notification.visibility}% members
           </div>
         </div>
-      </div>
-    </article>
-  );
-}
-
-function SideNotificationCard({ notification, onEdit, onDelete }) {
-  return (
-    <article className="side-notification-card">
-      {notification.image && (
-        <img
-          className="side-notification-image"
-          src={notification.image}
-          alt={notification.title}
-        />
-      )}
-
-      <div className="side-notification-body">
-        <div className="notification-card-actions">
-          <button type="button" onClick={() => onEdit(notification)}>
-            <Edit3 size={15} />
-          </button>
-
-          <button type="button" onClick={() => onDelete(notification)}>
-            <Trash2 size={15} />
-          </button>
-        </div>
-
-        <NotificationIcon category={notification.category} />
-
-        <small>{notification.date}</small>
-        <h3>{notification.title}</h3>
-        <p>{notification.description}</p>
-
-        <span className="side-notification-visibility">
-          <Eye size={13} />
-          Seen by {notification.visibility}% members
-        </span>
       </div>
     </article>
   );

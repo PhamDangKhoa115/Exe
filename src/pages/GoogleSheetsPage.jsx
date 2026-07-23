@@ -840,254 +840,235 @@ function CreateWorkspaceModal({
       </form>
     </div>
   );
-  function SpreadsheetDataModal({
-    sheet,
-    range,
-    onRangeChange,
-    values,
-    onValuesChange,
-    mode,
-    onModeChange,
-    loading,
-    saving,
-    onReload,
-    onSave,
-    onClose,
-  }) {
-    const selectedRole = localStorage.getItem("selectedClubRole");
+}
+function SpreadsheetDataModal({
+  sheet,
+  range,
+  onRangeChange,
+  values,
+  onValuesChange,
+  mode,
+  onModeChange,
+  loading,
+  saving,
+  onReload,
+  onSave,
+  onClose,
+}) {
+  const selectedRole = localStorage.getItem("selectedClubRole");
 
-    const canEdit = ["PRESIDENT", "TREASURER"].includes(selectedRole);
+  const canEdit = ["PRESIDENT", "TREASURER"].includes(selectedRole);
 
-    const columnCount = Math.max(
-      1,
-      ...values.map((row) => (Array.isArray(row) ? row.length : 0)),
-    );
+  const columnCount = Math.max(
+    1,
+    ...values.map((row) => (Array.isArray(row) ? row.length : 0)),
+  );
 
-    const normalizedValues =
-      values.length > 0
-        ? values.map((row) =>
-            Array.from(
-              { length: columnCount },
-              (_, index) => row?.[index] ?? "",
-            ),
-          )
-        : [Array.from({ length: columnCount }, () => "")];
+  const normalizedValues =
+    values.length > 0
+      ? values.map((row) =>
+          Array.from({ length: columnCount }, (_, index) => row?.[index] ?? ""),
+        )
+      : [Array.from({ length: columnCount }, () => "")];
 
-    const handleCellChange = (rowIndex, columnIndex, value) => {
-      onValuesChange((current) => {
-        const nextValues =
-          current.length > 0 ? current.map((row) => [...row]) : [[]];
+  const handleCellChange = (rowIndex, columnIndex, value) => {
+    onValuesChange((current) => {
+      const nextValues =
+        current.length > 0 ? current.map((row) => [...row]) : [[]];
 
-        while (nextValues.length <= rowIndex) {
-          nextValues.push([]);
-        }
+      while (nextValues.length <= rowIndex) {
+        nextValues.push([]);
+      }
 
-        while (nextValues[rowIndex].length <= columnIndex) {
-          nextValues[rowIndex].push("");
-        }
+      while (nextValues[rowIndex].length <= columnIndex) {
+        nextValues[rowIndex].push("");
+      }
 
-        nextValues[rowIndex][columnIndex] = value;
+      nextValues[rowIndex][columnIndex] = value;
 
-        return nextValues;
-      });
-    };
+      return nextValues;
+    });
+  };
 
-    const handleAddRow = () => {
-      onValuesChange((current) => [
-        ...current,
-        Array.from({ length: columnCount }, () => ""),
-      ]);
-    };
+  const handleAddRow = () => {
+    onValuesChange((current) => [
+      ...current,
+      Array.from({ length: columnCount }, () => ""),
+    ]);
+  };
 
-    const handleAddColumn = () => {
-      onValuesChange((current) => {
-        if (current.length === 0) {
-          return [[""]];
-        }
+  const handleAddColumn = () => {
+    onValuesChange((current) => {
+      if (current.length === 0) {
+        return [[""]];
+      }
 
-        return current.map((row) => [...row, ""]);
-      });
-    };
+      return current.map((row) => [...row, ""]);
+    });
+  };
 
-    return (
-      <div className="workspace-modal-backdrop" onMouseDown={onClose}>
-        <div
-          className="workspace-modal spreadsheet-data-modal"
-          onMouseDown={(event) => event.stopPropagation()}
+  return (
+    <div className="workspace-modal-backdrop" onMouseDown={onClose}>
+      <div
+        className="workspace-modal spreadsheet-data-modal"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <button
+          type="button"
+          className="workspace-modal-close"
+          onClick={onClose}
+          disabled={loading || saving}
         >
-          <button
-            type="button"
-            className="workspace-modal-close"
-            onClick={onClose}
-            disabled={loading || saving}
-          >
-            <X size={20} />
+          <X size={20} />
+        </button>
+
+        <div className="spreadsheet-modal-heading">
+          <div className="workspace-modal-icon">
+            <FileSpreadsheet size={32} />
+          </div>
+
+          <div>
+            <h2>{sheet.title}</h2>
+
+            <p className="workspace-modal-description">
+              {mode === "edit"
+                ? "Edit Spreadsheet data"
+                : "View Spreadsheet data"}
+            </p>
+          </div>
+        </div>
+
+        <div className="spreadsheet-range-row">
+          <div>
+            <label>Data range</label>
+
+            <input
+              value={range}
+              onChange={(event) => onRangeChange(event.target.value)}
+              placeholder="Sheet1!A1:D10"
+              disabled={loading || saving}
+            />
+          </div>
+
+          <button type="button" onClick={onReload} disabled={loading || saving}>
+            {loading ? "Loading..." : "Load Data"}
           </button>
+        </div>
 
-          <div className="spreadsheet-modal-heading">
-            <div className="workspace-modal-icon">
-              <FileSpreadsheet size={32} />
-            </div>
+        <div className="spreadsheet-modal-toolbar">
+          <span>
+            {normalizedValues.length} rows, {columnCount} columns
+          </span>
 
-            <div>
-              <h2>{sheet.title}</h2>
-
-              <p className="workspace-modal-description">
-                {mode === "edit"
-                  ? "Edit Spreadsheet data"
-                  : "View Spreadsheet data"}
-              </p>
-            </div>
-          </div>
-
-          <div className="spreadsheet-range-row">
-            <div>
-              <label>Data range</label>
-
-              <input
-                value={range}
-                onChange={(event) => onRangeChange(event.target.value)}
-                placeholder="Sheet1!A1:D10"
-                disabled={loading || saving}
-              />
-            </div>
-
-            <button
-              type="button"
-              onClick={onReload}
-              disabled={loading || saving}
-            >
-              {loading ? "Loading..." : "Load Data"}
-            </button>
-          </div>
-
-          <div className="spreadsheet-modal-toolbar">
-            <span>
-              {normalizedValues.length} rows, {columnCount} columns
-            </span>
-
-            <div>
-              {mode === "edit" && (
-                <>
-                  <button
-                    type="button"
-                    onClick={handleAddRow}
-                    disabled={saving}
-                  >
-                    <Plus size={16} />
-                    Add Row
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleAddColumn}
-                    disabled={saving}
-                  >
-                    <Plus size={16} />
-                    Add Column
-                  </button>
-                </>
-              )}
-
-              {canEdit && mode === "view" && (
-                <button type="button" onClick={() => onModeChange("edit")}>
-                  <Edit3 size={16} />
-                  Edit
+          <div>
+            {mode === "edit" && (
+              <>
+                <button type="button" onClick={handleAddRow} disabled={saving}>
+                  <Plus size={16} />
+                  Add Row
                 </button>
-              )}
-            </div>
-          </div>
 
-          {!canEdit && mode === "edit" && (
-            <div className="spreadsheet-permission-warning">
-              You do not have permission to edit data.
-            </div>
-          )}
-
-          <div className="spreadsheet-table-wrap">
-            {loading ? (
-              <div className="workspace-status">Loading data...</div>
-            ) : (
-              <table className="spreadsheet-data-table">
-                <thead>
-                  <tr>
-                    <th className="row-number-cell">#</th>
-
-                    {Array.from({ length: columnCount }, (_, index) => (
-                      <th key={index}>{getColumnName(index)}</th>
-                    ))}
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {normalizedValues.map((row, rowIndex) => (
-                    <tr key={rowIndex}>
-                      <th className="row-number-cell">{rowIndex + 1}</th>
-
-                      {row.map((cell, columnIndex) => (
-                        <td key={columnIndex}>
-                          {mode === "edit" && canEdit ? (
-                            <input
-                              value={cell ?? ""}
-                              onChange={(event) =>
-                                handleCellChange(
-                                  rowIndex,
-                                  columnIndex,
-                                  event.target.value,
-                                )
-                              }
-                              disabled={saving}
-                            />
-                          ) : (
-                            <span>{String(cell ?? "")}</span>
-                          )}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                <button
+                  type="button"
+                  onClick={handleAddColumn}
+                  disabled={saving}
+                >
+                  <Plus size={16} />
+                  Add Column
+                </button>
+              </>
             )}
-          </div>
 
-          <div className="workspace-modal-actions">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={loading || saving}
-            >
-              Close
-            </button>
-
-            {mode === "edit" && canEdit && (
-              <button
-                type="button"
-                onClick={onSave}
-                disabled={loading || saving}
-              >
-                <Save size={17} />
-
-                {saving ? "Saving..." : "Save Data"}
+            {canEdit && mode === "view" && (
+              <button type="button" onClick={() => onModeChange("edit")}>
+                <Edit3 size={16} />
+                Edit
               </button>
             )}
           </div>
         </div>
+
+        {!canEdit && mode === "edit" && (
+          <div className="spreadsheet-permission-warning">
+            You do not have permission to edit data.
+          </div>
+        )}
+
+        <div className="spreadsheet-table-wrap">
+          {loading ? (
+            <div className="workspace-status">Loading data...</div>
+          ) : (
+            <table className="spreadsheet-data-table">
+              <thead>
+                <tr>
+                  <th className="row-number-cell">#</th>
+
+                  {Array.from({ length: columnCount }, (_, index) => (
+                    <th key={index}>{getColumnName(index)}</th>
+                  ))}
+                </tr>
+              </thead>
+
+              <tbody>
+                {normalizedValues.map((row, rowIndex) => (
+                  <tr key={rowIndex}>
+                    <th className="row-number-cell">{rowIndex + 1}</th>
+
+                    {row.map((cell, columnIndex) => (
+                      <td key={columnIndex}>
+                        {mode === "edit" && canEdit ? (
+                          <input
+                            value={cell ?? ""}
+                            onChange={(event) =>
+                              handleCellChange(
+                                rowIndex,
+                                columnIndex,
+                                event.target.value,
+                              )
+                            }
+                            disabled={saving}
+                          />
+                        ) : (
+                          <span>{String(cell ?? "")}</span>
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        <div className="workspace-modal-actions">
+          <button type="button" onClick={onClose} disabled={loading || saving}>
+            Close
+          </button>
+
+          {mode === "edit" && canEdit && (
+            <button type="button" onClick={onSave} disabled={loading || saving}>
+              <Save size={17} />
+
+              {saving ? "Saving..." : "Save Data"}
+            </button>
+          )}
+        </div>
       </div>
-    );
+    </div>
+  );
+}
+
+function getColumnName(index) {
+  let columnName = "";
+  let value = index + 1;
+
+  while (value > 0) {
+    const remainder = (value - 1) % 26;
+
+    columnName = String.fromCharCode(65 + remainder) + columnName;
+
+    value = Math.floor((value - 1) / 26);
   }
 
-  function getColumnName(index) {
-    let columnName = "";
-    let value = index + 1;
-
-    while (value > 0) {
-      const remainder = (value - 1) % 26;
-
-      columnName = String.fromCharCode(65 + remainder) + columnName;
-
-      value = Math.floor((value - 1) / 26);
-    }
-
-    return columnName;
-  }
+  return columnName;
 }
