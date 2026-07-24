@@ -22,12 +22,14 @@ import TrelloPage from "./pages/TrelloPage";
 import DepartmentPage from "./pages/DepartmentPage";
 import MemberManagementPage from "./pages/MemberManagementPage";
 import DepartmentChatPage from "./pages/DepartmentChatPage";
+import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/admin" element={<AdminDashboardPage />} />
       <Route
         path="/select-club"
         element={
