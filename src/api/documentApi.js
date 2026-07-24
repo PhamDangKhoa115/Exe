@@ -114,21 +114,6 @@ export async function getDocumentDetail(id) {
 }
 
 /**
- * DELETE /api/documents/{id}
- */
-export async function deleteDocument(id) {
-  const { userId } = getRequiredContext();
-
-  const response = await API.delete(`/api/documents/${id}`, {
-    params: {
-      userId,
-    },
-  });
-
-  return extractData(response);
-}
-
-/**
  * POST /api/documents/{id}/sync
  */
 export async function syncDocument(id) {
