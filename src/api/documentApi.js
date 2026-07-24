@@ -197,3 +197,14 @@ export async function getDocumentCategories() {
 
   return extractData(response);
 }
+export const deleteDocument = async (id) => {
+  const userId = localStorage.getItem("userId");
+
+  const response = await API.delete(`/api/documents/${id}`, {
+    params: {
+      userId,
+    },
+  });
+
+  return response.data;
+};

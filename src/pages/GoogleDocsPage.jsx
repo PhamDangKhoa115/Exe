@@ -521,6 +521,18 @@ export default function GoogleDocsPage() {
                                     <FaShareAlt />
                                     Share for editing
                                   </button>
+                                  <button
+                                    type="button"
+                                    className="document-delete-menu-button"
+                                    disabled={deletingId === document.id}
+                                    onClick={() => handleDelete(document)}
+                                  >
+                                    <FaTrash />
+
+                                    {deletingId === document.id
+                                      ? "Deleting..."
+                                      : "Delete Document"}
+                                  </button>
                                 </>
                               )}
                             </div>
