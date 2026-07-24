@@ -473,6 +473,9 @@ input {
 .main-content {
   flex: 1;
   background: #f8f7ff;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .topbar {
@@ -5534,14 +5537,22 @@ input {
 
 .club-enter-button {
   width: 100%;
-  margin-top: 20px;
-  border: 0;
-  border-radius: 9px;
-  padding: 11px;
-  color: white;
-  background: #6d28d9;
-  font-weight: 700;
-  cursor: pointer;
+  min-height: 62px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 14px 18px;
+
+  font-size: 1.8rem;
+  font-weight: 600;
+  line-height: 1.15;
+
+  text-align: center;
+
+  white-space: normal;
+  word-break: break-word;
 }
 
 .club-card.create {
@@ -8209,9 +8220,18 @@ input {
 }
 
 .club-enter-button.pending {
-  color: #64748b;
-  background: #e2e8f0;
-  cursor: not-allowed;
+  color: #74829b;
+  background: #eef2fb;
+  border: 1px solid #d9c7ff;
+
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+
+  font-size: clamp(1.1rem, 2vw, 1.5rem);
+  line-height: 1.15;
+
+  padding: 16px;
 }
 /* ================= CREATE DOCUMENT MODAL ================= */
 
@@ -9659,4 +9679,980 @@ input {
 .dashboard-panel-static-icon {
   background: #f1f5f9;
   color: #64748b;
+}
+/* =========================================
+   DEPARTMENT CHAT - FIXED LAYOUT
+   - Chat list scrolls independently
+   - Composer stays at the bottom
+   - Right panel scrolls independently
+   - No layout stretching/flying
+========================================= */
+
+/* Apply this class to the <main> element of DepartmentChatPage */
+.department-chat-main-content {
+  height: 100vh;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-bottom: 0;
+}
+
+.department-chat-main-content .topbar {
+  flex: 0 0 auto;
+}
+
+.department-chat-page {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  overflow: hidden;
+  background: #f7f8fd;
+}
+
+.department-chat-main {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  border-right: 1px solid #dde3ef;
+  background: #f9faff;
+}
+
+.department-chat-header {
+  min-width: 0;
+  min-height: 70px;
+  padding: 11px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border-bottom: 1px solid #dfe4ed;
+  background: #ffffff;
+}
+
+.department-chat-title,
+.department-chat-header-actions,
+.department-chat-tools,
+.department-chat-composer-footer {
+  display: flex;
+  align-items: center;
+}
+
+.department-chat-title {
+  min-width: 0;
+  gap: 11px;
+}
+
+.department-chat-back,
+.department-chat-header-actions > button,
+.department-chat-tools button {
+  border: 0;
+  display: grid;
+  place-items: center;
+  color: #657085;
+  background: transparent;
+  cursor: pointer;
+}
+
+.department-chat-back {
+  width: 35px;
+  height: 35px;
+  flex: 0 0 auto;
+  border-radius: 9px;
+}
+
+.department-chat-back:hover {
+  color: #6d28d9;
+  background: #f1edff;
+}
+
+.department-chat-avatar {
+  position: relative;
+  width: 39px;
+  height: 39px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #ffffff;
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.department-chat-avatar span,
+.department-message-avatar span,
+.department-member-avatar > span {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 9px;
+  height: 9px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  background: #22c55e;
+}
+
+.department-chat-title > div:last-child {
+  min-width: 0;
+}
+
+.department-chat-title h1 {
+  margin: 0;
+  overflow: hidden;
+  color: #5522bf;
+  font-size: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.department-chat-title p {
+  margin: 3px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #64748b;
+  font-size: 11px;
+}
+
+.department-chat-header-actions {
+  min-width: 0;
+  gap: 13px;
+}
+
+.department-chat-header-actions > button {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+}
+
+.department-chat-search {
+  position: relative;
+  width: min(260px, 28vw);
+  min-width: 140px;
+}
+
+.department-chat-search svg {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  color: #94a3b8;
+  transform: translateY(-50%);
+}
+
+.department-chat-search input {
+  width: 100%;
+  height: 38px;
+  box-sizing: border-box;
+  padding: 0 13px 0 38px;
+  border: 0;
+  border-radius: 999px;
+  outline: none;
+  background: #eef2ff;
+  color: #334155;
+}
+
+/* This is the ONLY vertically scrollable area in the left chat column. */
+.department-chat-messages {
+  min-width: 0;
+  min-height: 0;
+  padding: 20px 24px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scroll-behavior: smooth;
+}
+
+.department-chat-messages::-webkit-scrollbar,
+.department-chat-details::-webkit-scrollbar,
+.department-chat-files::-webkit-scrollbar {
+  width: 8px;
+}
+
+.department-chat-messages::-webkit-scrollbar-thumb,
+.department-chat-details::-webkit-scrollbar-thumb,
+.department-chat-files::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.55);
+}
+
+.department-chat-messages::-webkit-scrollbar-track,
+.department-chat-details::-webkit-scrollbar-track,
+.department-chat-files::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.department-chat-message {
+  margin-bottom: 22px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.department-chat-message.own {
+  justify-content: flex-end;
+}
+
+.department-message-avatar {
+  position: relative;
+  width: 35px;
+  height: 35px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #ffffff;
+  background: #64748b;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.department-message-avatar.own {
+  background: #6d28d9;
+}
+
+.department-message-column {
+  width: min(68%, 620px);
+  min-width: 0;
+}
+
+.department-chat-message.own .department-message-column {
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+}
+
+.department-message-meta {
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #64748b;
+  font-size: 10px;
+}
+
+.department-message-meta strong {
+  color: #334155;
+  font-size: 12px;
+}
+
+.department-message-bubble {
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 13px 15px;
+  border: 1px solid #d9dfeb;
+  border-radius: 6px 17px 17px 17px;
+  background: #eef2ff;
+  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.03);
+}
+
+.department-chat-message.own .department-message-bubble {
+  color: #ffffff;
+  border-color: #6d28d9;
+  border-radius: 17px 6px 17px 17px;
+  background: linear-gradient(135deg, #7543f5, #6623e8);
+}
+
+.department-message-bubble p {
+  margin: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.55;
+  font-size: 13px;
+}
+
+.department-message-bubble img {
+  width: 100%;
+  max-height: 330px;
+  margin-top: 10px;
+  display: block;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.department-message-mention {
+  color: #7c3aed;
+}
+
+.department-chat-message.own .department-message-mention {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.department-message-reactions {
+  margin-top: 5px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.department-message-reactions button {
+  padding: 3px 8px;
+  border: 1px solid #d7deeb;
+  border-radius: 999px;
+  background: #ffffff;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.department-chat-divider {
+  margin: 28px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.department-chat-divider span {
+  height: 1px;
+  flex: 1;
+  background: #d7ddea;
+}
+
+.department-chat-divider strong {
+  padding: 4px 13px;
+  border-radius: 999px;
+  color: #7c8499;
+  background: #e9ecf5;
+  font-size: 10px;
+}
+
+/* Composer is a separate fixed grid row; it never scrolls away. */
+.department-chat-composer-wrap {
+  position: relative;
+  z-index: 5;
+  min-width: 0;
+  padding: 16px 18px;
+  border-top: 1px solid #dde3ed;
+  background: #ffffff;
+}
+
+.department-chat-composer {
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid #ced6e5;
+  border-radius: 15px;
+  background: #f4f6ff;
+}
+
+.department-chat-composer textarea {
+  width: 100%;
+  min-height: 47px;
+  max-height: 120px;
+  box-sizing: border-box;
+  resize: vertical;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: #334155;
+  font: inherit;
+  font-size: 13px;
+}
+
+.department-chat-composer-footer {
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 7px;
+}
+
+.department-chat-tools {
+  gap: 12px;
+}
+
+.department-chat-tools button {
+  width: 25px;
+  height: 25px;
+}
+
+.department-chat-send {
+  min-width: 91px;
+  height: 38px;
+  border: 0;
+  border-radius: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  color: #ffffff;
+  background: #6523e8;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.department-chat-send:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Right column has its own independent scroll area. */
+.department-chat-sidebar {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+  background: #eef2ff;
+}
+
+.department-chat-sidebar-tabs {
+  padding: 0 8px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-bottom: 1px solid #d9dfeb;
+  background: #ffffff;
+}
+
+.department-chat-sidebar-tabs button {
+  height: 48px;
+  border: 0;
+  color: #64748b;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.department-chat-sidebar-tabs button.active {
+  color: #ffffff;
+  border-radius: 6px;
+  background: #7543ed;
+}
+
+.department-chat-details,
+.department-chat-files {
+  min-width: 0;
+  min-height: 0;
+  padding: 20px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.department-chat-details section {
+  margin-bottom: 25px;
+}
+
+.department-chat-details h3,
+.department-chat-files h3 {
+  margin: 0 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #7c8497;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.department-chat-info-card {
+  padding: 15px;
+  border: 1px solid #d4d9e5;
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.department-chat-info-card p {
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.department-details-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.department-details-heading > span {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.department-chat-member-list {
+  display: grid;
+  gap: 12px;
+}
+
+.department-chat-member {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.department-member-avatar {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #6d28d9;
+  background: #e7ddff;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.department-member-avatar > span.offline {
+  background: #94a3b8;
+}
+
+.department-chat-member strong,
+.department-chat-member span {
+  display: block;
+}
+
+.department-chat-member strong {
+  color: #334155;
+  font-size: 12px;
+}
+
+.department-chat-member span {
+  margin-top: 2px;
+  color: #7c8497;
+  font-size: 10px;
+}
+
+.department-pinned-list {
+  display: grid;
+  gap: 9px;
+}
+
+.department-pinned-card {
+  padding: 12px;
+  border: 1px solid #d7dce8;
+  border-left: 3px solid #c7cbd6;
+  border-radius: 0 9px 9px 0;
+  background: #ffffff;
+}
+
+.department-pinned-card.important {
+  border-color: #854dff;
+}
+
+.department-pinned-card small {
+  color: #7543ed;
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.department-pinned-card p {
+  margin: 7px 0 0;
+  color: #374151;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.department-directory-button {
+  width: 100%;
+  min-height: 42px;
+  margin-top: 20px;
+  border: 2px solid #6d28d9;
+  border-radius: 10px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 7px;
+  color: #6d28d9;
+  background: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.department-chat-files {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.department-shared-file {
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #d7ddea;
+  border-radius: 11px;
+  background: #ffffff;
+}
+
+.department-shared-file > div {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  color: #6d28d9;
+  background: #eee9ff;
+}
+
+.department-shared-file strong,
+.department-shared-file small {
+  display: block;
+}
+
+.department-shared-file strong {
+  overflow: hidden;
+  color: #334155;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.department-shared-file small {
+  margin-top: 4px;
+  color: #94a3b8;
+  font-size: 9px;
+}
+
+.department-chat-empty {
+  min-height: 300px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  color: #94a3b8;
+  text-align: center;
+}
+
+.department-chat-empty h2,
+.department-chat-empty p {
+  margin: 5px 0 0;
+}
+
+@media (max-width: 1050px) {
+  .department-chat-page {
+    grid-template-columns: minmax(0, 1fr) 280px;
+  }
+
+  .department-chat-search {
+    width: 180px;
+  }
+}
+
+@media (max-width: 800px) {
+  .department-chat-main-content {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  .department-chat-page {
+    flex: none;
+    min-height: auto;
+    grid-template-columns: 1fr;
+    overflow: visible;
+  }
+
+  .department-chat-main {
+    min-height: 720px;
+    grid-template-rows: auto minmax(420px, 1fr) auto;
+    overflow: hidden;
+  }
+
+  .department-chat-sidebar {
+    min-height: 500px;
+  }
+
+  .department-chat-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .department-chat-header-actions {
+    width: 100%;
+  }
+
+  .department-chat-search {
+    flex: 1;
+    width: auto;
+  }
+
+  .department-message-column {
+    width: 82%;
+  }
+}
+
+@media (max-width: 520px) {
+  .department-chat-messages {
+    padding: 15px 11px;
+  }
+
+  .department-chat-message {
+    gap: 6px;
+  }
+
+  .department-message-column {
+    width: 88%;
+  }
+
+  .department-message-avatar {
+    width: 30px;
+    height: 30px;
+  }
+
+  .department-chat-composer-wrap {
+    padding: 12px;
+  }
+
+  .department-chat-composer-footer {
+    align-items: flex-end;
+  }
+}
+/* ==================================================
+   DEPARTMENT CHAT — FINAL LAYOUT FIX
+================================================== */
+
+.department-chat-layout {
+  height: 100vh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/*
+  Main chứa:
+  1. Topbar
+  2. Toàn bộ trang chat
+*/
+.department-chat-main-content {
+  height: 100vh;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+/*
+  Không dùng flex: 1 ở đây nữa.
+  Grid row thứ hai sẽ tự chiếm toàn bộ chiều cao còn lại.
+*/
+.department-chat-page {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+
+  overflow: hidden;
+  background: #f7f8fd;
+}
+
+/*
+  Cột chat trái gồm:
+  header
+  message scroll
+  composer
+*/
+.department-chat-main {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+
+  overflow: hidden;
+  border-right: 1px solid #dde3ef;
+  background: #f9faff;
+}
+
+.department-chat-header {
+  position: relative;
+  z-index: 4;
+
+  min-height: 70px;
+  padding: 11px 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+
+  border-bottom: 1px solid #dfe4ed;
+  background: #ffffff;
+}
+
+/*
+  Chỉ vùng này được scroll.
+  Không đặt height: 100%.
+*/
+.department-chat-messages {
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+
+  padding: 20px 24px;
+  box-sizing: border-box;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+/*
+  Composer luôn nằm trong hàng cuối của grid.
+*/
+.department-chat-composer-wrap {
+  position: relative;
+  z-index: 5;
+
+  width: 100%;
+  box-sizing: border-box;
+  padding: 16px 18px;
+
+  border-top: 1px solid #dde3ed;
+  background: #ffffff;
+}
+
+.department-chat-composer {
+  width: 100%;
+  box-sizing: border-box;
+
+  padding: 14px 16px;
+  border: 1px solid #ced6e5;
+  border-radius: 15px;
+
+  background: #f4f6ff;
+}
+
+.department-chat-composer textarea {
+  display: block;
+  width: 100%;
+  min-height: 47px;
+  max-height: 120px;
+
+  box-sizing: border-box;
+  padding: 0;
+
+  resize: none;
+  border: 0;
+  outline: none;
+
+  background: transparent;
+  color: #334155;
+  font: inherit;
+  font-size: 13px;
+}
+
+/*
+  Sidebar phải có chiều cao giống cột chat.
+*/
+.department-chat-sidebar {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+
+  overflow: hidden;
+  background: #eef2ff;
+}
+
+.department-chat-details,
+.department-chat-files {
+  min-width: 0;
+  min-height: 0;
+
+  padding: 20px;
+  box-sizing: border-box;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* Tablet */
+@media (max-width: 1050px) {
+  .department-chat-page {
+    grid-template-columns: minmax(0, 1fr) 280px;
+  }
+
+  .department-chat-search {
+    width: 180px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 800px) {
+  .department-chat-layout {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  .department-chat-main-content {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+
+    display: block;
+  }
+
+  .department-chat-page {
+    height: auto;
+    min-height: 100vh;
+
+    display: block;
+    overflow: visible;
+  }
+
+  .department-chat-main {
+    height: 760px;
+    min-height: 0;
+  }
+
+  .department-chat-sidebar {
+    height: 520px;
+    min-height: 0;
+  }
+
+  .department-chat-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .department-chat-header-actions {
+    width: 100%;
+  }
+
+  .department-chat-search {
+    width: auto;
+    flex: 1;
+  }
+
+  .department-message-column {
+    width: 82%;
+  }
+}
+
+@media (max-width: 520px) {
+  .department-chat-messages {
+    padding: 15px 11px;
+  }
+
+  .department-chat-message {
+    gap: 6px;
+  }
+
+  .department-message-column {
+    width: 88%;
+  }
+
+  .department-message-avatar {
+    width: 30px;
+    height: 30px;
+  }
 }

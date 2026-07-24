@@ -27,7 +27,7 @@ import {
 import { getClubMembers } from "../api/clubApi";
 
 import "../styles.css";
-
+import { useNavigate } from "react-router-dom";
 const EMPTY_FORM = {
   name: "",
   description: "",
@@ -102,7 +102,7 @@ export default function DepartmentPage() {
   const role = localStorage.getItem("selectedClubRole") || "MEMBER";
 
   const clubName = localStorage.getItem("selectedClubName") || "Club";
-
+  const navigate = useNavigate();
   const canManageDepartments = useMemo(() => {
     return ["PRESIDENT", "CLUB_MANAGER"].includes(role.toUpperCase());
   }, [role]);
@@ -259,14 +259,20 @@ export default function DepartmentPage() {
         result?.hasAccess === true ||
         result?.chatAccess === true;
 
-      if (allowed) {
-        toast.success(`You have access to the chat of ${department.name}.`);
-      } else {
+      if (!allowed) {
         toast.warning(
           result?.message ||
             `You do not have access to the chat of ${department.name}.`,
         );
+
+        return;
       }
+
+      navigate(`/departments/${department.id}/chat`, {
+        state: {
+          department,
+        },
+      });
     } catch (error) {
       console.error("CHECK CHAT ACCESS ERROR:", error?.response?.data || error);
 
@@ -467,7 +473,7 @@ function DepartmentCard({
         ) : (
           <>
             <MessageCircle size={17} />
-            Check Chat Access
+            Open Department Chat
           </>
         )}
       </button>

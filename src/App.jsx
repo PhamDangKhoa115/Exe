@@ -21,6 +21,7 @@ import DocumentPreviewPage from "./pages/DocumentPreviewPage";
 import TrelloPage from "./pages/TrelloPage";
 import DepartmentPage from "./pages/DepartmentPage";
 import MemberManagementPage from "./pages/MemberManagementPage";
+import DepartmentChatPage from "./pages/DepartmentChatPage";
 export default function App() {
   return (
     <Routes>
@@ -41,6 +42,16 @@ export default function App() {
           <ProtectedRoute>
             <ClubRoute>
               <DepartmentPage />
+            </ClubRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/departments/:departmentId/chat"
+        element={
+          <ProtectedRoute>
+            <ClubRoute>
+              <DepartmentChatPage />
             </ClubRoute>
           </ProtectedRoute>
         }
