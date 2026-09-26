@@ -170,13 +170,16 @@ export default function RegisterPage() {
         return;
       }
 
-      window.google.accounts.id.initialize({
-        client_id: clientId,
-        callback: handleGoogleCredential,
-        ux_mode: "popup",
-        auto_select: false,
-      });
+      if (!window.__googleIdentityInitialized) {
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: handleGoogleLogin,
+          ux_mode: "popup",
+          auto_select: false,
+        });
 
+        window.__googleIdentityInitialized = true;
+      }
       requestAnimationFrame(() => {
         renderGoogleButton();
       });

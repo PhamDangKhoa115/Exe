@@ -144,13 +144,16 @@ export default function LoginPage() {
         return;
       }
 
-      window.google.accounts.id.initialize({
-        client_id: clientId,
-        callback: handleGoogleLogin,
-        ux_mode: "popup",
-        auto_select: false,
-      });
+      if (!window.__googleIdentityInitialized) {
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: handleGoogleLogin,
+          ux_mode: "popup",
+          auto_select: false,
+        });
 
+        window.__googleIdentityInitialized = true;
+      }
       renderGoogleButton();
 
       if (googleContainerRef.current) {
