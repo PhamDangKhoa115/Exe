@@ -103,16 +103,17 @@ export default function LoginPage() {
     }
 
     let retryTimer;
-    let resizeObserver;
     let cancelled = false;
 
-    const renderGoogleButton = () => {
+    const initializeGoogleButton = () => {
+      if (cancelled) return;
+
       if (
-        cancelled ||
         !window.google?.accounts?.id ||
         !googleButtonRef.current ||
         !googleContainerRef.current
       ) {
+        retryTimer = window.setTimeout(initializeGoogleButton, 300);
         return;
       }
 
@@ -120,8 +121,16 @@ export default function LoginPage() {
         googleContainerRef.current.getBoundingClientRect().width;
 
       if (containerWidth <= 0) {
+        retryTimer = window.setTimeout(initializeGoogleButton, 300);
         return;
       }
+
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: handleGoogleLogin,
+        ux_mode: "popup",
+        auto_select: false,
+      });
 
       googleButtonRef.current.innerHTML = "";
 
@@ -136,35 +145,6 @@ export default function LoginPage() {
       });
     };
 
-    const initializeGoogleButton = () => {
-      if (cancelled) return;
-
-      if (!window.google?.accounts?.id) {
-        retryTimer = window.setTimeout(initializeGoogleButton, 300);
-        return;
-      }
-
-      if (!window.__googleIdentityInitialized) {
-        window.google.accounts.id.initialize({
-          client_id: clientId,
-          callback: handleGoogleLogin,
-          ux_mode: "popup",
-          auto_select: false,
-        });
-
-        window.__googleIdentityInitialized = true;
-      }
-      renderGoogleButton();
-
-      if (googleContainerRef.current) {
-        resizeObserver = new ResizeObserver(() => {
-          renderGoogleButton();
-        });
-
-        resizeObserver.observe(googleContainerRef.current);
-      }
-    };
-
     initializeGoogleButton();
 
     return () => {
@@ -172,10 +152,6 @@ export default function LoginPage() {
 
       if (retryTimer) {
         window.clearTimeout(retryTimer);
-      }
-
-      if (resizeObserver) {
-        resizeObserver.disconnect();
       }
     };
   }, []);
