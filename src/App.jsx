@@ -23,12 +23,17 @@ import DepartmentPage from "./pages/DepartmentPage";
 import MemberManagementPage from "./pages/MemberManagementPage";
 import DepartmentChatPage from "./pages/DepartmentChatPage";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
+import PrivacyPage from "./pages/privacy/PrivacyPage";
+import TermsPage from "./pages/privacy/TermsPage";
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/privacy" element={<PrivacyPage />} />
+      <Route path="/terms" element={<TermsPage />} />
+
       <Route path="/admin" element={<AdminDashboardPage />} />
       <Route
         path="/select-club"
