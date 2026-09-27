@@ -173,7 +173,7 @@ export default function RegisterPage() {
       if (!window.__googleIdentityInitialized) {
         window.google.accounts.id.initialize({
           client_id: clientId,
-          callback: handleGoogleLogin,
+          callback: handleGoogleCredential,
           ux_mode: "popup",
           auto_select: false,
         });
