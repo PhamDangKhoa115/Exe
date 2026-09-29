@@ -11454,3 +11454,65 @@ input {
     overflow-x: auto;
   }
 }
+/* =========================================================
+   DEPARTMENT CHAT - SCROLL FIX
+========================================================= */
+
+.department-chat-layout {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.department-chat-main-content {
+  height: 100vh;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.department-chat-page {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+}
+
+.department-chat-main {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header không scroll */
+.department-chat-header {
+  flex-shrink: 0;
+}
+
+/* CHỈ khu vực messages được scroll */
+.department-chat-messages {
+  flex: 1;
+  min-height: 0;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  scroll-behavior: smooth;
+}
+
+/* Ô nhập tin nhắn luôn ở dưới */
+.department-chat-composer-wrap {
+  flex-shrink: 0;
+}
+
+/* Sidebar phải */
+.department-chat-sidebar {
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}

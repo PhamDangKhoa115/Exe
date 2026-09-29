@@ -143,12 +143,13 @@ export default function DepartmentChatPage() {
       console.log("CHAT MESSAGES RESPONSE:", response);
 
       const rawMessages = extractMessages(response);
-
       const normalizedMessages = rawMessages.map((message) =>
         normalizeMessage(message, currentUserId),
       );
 
-      setMessages(normalizedMessages);
+      const sortedMessages = sortMessagesOldestFirst(normalizedMessages);
+
+      setMessages(sortedMessages);
     } catch (error) {
       console.error("LOAD CHAT ERROR:", error.response?.data || error);
 
@@ -161,7 +162,46 @@ export default function DepartmentChatPage() {
   useEffect(() => {
     loadMessages();
   }, [loadMessages]);
+  const refreshMessagesSilently = useCallback(async () => {
+    if (!clubId || !departmentId || !currentUserId) {
+      return;
+    }
 
+    try {
+      const response = await getDepartmentMessages({
+        clubId,
+        departmentId: Number(departmentId),
+        requesterUserId: currentUserId,
+        limit: 50,
+      });
+
+      const rawMessages = extractMessages(response);
+
+      const normalizedMessages = rawMessages.map((message) =>
+        normalizeMessage(message, currentUserId),
+      );
+
+      const sortedMessages = sortMessagesOldestFirst(normalizedMessages);
+
+      setMessages(sortedMessages);
+    } catch (error) {
+      console.error("REFRESH CHAT ERROR:", error.response?.data || error);
+    }
+  }, [clubId, departmentId, currentUserId]);
+
+  useEffect(() => {
+    if (!clubId || !departmentId || !currentUserId) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      refreshMessagesSilently();
+    }, 2000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [clubId, departmentId, currentUserId, refreshMessagesSilently]);
   /* =======================================================
      AUTO SCROLL
   ======================================================= */
@@ -170,9 +210,10 @@ export default function DepartmentChatPage() {
     if (loadingMessages) return;
 
     messagesEndRef.current?.scrollIntoView({
-      behavior: "smooth",
+      behavior: "auto",
+      block: "end",
     });
-  }, [messages, loadingMessages]);
+  }, [loadingMessages]);
 
   /* =======================================================
      SEARCH
@@ -281,7 +322,7 @@ export default function DepartmentChatPage() {
             return current;
           }
 
-          return [...current, normalized];
+          return sortMessagesOldestFirst([...current, normalized]);
         });
       } else {
         await loadMessages();
@@ -1010,6 +1051,7 @@ function normalizeMessage(rawMessage, currentUserId) {
       : [],
 
     isPinned: Boolean(rawMessage.isPinned),
+    createdAt,
 
     time: createdAt ? formatMessageTime(createdAt) : "",
   };
@@ -1080,7 +1122,32 @@ function formatFileSize(bytes) {
 
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
+function getMessageTimestamp(message) {
+  const value =
+    message.createdAt ||
+    message.sentAt ||
+    message.createdDate ||
+    message.timestamp;
 
+  if (!value) return 0;
+
+  const timestamp = new Date(value).getTime();
+
+  return Number.isNaN(timestamp) ? 0 : timestamp;
+}
+
+function sortMessagesOldestFirst(messages) {
+  return [...messages].sort((a, b) => {
+    const timeA = getMessageTimestamp(a);
+    const timeB = getMessageTimestamp(b);
+
+    if (timeA !== timeB) {
+      return timeA - timeB;
+    }
+
+    return Number(a.messageId ?? a.id ?? 0) - Number(b.messageId ?? b.id ?? 0);
+  });
+}
 function getErrorMessage(error, fallback) {
   const data = error?.response?.data;
 
