@@ -8,7 +8,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/api": {
-        target: "https://doorstep-disaster-platonic.ngrok-free.dev",
+        target: "https://exe101-backend-clubmanagement.onrender.com",
         changeOrigin: true,
         secure: true,
       },
