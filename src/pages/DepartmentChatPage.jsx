@@ -1,5 +1,7 @@
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
 import { useLocation, useNavigate, useParams } from "react-router-dom";
+
 import {
   ArrowLeft,
   AtSign,
@@ -12,13 +14,29 @@ import {
   Search,
   Send,
   Smile,
+  Trash2,
   Users,
 } from "lucide-react";
 
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 
+import {
+  deleteMessage,
+  getDepartmentMessages,
+  pinMessage,
+  sendDepartmentMessage,
+} from "../api/chatApi";
+
 import "../styles.css";
+
+/* =========================================================
+   TEMPORARY MOCK DATA
+
+   Chat messages are NO LONGER mocked.
+   Members are still mocked because the supplied Chat API
+   does not contain a department-member endpoint.
+========================================================= */
 
 const MOCK_MEMBERS = [
   {
@@ -51,88 +69,114 @@ const MOCK_MEMBERS = [
   },
 ];
 
-const INITIAL_MESSAGES = [
-  {
-    id: 1,
-    senderId: 1,
-    senderName: "Sarah Jenkins",
-    senderInitials: "SJ",
-    time: "09:32 AM",
-    own: false,
-    text: "Hey team, I just uploaded the new posters for the Spring Gala! Let me know if we need any adjustments to the typography.",
-    image:
-      "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=900&q=80",
-  },
-  {
-    id: 2,
-    senderId: 2,
-    senderName: "James Doe",
-    senderInitials: "JD",
-    time: "10:45 AM",
-    own: true,
-    text: "Looks great! I really like the color palette. It fits the brand guide perfectly.",
-    reactions: [
-      { emoji: "🔥", count: 3 },
-      { emoji: "🙌", count: 1 },
-    ],
-  },
-  {
-    id: 3,
-    type: "divider",
-    label: "TODAY",
-  },
-  {
-    id: 4,
-    senderId: 4,
-    senderName: "Alex Rivera",
-    senderInitials: "AR",
-    time: "09:12 AM",
-    own: false,
-    text: "Good morning everyone! @MarketingTeam, just a reminder about the content strategy meeting at 2 PM today.",
-  },
-];
-
-const MOCK_FILES = [
-  {
-    id: 1,
-    name: "Brand Guideline v2.4.pdf",
-    size: "4.2 MB",
-  },
-  {
-    id: 2,
-    name: "Content Calendar Q3.xlsx",
-    size: "1.1 MB",
-  },
-  {
-    id: 3,
-    name: "Spring Gala Poster.png",
-    size: "8.7 MB",
-  },
-];
+/* =========================================================
+   PAGE
+========================================================= */
 
 export default function DepartmentChatPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { departmentId } = useParams();
 
-  const currentUserId = Number(localStorage.getItem("userId")) || 999;
+  const currentUserId = Number(localStorage.getItem("userId"));
+
   const currentUserName = localStorage.getItem("fullName") || "You";
+
+  const clubId = Number(localStorage.getItem("selectedClubId"));
 
   const department = location.state?.department || {
     id: departmentId,
-    name: "Marketing Department",
-    description:
-      "Driving the visual identity and communication strategies for all campus-wide events and organizational outreach.",
-    memberCount: 24,
-    headMemberName: "Sarah Jenkins",
+    name: "Department",
+    description: "Department information has not been updated.",
+    memberCount: 0,
+    headMemberName: "",
   };
 
-  const [messages, setMessages] = useState(INITIAL_MESSAGES);
+  /* =======================================================
+     STATE
+  ======================================================= */
+
+  const [messages, setMessages] = useState([]);
+
   const [messageText, setMessageText] = useState("");
+
   const [searchText, setSearchText] = useState("");
+
   const [detailTab, setDetailTab] = useState("DETAILS");
 
+  const [loadingMessages, setLoadingMessages] = useState(true);
+
+  const [sendingMessage, setSendingMessage] = useState(false);
+
+  const [chatError, setChatError] = useState("");
+
+  const [actionMessageId, setActionMessageId] = useState(null);
+
   const fileInputRef = useRef(null);
+  const messagesEndRef = useRef(null);
+
+  /* =======================================================
+     LOAD MESSAGES
+  ======================================================= */
+
+  const loadMessages = useCallback(async () => {
+    if (!clubId || !departmentId || !currentUserId) {
+      setChatError(
+        "Missing club, department or user information. Please login and select a club again.",
+      );
+
+      setLoadingMessages(false);
+      return;
+    }
+
+    try {
+      setLoadingMessages(true);
+      setChatError("");
+
+      const response = await getDepartmentMessages({
+        clubId,
+        departmentId: Number(departmentId),
+        requesterUserId: currentUserId,
+        limit: 50,
+      });
+
+      console.log("CHAT MESSAGES RESPONSE:", response);
+
+      const rawMessages = extractMessages(response);
+
+      const normalizedMessages = rawMessages.map((message) =>
+        normalizeMessage(message, currentUserId),
+      );
+
+      setMessages(normalizedMessages);
+    } catch (error) {
+      console.error("LOAD CHAT ERROR:", error.response?.data || error);
+
+      setChatError(getErrorMessage(error, "Unable to load messages."));
+    } finally {
+      setLoadingMessages(false);
+    }
+  }, [clubId, departmentId, currentUserId]);
+
+  useEffect(() => {
+    loadMessages();
+  }, [loadMessages]);
+
+  /* =======================================================
+     AUTO SCROLL
+  ======================================================= */
+
+  useEffect(() => {
+    if (loadingMessages) return;
+
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
+  }, [messages, loadingMessages]);
+
+  /* =======================================================
+     SEARCH
+  ======================================================= */
 
   const filteredMessages = useMemo(() => {
     const keyword = searchText.trim().toLowerCase();
@@ -142,9 +186,11 @@ export default function DepartmentChatPage() {
     }
 
     return messages.filter((message) => {
-      if (message.type === "divider") return false;
-
-      return [message.senderName, message.text]
+      return [
+        message.senderName,
+        message.text,
+        ...(message.attachments || []).map((attachment) => attachment.fileName),
+      ]
         .filter(Boolean)
         .join(" ")
         .toLowerCase()
@@ -152,36 +198,211 @@ export default function DepartmentChatPage() {
     });
   }, [messages, searchText]);
 
-  const handleSendMessage = () => {
+  /* =======================================================
+     PINNED MESSAGES
+  ======================================================= */
+
+  const pinnedMessages = useMemo(
+    () => messages.filter((message) => message.isPinned),
+    [messages],
+  );
+
+  /* =======================================================
+     SHARED FILES
+  ======================================================= */
+
+  const sharedFiles = useMemo(() => {
+    return messages.flatMap((message) =>
+      (message.attachments || []).map((attachment) => ({
+        ...attachment,
+        messageId: message.id,
+        senderName: message.senderName,
+      })),
+    );
+  }, [messages]);
+
+  /* =======================================================
+     SEND TEXT MESSAGE
+  ======================================================= */
+
+  const handleSendMessage = async () => {
     const content = messageText.trim();
 
-    if (!content) return;
+    if (!content || sendingMessage) {
+      return;
+    }
 
-    const now = new Date();
+    if (!clubId || !departmentId || !currentUserId) {
+      setChatError("Missing club, department or user information.");
 
-    const newMessage = {
-      id: Date.now(),
-      senderId: currentUserId,
-      senderName: currentUserName,
-      senderInitials: getInitials(currentUserName),
-      time: now.toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      own: true,
-      text: content,
-    };
+      return;
+    }
 
-    setMessages((current) => [...current, newMessage]);
-    setMessageText("");
+    try {
+      setSendingMessage(true);
+      setChatError("");
+
+      const response = await sendDepartmentMessage({
+        clubId,
+        departmentId: Number(departmentId),
+        requesterUserId: currentUserId,
+
+        content,
+
+        messageType: "TEXT",
+
+        attachments: [],
+
+        isPinned: false,
+      });
+
+      console.log("SEND MESSAGE RESPONSE:", response);
+
+      setMessageText("");
+
+      const rawMessage = extractSingleMessage(response);
+
+      /*
+       * If backend returns the created message,
+       * append it immediately.
+       *
+       * Otherwise reload messages.
+       */
+
+      if (rawMessage && hasMessageIdentity(rawMessage)) {
+        const normalized = normalizeMessage(rawMessage, currentUserId);
+
+        setMessages((current) => {
+          const alreadyExists = current.some(
+            (message) => String(message.id) === String(normalized.id),
+          );
+
+          if (alreadyExists) {
+            return current;
+          }
+
+          return [...current, normalized];
+        });
+      } else {
+        await loadMessages();
+      }
+    } catch (error) {
+      console.error("SEND CHAT ERROR:", error.response?.data || error);
+
+      setChatError(getErrorMessage(error, "Unable to send message."));
+    } finally {
+      setSendingMessage(false);
+    }
   };
+
+  /* =======================================================
+     ENTER TO SEND
+  ======================================================= */
 
   const handleKeyDown = (event) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
+
       handleSendMessage();
     }
   };
+
+  /* =======================================================
+     PIN MESSAGE
+  ======================================================= */
+
+  const handlePinMessage = async (message) => {
+    if (!message?.id || !currentUserId) {
+      return;
+    }
+
+    try {
+      setActionMessageId(message.id);
+      setChatError("");
+
+      await pinMessage(message.id, currentUserId);
+
+      /*
+       * Endpoint is PUT /pin.
+       *
+       * Because Swagger does not specify
+       * whether this toggles pin/unpin or
+       * only pins, reload server state
+       * instead of guessing.
+       */
+
+      await loadMessages();
+    } catch (error) {
+      console.error("PIN MESSAGE ERROR:", error.response?.data || error);
+
+      setChatError(getErrorMessage(error, "Unable to update pinned message."));
+    } finally {
+      setActionMessageId(null);
+    }
+  };
+
+  /* =======================================================
+     DELETE MESSAGE
+  ======================================================= */
+
+  const handleDeleteMessage = async (message) => {
+    if (!message?.id || !currentUserId) {
+      return;
+    }
+
+    const confirmed = window.confirm("Delete this message?");
+
+    if (!confirmed) return;
+
+    try {
+      setActionMessageId(message.id);
+      setChatError("");
+
+      await deleteMessage(message.id, currentUserId);
+
+      setMessages((current) =>
+        current.filter((item) => String(item.id) !== String(message.id)),
+      );
+    } catch (error) {
+      console.error("DELETE MESSAGE ERROR:", error.response?.data || error);
+
+      setChatError(getErrorMessage(error, "Unable to delete message."));
+    } finally {
+      setActionMessageId(null);
+    }
+  };
+
+  /* =======================================================
+     FILE SELECTION
+
+     Upload is intentionally not sent yet because Swagger
+     only says:
+
+     POST /api/chat/upload
+     application/json
+     { file: "string" }
+
+     It does not specify whether "file" must be base64,
+     data URL, URL, or another encoded value.
+  ======================================================= */
+
+  const handleFileChange = (event) => {
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    console.log("SELECTED CHAT FILE:", file);
+
+    setChatError(
+      "File selected, but upload is not enabled yet because the backend upload format for the `file` string has not been specified.",
+    );
+
+    event.target.value = "";
+  };
+
+  /* =======================================================
+     UI
+  ======================================================= */
 
   return (
     <div className="app-layout department-chat-layout">
@@ -189,8 +410,15 @@ export default function DepartmentChatPage() {
 
       <main className="main-content department-chat-main-content">
         <Topbar title={`Home Page / Departments / ${department.name}`} />
+
         <section className="department-chat-page">
+          {/* ============================
+              MAIN CHAT
+          ============================ */}
+
           <div className="department-chat-main">
+            {/* HEADER */}
+
             <header className="department-chat-header">
               <div className="department-chat-title">
                 <button
@@ -204,6 +432,7 @@ export default function DepartmentChatPage() {
 
                 <div className="department-chat-avatar">
                   {getInitials(department.name)}
+
                   <span />
                 </div>
 
@@ -240,29 +469,62 @@ export default function DepartmentChatPage() {
               </div>
             </header>
 
+            {/* ERROR */}
+
+            {chatError && (
+              <div
+                style={{
+                  padding: "10px 16px",
+                  margin: "10px 16px 0",
+                  borderRadius: "8px",
+                  background: "#fff1f2",
+                  color: "#be123c",
+                  fontSize: "14px",
+                }}
+              >
+                {chatError}
+              </div>
+            )}
+
+            {/* MESSAGES */}
+
             <div className="department-chat-messages">
-              {filteredMessages.length === 0 ? (
+              {loadingMessages ? (
+                <div className="department-chat-empty">
+                  <p>Loading messages...</p>
+                </div>
+              ) : filteredMessages.length === 0 ? (
                 <div className="department-chat-empty">
                   <Search size={36} />
-                  <h2>No messages found</h2>
-                  <p>Try another search keyword.</p>
+
+                  <h2>
+                    {searchText ? "No messages found" : "No messages yet"}
+                  </h2>
+
+                  <p>
+                    {searchText
+                      ? "Try another search keyword."
+                      : "Start the conversation by sending a message."}
+                  </p>
                 </div>
               ) : (
-                filteredMessages.map((message) => {
-                  if (message.type === "divider") {
-                    return (
-                      <div className="department-chat-divider" key={message.id}>
-                        <span />
-                        <strong>{message.label}</strong>
-                        <span />
-                      </div>
-                    );
-                  }
-
-                  return <ChatMessage key={message.id} message={message} />;
-                })
+                filteredMessages.map((message) => (
+                  <ChatMessage
+                    key={message.id}
+                    message={message}
+                    actionLoading={
+                      String(actionMessageId) === String(message.id)
+                    }
+                    onPin={handlePinMessage}
+                    onDelete={handleDeleteMessage}
+                  />
+                ))
               )}
+
+              <div ref={messagesEndRef} />
             </div>
+
+            {/* COMPOSER */}
 
             <div className="department-chat-composer-wrap">
               <div className="department-chat-composer">
@@ -272,6 +534,7 @@ export default function DepartmentChatPage() {
                   onChange={(event) => setMessageText(event.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Type a message..."
+                  disabled={sendingMessage}
                 />
 
                 <div className="department-chat-composer-footer">
@@ -288,7 +551,11 @@ export default function DepartmentChatPage() {
                       <Paperclip size={18} />
                     </button>
 
-                    <button type="button" title="Image">
+                    <button
+                      type="button"
+                      title="Image"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
                       <Image size={18} />
                     </button>
 
@@ -300,22 +567,32 @@ export default function DepartmentChatPage() {
                       <AtSign size={18} />
                     </button>
 
-                    <input ref={fileInputRef} type="file" hidden />
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      hidden
+                      onChange={handleFileChange}
+                    />
                   </div>
 
                   <button
                     type="button"
                     className="department-chat-send"
                     onClick={handleSendMessage}
-                    disabled={!messageText.trim()}
+                    disabled={!messageText.trim() || sendingMessage}
                   >
-                    Send
+                    {sendingMessage ? "Sending..." : "Send"}
+
                     <Send size={17} />
                   </button>
                 </div>
               </div>
             </div>
           </div>
+
+          {/* ============================
+              RIGHT SIDEBAR
+          ============================ */}
 
           <aside className="department-chat-sidebar">
             <div className="department-chat-sidebar-tabs">
@@ -340,9 +617,10 @@ export default function DepartmentChatPage() {
               <DepartmentDetails
                 department={department}
                 members={MOCK_MEMBERS}
+                pinnedMessages={pinnedMessages}
               />
             ) : (
-              <DepartmentFiles files={MOCK_FILES} />
+              <DepartmentFiles files={sharedFiles} />
             )}
           </aside>
         </section>
@@ -351,7 +629,11 @@ export default function DepartmentChatPage() {
   );
 }
 
-function ChatMessage({ message }) {
+/* =========================================================
+   MESSAGE COMPONENT
+========================================================= */
+
+function ChatMessage({ message, actionLoading, onPin, onDelete }) {
   return (
     <article
       className={`department-chat-message ${message.own ? "own" : "other"}`}
@@ -359,6 +641,7 @@ function ChatMessage({ message }) {
       {!message.own && (
         <div className="department-message-avatar">
           {message.senderInitials}
+
           <span />
         </div>
       )}
@@ -373,20 +656,58 @@ function ChatMessage({ message }) {
         </div>
 
         <div className="department-message-bubble">
-          <p>{renderMessageText(message.text)}</p>
+          {message.text && <p>{renderMessageText(message.text)}</p>}
 
-          {message.image && <img src={message.image} alt="Shared content" />}
+          {message.attachments?.map((attachment) => (
+            <Attachment
+              key={
+                attachment.id || `${attachment.fileUrl}-${attachment.fileName}`
+              }
+              attachment={attachment}
+            />
+          ))}
         </div>
 
-        {message.reactions?.length > 0 && (
-          <div className="department-message-reactions">
-            {message.reactions.map((reaction) => (
-              <button type="button" key={reaction.emoji}>
-                {reaction.emoji} {reaction.count}
-              </button>
-            ))}
-          </div>
-        )}
+        <div
+          style={{
+            display: "flex",
+            gap: "6px",
+            marginTop: "5px",
+            justifyContent: message.own ? "flex-end" : "flex-start",
+          }}
+        >
+          <button
+            type="button"
+            title={message.isPinned ? "Pinned message" : "Pin message"}
+            disabled={actionLoading}
+            onClick={() => onPin(message)}
+            style={{
+              border: "none",
+              background: "transparent",
+              cursor: actionLoading ? "wait" : "pointer",
+              opacity: actionLoading ? 0.5 : 1,
+            }}
+          >
+            <Pin size={15} fill={message.isPinned ? "currentColor" : "none"} />
+          </button>
+
+          {message.own && (
+            <button
+              type="button"
+              title="Delete message"
+              disabled={actionLoading}
+              onClick={() => onDelete(message)}
+              style={{
+                border: "none",
+                background: "transparent",
+                cursor: actionLoading ? "wait" : "pointer",
+                opacity: actionLoading ? 0.5 : 1,
+              }}
+            >
+              <Trash2 size={15} />
+            </button>
+          )}
+        </div>
       </div>
 
       {message.own && (
@@ -398,7 +719,67 @@ function ChatMessage({ message }) {
   );
 }
 
-function DepartmentDetails({ department, members }) {
+/* =========================================================
+   ATTACHMENT
+========================================================= */
+
+function Attachment({ attachment }) {
+  const isImage = attachment.fileType?.startsWith("image/");
+
+  if (isImage) {
+    return (
+      <a href={attachment.fileUrl} target="_blank" rel="noreferrer">
+        <img
+          src={attachment.fileUrl}
+          alt={attachment.fileName || "Shared image"}
+          style={{
+            maxWidth: "320px",
+            width: "100%",
+            borderRadius: "10px",
+            marginTop: "8px",
+          }}
+        />
+      </a>
+    );
+  }
+
+  return (
+    <a
+      href={attachment.fileUrl}
+      target="_blank"
+      rel="noreferrer"
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        marginTop: "8px",
+        textDecoration: "none",
+      }}
+    >
+      <FileText size={18} />
+
+      <span>
+        {attachment.fileName || "Attachment"}
+
+        {attachment.fileSize ? (
+          <small
+            style={{
+              display: "block",
+            }}
+          >
+            {formatFileSize(attachment.fileSize)}
+          </small>
+        ) : null}
+      </span>
+    </a>
+  );
+}
+
+/* =========================================================
+   DETAILS
+========================================================= */
+
+function DepartmentDetails({ department, members, pinnedMessages }) {
   return (
     <div className="department-chat-details">
       <section>
@@ -415,6 +796,7 @@ function DepartmentDetails({ department, members }) {
       <section>
         <div className="department-details-heading">
           <h3>Members</h3>
+
           <span>{department.memberCount || members.length}</span>
         </div>
 
@@ -429,6 +811,7 @@ function DepartmentDetails({ department, members }) {
 
               <div>
                 <strong>{member.name}</strong>
+
                 <span>{member.role}</span>
               </div>
             </div>
@@ -443,18 +826,23 @@ function DepartmentDetails({ department, members }) {
         </h3>
 
         <div className="department-pinned-list">
-          <article className="department-pinned-card important">
-            <small>Shared on May 12</small>
-            <p>
-              Brand Guideline v2.4 PDF available for download in the Files
-              section.
-            </p>
-          </article>
+          {pinnedMessages.length === 0 ? (
+            <p>No pinned messages.</p>
+          ) : (
+            pinnedMessages.map((message) => (
+              <article className="department-pinned-card" key={message.id}>
+                <small>
+                  {message.senderName} • {message.time}
+                </small>
 
-          <article className="department-pinned-card">
-            <small>Meeting Notes</small>
-            <p>Q3 Content Calendar - Approved by Faculty Advisor.</p>
-          </article>
+                <p>
+                  {message.text ||
+                    message.attachments?.[0]?.fileName ||
+                    "Attachment"}
+                </p>
+              </article>
+            ))
+          )}
         </div>
       </section>
 
@@ -466,29 +854,170 @@ function DepartmentDetails({ department, members }) {
   );
 }
 
+/* =========================================================
+   FILES
+========================================================= */
+
 function DepartmentFiles({ files }) {
   return (
     <div className="department-chat-files">
       <div className="department-details-heading">
         <h3>Shared Files</h3>
+
         <span>{files.length}</span>
       </div>
 
-      {files.map((file) => (
-        <article className="department-shared-file" key={file.id}>
-          <div>
-            <FileText size={20} />
-          </div>
+      {files.length === 0 ? (
+        <p>No shared files yet.</p>
+      ) : (
+        files.map((file, index) => (
+          <a
+            className="department-shared-file"
+            key={file.id || `${file.messageId}-${index}`}
+            href={file.fileUrl}
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              textDecoration: "none",
+            }}
+          >
+            <div>
+              <FileText size={20} />
+            </div>
 
-          <span>
-            <strong>{file.name}</strong>
-            <small>{file.size}</small>
-          </span>
-        </article>
-      ))}
+            <span>
+              <strong>{file.fileName || "Attachment"}</strong>
+
+              <small>{formatFileSize(file.fileSize)}</small>
+            </span>
+          </a>
+        ))
+      )}
     </div>
   );
 }
+
+/* =========================================================
+   RESPONSE HELPERS
+========================================================= */
+
+function extractMessages(response) {
+  if (Array.isArray(response)) {
+    return response;
+  }
+
+  if (Array.isArray(response?.data)) {
+    return response.data;
+  }
+
+  if (Array.isArray(response?.messages)) {
+    return response.messages;
+  }
+
+  if (Array.isArray(response?.content)) {
+    return response.content;
+  }
+
+  if (Array.isArray(response?.data?.messages)) {
+    return response.data.messages;
+  }
+
+  if (Array.isArray(response?.data?.content)) {
+    return response.data.content;
+  }
+
+  return [];
+}
+
+function extractSingleMessage(response) {
+  if (!response || typeof response !== "object") {
+    return null;
+  }
+
+  if (response.messageId != null || response.id != null) {
+    return response;
+  }
+
+  if (
+    response.data &&
+    typeof response.data === "object" &&
+    !Array.isArray(response.data)
+  ) {
+    return response.data;
+  }
+
+  if (response.message && typeof response.message === "object") {
+    return response.message;
+  }
+
+  return null;
+}
+
+function hasMessageIdentity(message) {
+  return message?.messageId != null || message?.id != null;
+}
+
+/* =========================================================
+   NORMALIZE BACKEND MESSAGE
+========================================================= */
+
+function normalizeMessage(rawMessage, currentUserId) {
+  const sender =
+    rawMessage.sender || rawMessage.user || rawMessage.createdBy || {};
+
+  const senderId = Number(
+    rawMessage.senderId ??
+      rawMessage.userId ??
+      rawMessage.senderUserId ??
+      sender.userId ??
+      sender.id,
+  );
+
+  const senderName =
+    rawMessage.senderName ||
+    rawMessage.fullName ||
+    rawMessage.senderFullName ||
+    sender.fullName ||
+    sender.name ||
+    sender.username ||
+    "Unknown User";
+
+  const createdAt =
+    rawMessage.createdAt ||
+    rawMessage.sentAt ||
+    rawMessage.createdDate ||
+    rawMessage.timestamp;
+
+  return {
+    ...rawMessage,
+
+    id: rawMessage.messageId ?? rawMessage.id,
+
+    senderId,
+
+    senderName,
+
+    senderInitials: getInitials(senderName),
+
+    own: senderId === Number(currentUserId),
+
+    text: rawMessage.content ?? rawMessage.text ?? "",
+
+    messageType: rawMessage.messageType || "TEXT",
+
+    attachments: Array.isArray(rawMessage.attachments)
+      ? rawMessage.attachments
+      : [],
+
+    isPinned: Boolean(rawMessage.isPinned),
+
+    time: createdAt ? formatMessageTime(createdAt) : "",
+  };
+}
+
+/* =========================================================
+   TEXT
+========================================================= */
 
 function renderMessageText(text) {
   if (!text) return "";
@@ -506,6 +1035,10 @@ function renderMessageText(text) {
   );
 }
 
+/* =========================================================
+   UTILITIES
+========================================================= */
+
 function getInitials(value) {
   if (!value) return "?";
 
@@ -515,4 +1048,45 @@ function getInitials(value) {
     .slice(0, 2)
     .map((word) => word[0]?.toUpperCase())
     .join("");
+}
+
+function formatMessageTime(value) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return date.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function formatFileSize(bytes) {
+  const size = Number(bytes);
+
+  if (!Number.isFinite(size) || size <= 0) {
+    return "";
+  }
+
+  if (size < 1024) {
+    return `${size} B`;
+  }
+
+  if (size < 1024 * 1024) {
+    return `${(size / 1024).toFixed(1)} KB`;
+  }
+
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function getErrorMessage(error, fallback) {
+  const data = error?.response?.data;
+
+  if (typeof data === "string") {
+    return data;
+  }
+
+  return data?.message || data?.error || error?.message || fallback;
 }
