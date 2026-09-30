@@ -26,11 +26,10 @@ export default function ForgotPasswordPage() {
 
       console.log("FORGOT PASSWORD RESPONSE:", data);
 
-      toast.success(
-        data?.message || "Account verified. Please reset your password.",
-      );
+      toast.success(data?.message || "OTP has been sent to your email.");
 
-      // API 200 -> sang trang Reset Password
+      // Thành công -> chuyển sang Reset Password
+      // và mang email theo
       navigate("/reset-password", {
         state: {
           email: normalizedEmail,
@@ -41,7 +40,6 @@ export default function ForgotPasswordPage() {
 
       toast.error(
         error?.response?.data?.message ||
-          error?.response?.data ||
           "Unable to process forgot password request.",
       );
     } finally {
@@ -56,8 +54,8 @@ export default function ForgotPasswordPage() {
           <h2>Forgot Password?</h2>
 
           <span>
-            Enter your email address and we'll send you instructions to reset
-            your password.
+            Enter your email address and we'll send you an OTP to reset your
+            password.
           </span>
 
           <div className="auth-fields">
@@ -75,7 +73,7 @@ export default function ForgotPasswordPage() {
           </div>
 
           <button className="main-btn full" type="submit" disabled={loading}>
-            {loading ? "Checking..." : "Send Reset Link"}
+            {loading ? "Sending OTP..." : "Send OTP"}
           </button>
 
           <p className="auth-footer">

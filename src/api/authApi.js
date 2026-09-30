@@ -18,13 +18,13 @@ export async function forgotPassword(email) {
 
 export async function resetPassword({
   email,
-  token,
+  otp,
   newPassword,
   confirmPassword,
 }) {
   const response = await API.post("/api/auth/reset-password", {
     email,
-    token,
+    otp,
     newPassword,
     confirmPassword,
   });
