@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-
+import { getClubMembers } from "../api/clubApi";
 import {
   ArrowLeft,
   AtSign,
@@ -79,7 +79,8 @@ export default function DepartmentChatPage() {
   const { departmentId } = useParams();
 
   const currentUserId = Number(localStorage.getItem("userId"));
-
+  const [departmentMembers, setDepartmentMembers] = useState([]);
+  const [loadingMembers, setLoadingMembers] = useState(true);
   const currentUserName = localStorage.getItem("fullName") || "You";
 
   const clubId = Number(localStorage.getItem("selectedClubId"));
@@ -158,7 +159,84 @@ export default function DepartmentChatPage() {
       setLoadingMessages(false);
     }
   }, [clubId, departmentId, currentUserId]);
+  useEffect(() => {
+    let active = true;
 
+    const loadDepartmentMembers = async () => {
+      try {
+        setLoadingMembers(true);
+
+        const response = await getClubMembers();
+
+        const allMembers = Array.isArray(response)
+          ? response
+          : Array.isArray(response?.data)
+            ? response.data
+            : Array.isArray(response?.content)
+              ? response.content
+              : [];
+
+        const currentDepartmentId = Number(departmentId);
+
+        const members = allMembers
+          .filter((member) => {
+            const memberDepartmentId = Number(
+              member.departmentId ??
+                member.department?.departmentId ??
+                member.department?.id,
+            );
+
+            return memberDepartmentId === currentDepartmentId;
+          })
+          .map((member) => {
+            const name =
+              member.fullName ??
+              member.userFullName ??
+              member.name ??
+              member.user?.fullName ??
+              "Member";
+
+            return {
+              id: member.memberId ?? member.userId ?? member.id,
+
+              name,
+
+              initials: getInitials(name),
+
+              role: formatMemberRole(
+                member.role ?? member.clubRole ?? member.memberRole,
+              ),
+
+              // BE hiện chưa cung cấp online presence.
+              online: false,
+            };
+          });
+
+        if (active) {
+          setDepartmentMembers(members);
+        }
+      } catch (error) {
+        console.error(
+          "LOAD DEPARTMENT MEMBERS ERROR:",
+          error?.response?.data || error,
+        );
+
+        if (active) {
+          setDepartmentMembers([]);
+        }
+      } finally {
+        if (active) {
+          setLoadingMembers(false);
+        }
+      }
+    };
+
+    loadDepartmentMembers();
+
+    return () => {
+      active = false;
+    };
+  }, [departmentId]);
   useEffect(() => {
     loadMessages();
   }, [loadMessages]);
@@ -657,8 +735,9 @@ export default function DepartmentChatPage() {
             {detailTab === "DETAILS" ? (
               <DepartmentDetails
                 department={department}
-                members={MOCK_MEMBERS}
+                members={departmentMembers}
                 pinnedMessages={pinnedMessages}
+                loadingMembers={loadingMembers}
               />
             ) : (
               <DepartmentFiles files={sharedFiles} />
@@ -838,17 +917,13 @@ function DepartmentDetails({ department, members, pinnedMessages }) {
         <div className="department-details-heading">
           <h3>Members</h3>
 
-          <span>{department.memberCount || members.length}</span>
+          <span>{members.length}</span>
         </div>
 
         <div className="department-chat-member-list">
           {members.map((member) => (
             <div className="department-chat-member" key={member.id}>
-              <div className="department-member-avatar">
-                {member.initials}
-
-                <span className={member.online ? "online" : "offline"} />
-              </div>
+              <div className="department-member-avatar">{member.initials}</div>
 
               <div>
                 <strong>{member.name}</strong>
@@ -1092,19 +1167,34 @@ function getInitials(value) {
     .join("");
 }
 
-function formatMessageTime(value) {
-  const date = new Date(value);
+function parseBackendDate(value) {
+  if (!value) return null;
 
-  if (Number.isNaN(date.getTime())) {
-    return "";
+  let normalizedValue = String(value).trim();
+  const hasTimezone =
+    /Z$/i.test(normalizedValue) || /[+-]\d{2}:\d{2}$/.test(normalizedValue);
+
+  if (!hasTimezone) {
+    normalizedValue += "Z";
   }
 
-  return date.toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const date = new Date(normalizedValue);
+
+  return Number.isNaN(date.getTime()) ? null : date;
 }
 
+function formatMessageTime(value) {
+  const date = parseBackendDate(value);
+
+  if (!date) return "";
+
+  return date.toLocaleTimeString("vi-VN", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
 function formatFileSize(bytes) {
   const size = Number(bytes);
 
@@ -1129,11 +1219,9 @@ function getMessageTimestamp(message) {
     message.createdDate ||
     message.timestamp;
 
-  if (!value) return 0;
+  const date = parseBackendDate(value);
 
-  const timestamp = new Date(value).getTime();
-
-  return Number.isNaN(timestamp) ? 0 : timestamp;
+  return date ? date.getTime() : 0;
 }
 
 function sortMessagesOldestFirst(messages) {
@@ -1156,4 +1244,15 @@ function getErrorMessage(error, fallback) {
   }
 
   return data?.message || data?.error || error?.message || fallback;
+}
+function formatMemberRole(role) {
+  const labels = {
+    PRESIDENT: "Club Manager",
+    CLUB_MANAGER: "Club Manager",
+    DEPARTMENT_HEAD: "Department Head",
+    TREASURER: "Treasurer",
+    MEMBER: "Member",
+  };
+
+  return labels[String(role || "").toUpperCase()] || "Member";
 }

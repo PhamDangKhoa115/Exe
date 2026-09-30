@@ -23,6 +23,8 @@ import DepartmentPage from "./pages/DepartmentPage";
 import MemberManagementPage from "./pages/MemberManagementPage";
 import DepartmentChatPage from "./pages/DepartmentChatPage";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import PrivacyPage from "./pages/privacy/PrivacyPage";
 import TermsPage from "./pages/privacy/TermsPage";
 export default function App() {
@@ -33,7 +35,8 @@ export default function App() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/privacy" element={<PrivacyPage />} />
       <Route path="/terms" element={<TermsPage />} />
-
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/admin" element={<AdminDashboardPage />} />
       <Route
         path="/select-club"

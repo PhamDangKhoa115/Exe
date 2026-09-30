@@ -1,14 +1,21 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
-
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { login, loginWithGoogle } from "../api/authApi";
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const googleButtonRef = useRef(null);
   const googleContainerRef = useRef(null);
-  const [email, setEmail] = useState("");
+  const [rememberMe, setRememberMe] = useState(
+    localStorage.getItem("rememberMe") === "true",
+  );
+  const [showPassword, setShowPassword] = useState(false);
+
+  const [email, setEmail] = useState(
+    localStorage.getItem("rememberedEmail") || "",
+  );
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -38,7 +45,9 @@ export default function LoginPage() {
   const handleLogin = async (event) => {
     event.preventDefault();
 
-    if (!email.trim() || !password) {
+    const normalizedEmail = email.trim();
+
+    if (!normalizedEmail || !password) {
       toast.warning("Please enter your account and password");
       return;
     }
@@ -46,7 +55,16 @@ export default function LoginPage() {
     try {
       setLoading(true);
 
-      const data = await login(email.trim(), password);
+      const data = await login(normalizedEmail, password);
+
+      // Lưu Remember Me trước khi chuyển trang
+      if (rememberMe) {
+        localStorage.setItem("rememberMe", "true");
+        localStorage.setItem("rememberedEmail", normalizedEmail);
+      } else {
+        localStorage.removeItem("rememberMe");
+        localStorage.removeItem("rememberedEmail");
+      }
 
       handleLoginSuccess(data);
     } catch (error) {
@@ -173,25 +191,40 @@ export default function LoginPage() {
               placeholder="Email or Username"
               disabled={loading}
             />
+            <div className="password-input-wrapper">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="Enter your password"
+                autoComplete="current-password"
+                disabled={loading}
+              />
 
-            <input
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="Password"
-              disabled={loading}
-            />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPassword((current) => !current)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <FaEyeSlash size={19} /> : <FaEye size={19} />}
+              </button>
+            </div>
           </div>
 
           <div className="auth-row">
-            <label className="checkbox-label">
-              <input type="checkbox" />
+            <label>
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(event) => setRememberMe(event.target.checked)}
+              />
               Remember me
             </label>
 
-            <button type="button" className="forgot-password-link">
-              Forgot password?
-            </button>
+            <Link to="/forgot-password" className="forgot-password-link">
+              Forgot Password?
+            </Link>
           </div>
 
           <button className="main-btn full" type="submit" disabled={loading}>

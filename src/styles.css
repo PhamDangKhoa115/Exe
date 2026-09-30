@@ -11516,3 +11516,369 @@ input {
   overflow-y: auto;
   overflow-x: hidden;
 }
+/* ===============================
+   TOPBAR CHAT NOTIFICATION
+================================ */
+
+.topbar-notification {
+  position: relative;
+}
+
+.topbar-bell-button {
+  position: relative;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 8px;
+}
+
+.topbar-notification-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 999px;
+  background: #ef4444;
+  color: white;
+
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.topbar-notification-dropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+
+  width: 380px;
+  max-height: 500px;
+
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.topbar-notification-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 16px 18px;
+
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.topbar-notification-header span {
+  background: #7c3aed;
+  color: white;
+
+  border-radius: 999px;
+  padding: 2px 8px;
+
+  font-size: 12px;
+}
+
+.topbar-notification-list {
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.topbar-notification-item {
+  width: 100%;
+
+  display: flex;
+  gap: 12px;
+
+  padding: 14px 16px;
+
+  border: 0;
+  border-bottom: 1px solid #f1f5f9;
+
+  background: white;
+  text-align: left;
+
+  cursor: pointer;
+}
+
+.topbar-notification-item:hover {
+  background: #f8f7ff;
+}
+
+.topbar-notification-avatar {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #ede9fe;
+  color: #7c3aed;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.topbar-notification-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.topbar-notification-content > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.topbar-notification-content span {
+  color: #94a3b8;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.topbar-notification-content p {
+  margin: 4px 0;
+
+  color: #475569;
+  font-size: 13px;
+}
+
+.topbar-notification-content small {
+  display: block;
+
+  color: #64748b;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.topbar-notification-empty {
+  padding: 30px 20px;
+
+  text-align: center;
+  color: #94a3b8;
+  font-size: 13px;
+}
+.password-input-wrapper {
+  position: relative;
+}
+
+.password-input-wrapper input {
+  width: 100%;
+  padding-right: 44px;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 4px;
+  border: 0;
+  background: transparent;
+
+  color: #64748b;
+  cursor: pointer;
+}
+
+.password-toggle:hover {
+  color: #111827;
+}
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: #f8fafc;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  padding: 32px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 12px 35px rgba(15, 23, 42, 0.08);
+}
+
+.auth-header {
+  margin-bottom: 26px;
+}
+
+.auth-header h1 {
+  margin: 0 0 8px;
+}
+
+.auth-header p {
+  margin: 0;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.auth-field {
+  margin-bottom: 18px;
+}
+
+.auth-field label {
+  display: block;
+  margin-bottom: 7px;
+  font-weight: 600;
+}
+
+.auth-field input {
+  width: 100%;
+  height: 46px;
+  padding: 0 13px;
+  border: 1px solid #dbe2ea;
+  border-radius: 9px;
+  box-sizing: border-box;
+}
+
+.auth-submit-button {
+  width: 100%;
+  height: 46px;
+  border: 0;
+  border-radius: 9px;
+  background: #7c3aed;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.auth-submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-error {
+  margin-bottom: 16px;
+  padding: 11px 13px;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #dc2626;
+  font-size: 13px;
+}
+
+.auth-success {
+  margin-bottom: 16px;
+  padding: 11px 13px;
+  border-radius: 8px;
+  background: #f0fdf4;
+  color: #15803d;
+  font-size: 13px;
+}
+
+.auth-back-login {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.password-input-wrapper {
+  position: relative;
+}
+
+.password-input-wrapper input {
+  padding-right: 44px;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 11px;
+  transform: translateY(-50%);
+  display: flex;
+  padding: 4px;
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+}
+/* =========================================
+   LOGIN - REMEMBER ME + FORGOT PASSWORD FIX
+========================================= */
+
+.auth-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 18px 0 24px;
+}
+
+/* Remember me */
+.auth-row label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin: 0;
+  color: #26364d;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* QUAN TRỌNG:
+   override CSS input chung đang làm checkbox khổng lồ */
+.auth-row input[type="checkbox"] {
+  appearance: auto;
+  -webkit-appearance: checkbox;
+
+  width: 16px !important;
+  height: 16px !important;
+
+  min-width: 16px;
+  min-height: 16px;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  border: initial;
+  border-radius: 2px;
+
+  box-shadow: none;
+  outline: none;
+
+  accent-color: #7027e8;
+
+  cursor: pointer;
+}
+
+/* Forgot password */
+.forgot-password-link {
+  color: #7027e8;
+  font-size: 15px;
+  font-weight: 500;
+
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.forgot-password-link:hover {
+  text-decoration: underline;
+}
