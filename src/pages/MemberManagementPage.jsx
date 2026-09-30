@@ -14,7 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "react-toastify";
-
+import { getDepartments } from "../api/departmentApi";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 
@@ -103,6 +103,8 @@ export default function MemberManagementPage() {
   const [members, setMembers] = useState([]);
   const [pendingMembers, setPendingMembers] = useState([]);
 
+  const [departments, setDepartments] = useState([]);
+
   const [loading, setLoading] = useState(false);
   const [actionMemberId, setActionMemberId] = useState(null);
 
@@ -171,7 +173,27 @@ export default function MemberManagementPage() {
 
     toast.success("Export member list successful.");
   };
+  const loadDepartments = useCallback(async () => {
+    try {
+      const data = await getDepartments();
 
+      const departmentList = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.content)
+          ? data.content
+          : Array.isArray(data?.departments)
+            ? data.departments
+            : Array.isArray(data?.data)
+              ? data.data
+              : [];
+
+      setDepartments(departmentList);
+    } catch (error) {
+      console.error("LOAD DEPARTMENTS ERROR:", error?.response?.data || error);
+
+      setDepartments([]);
+    }
+  }, []);
   const loadMembers = useCallback(async () => {
     try {
       setLoading(true);
@@ -195,8 +217,8 @@ export default function MemberManagementPage() {
 
   useEffect(() => {
     loadMembers();
-  }, [loadMembers]);
-
+    loadDepartments();
+  }, [loadMembers, loadDepartments]);
   useEffect(() => {
     setPage(1);
   }, [activeTab, pageSize, searchText]);
@@ -547,6 +569,7 @@ export default function MemberManagementPage() {
         {editingMember && (
           <EditMemberModal
             member={editingMember}
+            departments={departments}
             saving={actionMemberId === editingMember.memberId}
             onClose={() => setEditingMember(null)}
             onSave={handleSaveMember}
@@ -577,7 +600,7 @@ function MemberStatusBadge({ member, pending }) {
   );
 }
 
-function EditMemberModal({ member, saving, onClose, onSave }) {
+function EditMemberModal({ member, departments, saving, onClose, onSave }) {
   const [form, setForm] = useState({
     role: member.role || "MEMBER",
     departmentId: member.departmentId || "",
@@ -623,24 +646,36 @@ function EditMemberModal({ member, saving, onClose, onSave }) {
             ))}
           </select>
 
-          <label>Department ID</label>
+          <label>Department</label>
 
-          <input
-            type="number"
-            min="1"
+          <select
             value={form.departmentId}
-            placeholder="Can be left empty"
             onChange={(event) =>
               setForm((current) => ({
                 ...current,
                 departmentId: event.target.value,
               }))
             }
-          />
+          >
+            <option value="">No Department</option>
 
-          <small>
-            Can be left empty if the member is not assigned to any department.
-          </small>
+            {departments.map((department) => {
+              const departmentId = department.departmentId ?? department.id;
+
+              const departmentName =
+                department.name ??
+                department.departmentName ??
+                `Department ${departmentId}`;
+
+              return (
+                <option key={departmentId} value={departmentId}>
+                  {departmentName}
+                </option>
+              );
+            })}
+          </select>
+
+          <small>Select the department this member belongs to.</small>
         </div>
 
         <footer>
