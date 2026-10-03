@@ -31,6 +31,7 @@ import {
 
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
+import SubscriptionPanel from "../components/SubscriptionPanel";
 import API from "../api/api";
 const FINANCE_CHART_DATA = [
   {
@@ -321,6 +322,8 @@ export default function DashboardPage() {
               </button>
             </div>
           </header>
+
+          <SubscriptionPanel key={`${clubId}:${userId}`} />
 
           {loading ? (
             <div className="dashboard-loading-state">

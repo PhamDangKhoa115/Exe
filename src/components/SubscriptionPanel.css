@@ -1,0 +1,23 @@
+.subscription-panel { margin-bottom: 24px; padding: 24px; }
+.subscription-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.subscription-heading h2, .subscription-heading h3 { margin: 0; }
+.subscription-panel p { line-height: 1.6; }
+.subscription-button { display: inline-block; background: #6d28d9; color: white; border: 0; border-radius: 8px; padding: 10px 16px; text-decoration: none; cursor: pointer; }
+.subscription-panel button:disabled { opacity: .5; cursor: not-allowed; }
+.subscription-details { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.subscription-details dt { color: #64748b; margin-bottom: 8px; }
+.subscription-details dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+.package-section { margin-top: 24px; border-top: 1px solid #e2e8f0; padding-top: 20px; }
+.package-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-top: 16px; }
+.package-card { padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; overflow-wrap: anywhere; }
+.package-card h3 { margin-top: 0; }
+.payment-overlay { position: fixed; inset: 0; z-index: 2000; background: rgba(15, 23, 42, .55); display: flex; align-items: center; justify-content: center; padding: 20px; }
+.payment-modal { background: white; color: #0f172a; border-radius: 16px; padding: 24px; width: 460px; max-width: 100%; max-height: 90vh; overflow-y: auto; text-align: center; }
+.payment-qr { display: block; width: 260px; max-width: 100%; height: auto; margin: 16px auto; }
+.payment-actions { display: flex; justify-content: center; margin-top: 16px; }
+.payment-actions button { padding: 10px 16px; border: 1px solid #cbd5e1; border-radius: 8px; cursor: pointer; }
+.payment-error { color: #b91c1c; }
+@media (max-width: 700px) {
+  .subscription-details { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .subscription-panel { padding: 16px; }
+}

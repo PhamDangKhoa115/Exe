@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   FaBell,
   FaChartPie,
@@ -14,6 +14,7 @@ import {
 } from "react-icons/fa";
 export default function Sidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const menus = [
     { name: "Home", path: "/home", icon: <FaChartPie /> },
     {
@@ -83,7 +84,7 @@ export default function Sidebar() {
       <div className="upgrade-box">
         <h3>Upgrade to Premium</h3>
         <p>Unlock advanced analytics, finance automation and AI assistant.</p>
-        <button>Upgrade pack</button>
+        <button type="button" onClick={() => navigate("/dashboard#subscription")}>Upgrade pack</button>
       </div>
     </aside>
   );
