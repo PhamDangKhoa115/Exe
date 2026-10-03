@@ -1,3 +1,5 @@
+import GlideList from "./reactbits/GlideList";
+import RubberSegment from "./reactbits/RubberSegment";
 import { useEffect, useMemo, useState } from "react";
 import {
   FileText,
@@ -128,7 +130,7 @@ export default function DocumentPickerModal({ open, onClose, onSelect }) {
           </div>
 
           {showFilters && (
-            <div className="drive-picker-filter-menu">
+            <GlideList as="div" className="drive-picker-filter-menu">
               <p>Filter results by</p>
 
               {FILTERS.map((filter) => (
@@ -144,11 +146,11 @@ export default function DocumentPickerModal({ open, onClose, onSelect }) {
                   {filter.label}
                 </button>
               ))}
-            </div>
+            </GlideList>
           )}
         </div>
 
-        <nav className="drive-picker-tabs">
+        <RubberSegment as="nav" className="drive-picker-tabs">
           <button type="button" className="active">
             Recently
           </button>
@@ -173,7 +175,7 @@ export default function DocumentPickerModal({ open, onClose, onSelect }) {
           >
             Starred
           </button>
-        </nav>
+        </RubberSegment>
 
         <div className="drive-picker-toolbar">
           <strong>Name</strong>

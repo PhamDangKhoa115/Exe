@@ -19,3 +19,12 @@ heading dimensions and palette, uses semantic inline markup, and respects reduce
 
 - ShinyText: supplied React Bits source, uses existing motion and respects reduced motion.
 - FallingText: supplied physics effect adapted for React icon children, with one Matter engine loop, resize handling, visibility pause and unmount cleanup. Uses matter-js; no canvas or duplicate Runner updates.
+
+- GlideSelect: supplied JavaScript/CSS source with existing lucide-react icons;
+  popup portal avoids clipping, keeps keyboard/typeahead and reduced-motion support.
+- GlideSelectField: native select remains the form field; dispatches its real change
+  event, preserves name/disabled/options, and retains native required/multiple controls.
+- GlideList: gliding highlight around original navigation and dropdown actions.
+- RubberSegment: adapted dilate/handoff/spring effect decorates original tab and view
+  buttons, preserving their callbacks, conditional visibility and disabled states.
+  Observers, subscriptions, timers and animations are cleaned up on unmount.

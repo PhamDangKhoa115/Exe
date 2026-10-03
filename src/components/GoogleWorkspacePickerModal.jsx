@@ -1,3 +1,5 @@
+import GlideList from "./reactbits/GlideList";
+import RubberSegment from "./reactbits/RubberSegment";
 import { useEffect, useMemo, useState } from "react";
 import {
   FileQuestion,
@@ -120,7 +122,7 @@ export default function GoogleWorkspacePickerModal({
           </div>
 
           {showFilter && (
-            <div className="drive-picker-filter-menu workspace-picker-sort">
+            <GlideList as="div" className="drive-picker-filter-menu workspace-picker-sort">
               <p>Sort by</p>
 
               <button
@@ -156,11 +158,11 @@ export default function GoogleWorkspacePickerModal({
               >
                 Descending
               </button>
-            </div>
+            </GlideList>
           )}
         </div>
 
-        <nav className="drive-picker-tabs">
+        <RubberSegment as="nav" className="drive-picker-tabs">
           <button type="button" className="active">
             Recently
           </button>
@@ -176,7 +178,7 @@ export default function GoogleWorkspacePickerModal({
           <button type="button" disabled>
             Starred
           </button>
-        </nav>
+        </RubberSegment>
 
         <div className="drive-picker-toolbar">
           <strong>Name</strong>

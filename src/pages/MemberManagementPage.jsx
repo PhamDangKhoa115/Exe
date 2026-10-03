@@ -1,3 +1,5 @@
+import RubberSegment from "../components/reactbits/RubberSegment";
+import GlideSelectField from "../components/reactbits/GlideSelectField";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Check,
@@ -335,7 +337,7 @@ export default function MemberManagementPage() {
         <Topbar title="Home / Members" />
 
         <section className="member-page">
-          <div className="member-page-tabs">
+          <RubberSegment as="div" className="member-page-tabs">
             <button
               type="button"
               className={activeTab === "MEMBERS" ? "active" : ""}
@@ -366,7 +368,7 @@ export default function MemberManagementPage() {
             >
               Export
             </button>
-          </div>
+          </RubberSegment>
 
           <div className="member-panel">
             <div className="member-panel-header">
@@ -527,7 +529,7 @@ export default function MemberManagementPage() {
                   {filteredMembers.length}
                 </span>
 
-                <select
+                <GlideSelectField
                   value={pageSize}
                   onChange={(event) => setPageSize(Number(event.target.value))}
                 >
@@ -536,7 +538,7 @@ export default function MemberManagementPage() {
                       {size}
                     </option>
                   ))}
-                </select>
+                </GlideSelectField>
               </div>
 
               <div className="pagination-buttons">
@@ -630,7 +632,7 @@ function EditMemberModal({ member, departments, saving, onClose, onSave }) {
         <div className="member-modal-body">
           <label>Role</label>
 
-          <select
+          <GlideSelectField
             value={form.role}
             onChange={(event) =>
               setForm((current) => ({
@@ -644,11 +646,11 @@ function EditMemberModal({ member, departments, saving, onClose, onSave }) {
                 {role.label}
               </option>
             ))}
-          </select>
+          </GlideSelectField>
 
           <label>Department</label>
 
-          <select
+          <GlideSelectField
             value={form.departmentId}
             onChange={(event) =>
               setForm((current) => ({
@@ -673,7 +675,7 @@ function EditMemberModal({ member, departments, saving, onClose, onSave }) {
                 </option>
               );
             })}
-          </select>
+          </GlideSelectField>
 
           <small>Select the department this member belongs to.</small>
         </div>

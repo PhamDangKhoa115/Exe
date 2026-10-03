@@ -1,3 +1,4 @@
+import RubberSegment from "../components/reactbits/RubberSegment";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -227,7 +228,7 @@ export default function SelectClubPage() {
             </button>
           </header>
 
-          <div className="club-browser-tabs">
+          <RubberSegment as="div" className="club-browser-tabs">
             <button
               type="button"
               className={activeTab === "MY_CLUBS" ? "active" : ""}
@@ -246,7 +247,7 @@ export default function SelectClubPage() {
               <Globe2 size={18} />
               Explore Club
             </button>
-          </div>
+          </RubberSegment>
 
           {activeTab === "EXPLORE" && (
             <div className="club-explore-search">

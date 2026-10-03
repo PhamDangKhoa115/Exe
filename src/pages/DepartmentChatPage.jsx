@@ -1,3 +1,4 @@
+import RubberSegment from "../components/reactbits/RubberSegment";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useLocation, useNavigate, useParams } from "react-router-dom";
@@ -714,7 +715,7 @@ export default function DepartmentChatPage() {
           ============================ */}
 
           <aside className="department-chat-sidebar">
-            <div className="department-chat-sidebar-tabs">
+            <RubberSegment as="div" className="department-chat-sidebar-tabs">
               <button
                 type="button"
                 className={detailTab === "DETAILS" ? "active" : ""}
@@ -730,7 +731,7 @@ export default function DepartmentChatPage() {
               >
                 Files
               </button>
-            </div>
+            </RubberSegment>
 
             {detailTab === "DETAILS" ? (
               <DepartmentDetails

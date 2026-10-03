@@ -1,3 +1,5 @@
+import RubberSegment from "../components/reactbits/RubberSegment";
+import GlideSelectField from "../components/reactbits/GlideSelectField";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
@@ -552,7 +554,7 @@ export default function TrelloPage() {
             </button>
           </section>
 
-          <nav className="trello-tabs">
+          <RubberSegment as="nav" className="trello-tabs">
             <TabButton
               active={activeTab === "board"}
               icon={<ListTodo size={18} />}
@@ -588,7 +590,7 @@ export default function TrelloPage() {
               label="Trello Settings"
               onClick={() => setActiveTab("settings")}
             />
-          </nav>
+          </RubberSegment>
 
           {activeTab === "board" && (
             <BoardTab
@@ -693,7 +695,7 @@ function BoardTab({
           />
         </div>
 
-        <select
+        <GlideSelectField
           value={filters.filterType}
           onChange={(event) =>
             setFilters((current) => ({
@@ -706,9 +708,9 @@ function BoardTab({
           <option value="MY_TASKS">My Tasks</option>
           <option value="EVENT">By Event</option>
           <option value="DEPARTMENT">By Department</option>
-        </select>
+        </GlideSelectField>
 
-        <select
+        <GlideSelectField
           value={filters.status}
           onChange={(event) =>
             setFilters((current) => ({
@@ -721,7 +723,7 @@ function BoardTab({
           <option value="To Do">To Do</option>
           <option value="Doing">Doing</option>
           <option value="Done">Done</option>
-        </select>
+        </GlideSelectField>
 
         <input
           type="text"
@@ -883,14 +885,14 @@ function TaskCard({ task, onEdit, onDelete, onMove }) {
       </div>
 
       <div className="task-move-row">
-        <select
+        <GlideSelectField
           value={status}
           onChange={(event) => onMove(task, event.target.value)}
         >
           <option value="To Do">To Do</option>
           <option value="Doing">Doing</option>
           <option value="Done">Done</option>
-        </select>
+        </GlideSelectField>
 
         <ChevronDown size={15} />
       </div>
@@ -1213,7 +1215,7 @@ function TrelloSettingsTab({
           </p>
 
           <div className="board-picker-row">
-            <select
+            <GlideSelectField
               value={selectedBoardId}
               onChange={(event) => setSelectedBoardId(event.target.value)}
               disabled={loadingBoards || boards.length === 0}
@@ -1227,7 +1229,7 @@ function TrelloSettingsTab({
                   {board.name}
                 </option>
               ))}
-            </select>
+            </GlideSelectField>
 
             <button
               type="button"
@@ -1347,7 +1349,7 @@ function TaskModal({
                 Assigned Member <span>*</span>
               </label>
 
-              <select
+              <GlideSelectField
                 value={form.assignedUserId}
                 onChange={(event) =>
                   setField("assignedUserId", event.target.value)
@@ -1367,7 +1369,7 @@ function TaskModal({
                       : ""}
                   </option>
                 ))}
-              </select>
+              </GlideSelectField>
 
               {!loadingMembers && members.length === 0 && (
                 <small className="task-field-message">
@@ -1391,14 +1393,14 @@ function TaskModal({
             <div>
               <label>Status</label>
 
-              <select
+              <GlideSelectField
                 value={form.status}
                 onChange={(event) => setField("status", event.target.value)}
               >
                 <option value="To Do">To Do</option>
                 <option value="Doing">Doing</option>
                 <option value="Done">Done</option>
-              </select>
+              </GlideSelectField>
             </div>
 
             <div>

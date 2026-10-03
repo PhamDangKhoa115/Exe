@@ -1,3 +1,6 @@
+import GlideList from "../components/reactbits/GlideList";
+import RubberSegment from "../components/reactbits/RubberSegment";
+import GlideSelectField from "../components/reactbits/GlideSelectField";
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowDownAZ,
@@ -283,7 +286,7 @@ export default function GoogleFormsPage() {
               <h1>Google Forms</h1>
             </div>
 
-            <div className="workspace-tabs">
+            <RubberSegment as="div" className="workspace-tabs">
               <button
                 type="button"
                 className={type === "EVENT" ? "active" : ""}
@@ -299,7 +302,7 @@ export default function GoogleFormsPage() {
               >
                 Club Activity
               </button>
-            </div>
+            </RubberSegment>
 
             <div className="workspace-search">
               <Search size={19} />
@@ -340,7 +343,7 @@ export default function GoogleFormsPage() {
               <div className="workspace-owner-sort">
                 <span>Owner</span>
 
-                <div className="recent-actions">
+                <RubberSegment as="div" className="recent-actions">
                   <button
                     type="button"
                     className={view === "grid" ? "active" : ""}
@@ -367,7 +370,7 @@ export default function GoogleFormsPage() {
                     </button>
 
                     {showSortMenu && (
-                      <div className="workspace-sort-menu">
+                      <GlideList as="div" className="workspace-sort-menu">
                         <p>Sort by</p>
 
                         <button
@@ -415,7 +418,7 @@ export default function GoogleFormsPage() {
                         >
                           Descending
                         </button>
-                      </div>
+                      </GlideList>
                     )}
                   </div>
 
@@ -426,7 +429,7 @@ export default function GoogleFormsPage() {
                   >
                     <FolderOpen size={20} />
                   </button>
-                </div>
+                </RubberSegment>
               </div>
             </div>
 
@@ -938,7 +941,7 @@ function AddQuestionModal({ form, loading, onClose, onSubmit }) {
 
         <label>Question Type</label>
 
-        <select
+        <GlideSelectField
           name="type"
           value={question.type}
           onChange={handleChange}
@@ -953,7 +956,7 @@ function AddQuestionModal({ form, loading, onClose, onSubmit }) {
           <option value="CHECKBOX">Checkbox</option>
 
           <option value="DROPDOWN">Dropdown</option>
-        </select>
+        </GlideSelectField>
 
         {needOptions && (
           <div className="question-options">

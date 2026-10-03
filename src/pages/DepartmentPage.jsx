@@ -1,3 +1,4 @@
+import GlideSelectField from "../components/reactbits/GlideSelectField";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Building2,
@@ -557,7 +558,7 @@ function DepartmentModal({
 
           <label htmlFor="department-head">Department Head</label>
 
-          <select
+          <GlideSelectField
             id="department-head"
             value={form.headMemberId}
             disabled={loadingMembers}
@@ -574,7 +575,7 @@ function DepartmentModal({
                 {member.fullName} — {formatRole(member.role)}
               </option>
             ))}
-          </select>
+          </GlideSelectField>
         </div>
 
         <footer>

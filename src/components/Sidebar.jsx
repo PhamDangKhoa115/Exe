@@ -1,3 +1,4 @@
+import GlideList from "./reactbits/GlideList";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   FaBell,
@@ -64,7 +65,7 @@ export default function Sidebar() {
         </div>
       </div>
 
-      <nav className="side-menu">
+      <GlideList className="side-menu">
         {menus.map((item) => (
           <Link
             key={item.name}
@@ -81,7 +82,7 @@ export default function Sidebar() {
             <span>{item.name}</span>
           </Link>
         ))}
-      </nav>
+      </GlideList>
 
       <SpotlightCard className="upgrade-box" spotlightColor="rgba(167, 139, 250, 0.28)">
         <h3>Upgrade to Premium</h3>

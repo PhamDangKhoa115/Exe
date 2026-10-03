@@ -1,3 +1,4 @@
+import GlideSelectField from "./reactbits/GlideSelectField";
 import { useEffect, useState } from "react";
 import { FaFileAlt, FaTimes } from "react-icons/fa";
 import { toast } from "react-toastify";
@@ -192,7 +193,7 @@ export default function CreateDocumentModal({ open, onClose, onCreated }) {
             Category <span>*</span>
           </label>
 
-          <select
+          <GlideSelectField
             id="document-category"
             value={form.category}
             disabled={loadingOptions}
@@ -211,13 +212,13 @@ export default function CreateDocumentModal({ open, onClose, onCreated }) {
                 <option value="CLUB_ACTIVITY">Club Activity</option>
               </>
             )}
-          </select>
+          </GlideSelectField>
 
           <label htmlFor="document-type">
             Document Type <span>*</span>
           </label>
 
-          <select
+          <GlideSelectField
             id="document-type"
             value={form.type}
             disabled={loadingOptions}
@@ -242,7 +243,7 @@ export default function CreateDocumentModal({ open, onClose, onCreated }) {
                 <option value="OTHER">Other</option>
               </>
             )}
-          </select>
+          </GlideSelectField>
 
           {form.category === "EVENT" && (
             <>

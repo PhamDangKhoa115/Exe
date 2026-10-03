@@ -1,3 +1,5 @@
+import RubberSegment from "../components/reactbits/RubberSegment";
+import GlideSelectField from "../components/reactbits/GlideSelectField";
 import { useMemo, useState } from "react";
 import {
   Bell,
@@ -250,7 +252,7 @@ export default function GlobalNotificationsPage() {
           </header>
 
           <div className="notification-toolbar">
-            <div className="notification-tabs">
+            <RubberSegment as="div" className="notification-tabs">
               <TabButton
                 active={activeTab === "PUBLISHED"}
                 label="Your Club Posts"
@@ -274,7 +276,7 @@ export default function GlobalNotificationsPage() {
                 label="All Posts"
                 onClick={() => setActiveTab("ALL")}
               />
-            </div>
+            </RubberSegment>
 
             <div className="notification-search">
               <Search size={17} />
@@ -488,7 +490,7 @@ function NotificationModal({ form, setForm, editing, onClose, onSave }) {
             <div>
               <label>Notification Type</label>
 
-              <select
+              <GlideSelectField
                 value={form.category}
                 onChange={(event) => setField("category", event.target.value)}
               >
@@ -497,20 +499,20 @@ function NotificationModal({ form, setForm, editing, onClose, onSave }) {
                 <option value="MEMBER">Member</option>
                 <option value="REMINDER">Reminder</option>
                 <option value="URGENT">Urgent</option>
-              </select>
+              </GlideSelectField>
             </div>
 
             <div>
               <label>Status</label>
 
-              <select
+              <GlideSelectField
                 value={form.status}
                 onChange={(event) => setField("status", event.target.value)}
               >
                 <option value="PUBLISHED">Published</option>
                 <option value="SCHEDULED">Scheduled</option>
                 <option value="ARCHIVED">Archived</option>
-              </select>
+              </GlideSelectField>
             </div>
           </div>
 

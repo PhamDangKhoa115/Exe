@@ -1,3 +1,5 @@
+import RubberSegment from "../components/reactbits/RubberSegment";
+import GlideSelectField from "../components/reactbits/GlideSelectField";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -246,7 +248,7 @@ export default function GoogleDocsPage() {
               <h1>Documents</h1>
             </div>
 
-            <div className="workspace-tabs">
+            <RubberSegment as="div" className="workspace-tabs">
               <button
                 type="button"
                 className={category === "EVENT" ? "active" : ""}
@@ -262,7 +264,7 @@ export default function GoogleDocsPage() {
               >
                 Club Activity
               </button>
-            </div>
+            </RubberSegment>
 
             <form className="workspace-search" onSubmit={handleSearch}>
               <FaSearch size={18} />
@@ -305,7 +307,7 @@ export default function GoogleDocsPage() {
             </div>
 
             <div className="documents-controls">
-              <select
+              <GlideSelectField
                 value={type}
                 onChange={(event) => setType(event.target.value)}
               >
@@ -316,30 +318,30 @@ export default function GoogleDocsPage() {
                     {item.displayName}
                   </option>
                 ))}
-              </select>
-              <select
+              </GlideSelectField>
+              <GlideSelectField
                 value={sortBy}
                 onChange={(event) => setSortBy(event.target.value)}
               >
                 <option value="date">Sort by date</option>
 
                 <option value="title">Sort by title</option>
-              </select>
+              </GlideSelectField>
 
-              <select
+              <GlideSelectField
                 value={sortDir}
                 onChange={(event) => setSortDir(event.target.value)}
               >
                 <option value="desc">Descending</option>
 
                 <option value="asc">Ascending</option>
-              </select>
+              </GlideSelectField>
             </div>
 
             <div className="recent-header">
               <h3>Recently documents</h3>
 
-              <div className="recent-actions">
+              <RubberSegment as="div" className="recent-actions">
                 <button
                   type="button"
                   className={viewMode === "grid" ? "active" : ""}
@@ -365,7 +367,7 @@ export default function GoogleDocsPage() {
                 >
                   <FaFolderOpen size={19} />
                 </button>
-              </div>
+              </RubberSegment>
             </div>
 
             {loading ? (

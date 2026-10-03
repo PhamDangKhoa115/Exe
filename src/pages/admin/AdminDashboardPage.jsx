@@ -1,3 +1,4 @@
+import GlideList from "../../components/reactbits/GlideList";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -608,7 +609,7 @@ function AdminSidebar({ open, onClose, onExit }) {
           </button>
         </div>
 
-        <nav className="admin-navigation">
+        <GlideList className="admin-navigation">
           <p>ADMINISTRATION</p>
 
           {menus.map((menu) => (
@@ -621,7 +622,7 @@ function AdminSidebar({ open, onClose, onExit }) {
               <span>{menu.label}</span>
             </button>
           ))}
-        </nav>
+        </GlideList>
 
         <div className="admin-sidebar-footer">
           <div className="admin-system-health">

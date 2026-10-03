@@ -1,0 +1,18 @@
+.sclub-glide-field { display: inline-grid; position: relative; max-width: 100%; vertical-align: middle; }
+.sclub-glide-field .sclub-glide-native { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; opacity: 0; pointer-events: none; }
+.sclub-glide-control { width: 100%; min-width: 100px; }
+.sclub-glide-control .glide-select__menu { z-index: 1100; max-height: min(360px, 60vh); overflow-y: auto; }
+.sclub-glide-control .glide-select__trigger { justify-content: space-between; }
+.sclub-glide-control .glide-select__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.sclub-rubber-group { position: relative; }
+.sclub-rubber-group > .sclub-rubber-pill { position: absolute; pointer-events: none; border: 2px solid currentColor; opacity: 0; color: #6d28d9; z-index: 1; box-sizing: border-box; }
+.sclub-glide-list:not(.workspace-sort-menu):not(.drive-picker-filter-menu) { position: relative; }
+.sclub-glide-list > .sclub-glide-list-pill { position: absolute; pointer-events: none; border: 2px solid #6d28d9; box-sizing: border-box; opacity: 0; }
+.sclub-rubber-group > .sclub-rubber-pill { background: transparent; padding: 0; margin: 0; min-width: 0; }
+.workspace-tabs.sclub-rubber-group button:first-of-type { border-radius: 9px 0 0 9px; }
+.workspace-tabs.sclub-rubber-group button:last-of-type { border-radius: 0 9px 9px 0; }
+:is(.finance-modal-body, .task-modal, .create-document-modal, .department-modal, .member-modal, .form-question-card) .sclub-glide-field { display: grid; width: 100%; }
+.sclub-glide-popup { z-index: 10001; max-width: calc(100vw - 16px); max-height: min(360px, 60vh); overflow-y: auto; }
+
+@media (prefers-reduced-motion: reduce) { .sclub-glide-popup, .sclub-glide-popup * { animation: none !important; transition: none !important; } }
+.sclub-glide-popup .glide-select__list { touch-action: pan-y; }

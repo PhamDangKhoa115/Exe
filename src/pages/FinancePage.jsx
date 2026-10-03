@@ -1,3 +1,4 @@
+import GlideSelectField from "../components/reactbits/GlideSelectField";
 import { useMemo, useState } from "react";
 import {
   ArrowDownLeft,
@@ -447,14 +448,14 @@ export default function FinancePage() {
                 <div className="finance-type-filter">
                   <Filter size={16} />
 
-                  <select
+                  <GlideSelectField
                     value={typeFilter}
                     onChange={(event) => setTypeFilter(event.target.value)}
                   >
                     <option value="ALL">All</option>
                     <option value="INCOME">Income</option>
                     <option value="EXPENSE">Expense</option>
-                  </select>
+                  </GlideSelectField>
                 </div>
               </div>
             </div>
@@ -630,13 +631,13 @@ function FinanceModal({ form, setForm, editing, onClose, onSave }) {
             <div>
               <label>Transaction Type</label>
 
-              <select
+              <GlideSelectField
                 value={form.type}
                 onChange={(event) => setField("type", event.target.value)}
               >
                 <option value="INCOME">Income</option>
                 <option value="EXPENSE">Expense</option>
-              </select>
+              </GlideSelectField>
             </div>
 
             <div>
@@ -654,7 +655,7 @@ function FinanceModal({ form, setForm, editing, onClose, onSave }) {
             <div>
               <label>Category</label>
 
-              <select
+              <GlideSelectField
                 value={form.category}
                 onChange={(event) => setField("category", event.target.value)}
               >
@@ -664,19 +665,19 @@ function FinanceModal({ form, setForm, editing, onClose, onSave }) {
                 <option value="MEDIA">Media</option>
                 <option value="OFFICE">Office</option>
                 <option value="OTHER">Other</option>
-              </select>
+              </GlideSelectField>
             </div>
 
             <div>
               <label>Status</label>
 
-              <select
+              <GlideSelectField
                 value={form.status}
                 onChange={(event) => setField("status", event.target.value)}
               >
                 <option value="COMPLETED">Completed</option>
                 <option value="PENDING">Pending</option>
-              </select>
+              </GlideSelectField>
             </div>
           </div>
         </div>

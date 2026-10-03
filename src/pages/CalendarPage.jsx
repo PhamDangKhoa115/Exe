@@ -1,3 +1,4 @@
+import GlideSelectField from "../components/reactbits/GlideSelectField";
 import { useEffect, useMemo, useRef, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
@@ -590,14 +591,14 @@ export default function CalendarPage() {
                   onChange={(e) => setSearch(e.target.value)}
                 />
 
-                <select
+                <GlideSelectField
                   value={view}
                   onChange={(e) => changeView(e.target.value)}
                 >
                   <option value="timeGridDay">Day</option>
                   <option value="timeGridWeek">Week</option>
                   <option value="dayGridMonth">Month</option>
-                </select>
+                </GlideSelectField>
               </div>
             </div>
 

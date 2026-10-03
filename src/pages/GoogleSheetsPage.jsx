@@ -1,3 +1,5 @@
+import GlideList from "../components/reactbits/GlideList";
+import RubberSegment from "../components/reactbits/RubberSegment";
 import { useEffect, useMemo, useState } from "react";
 import {
   Edit3,
@@ -330,7 +332,7 @@ export default function GoogleSheetsPage() {
               <h1>Spreadsheets</h1>
             </div>
 
-            <div className="workspace-tabs">
+            <RubberSegment as="div" className="workspace-tabs">
               <button
                 type="button"
                 className={type === "EVENT" ? "active" : ""}
@@ -346,7 +348,7 @@ export default function GoogleSheetsPage() {
               >
                 Club Activity
               </button>
-            </div>
+            </RubberSegment>
 
             <div className="workspace-search">
               <Search size={19} />
@@ -392,7 +394,7 @@ export default function GoogleSheetsPage() {
               <div className="workspace-owner-sort">
                 <span>Owner</span>
 
-                <div className="recent-actions">
+                <RubberSegment as="div" className="recent-actions">
                   <button
                     type="button"
                     className={view === "grid" ? "active" : ""}
@@ -421,7 +423,7 @@ export default function GoogleSheetsPage() {
                     </button>
 
                     {showSortMenu && (
-                      <div className="workspace-sort-menu">
+                      <GlideList as="div" className="workspace-sort-menu">
                         <p>Sort by </p>
 
                         <button
@@ -469,7 +471,7 @@ export default function GoogleSheetsPage() {
                         >
                           Descending
                         </button>
-                      </div>
+                      </GlideList>
                     )}
                   </div>
 
@@ -480,7 +482,7 @@ export default function GoogleSheetsPage() {
                   >
                     <FolderOpen size={20} />
                   </button>
-                </div>
+                </RubberSegment>
               </div>
             </div>
             {loading ? (
