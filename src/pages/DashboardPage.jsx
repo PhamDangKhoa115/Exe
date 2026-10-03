@@ -31,6 +31,7 @@ import {
 
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
+import SpotlightCard from "../components/reactbits/SpotlightCard";
 import SubscriptionPanel from "../components/SubscriptionPanel";
 import API from "../api/api";
 const FINANCE_CHART_DATA = [
@@ -760,14 +761,14 @@ function isSameMonth(firstDate, secondDate) {
 }
 function OverviewCard({ label, value, icon, className }) {
   return (
-    <article className={`dashboard-overview-card ${className}`}>
+    <SpotlightCard as="article" className={`dashboard-overview-card ${className}`}>
       <div className="dashboard-overview-icon">{icon}</div>
 
       <div>
         <strong>{value}</strong>
         <span>{label}</span>
       </div>
-    </article>
+    </SpotlightCard>
   );
 }
 function isDateInCurrentWeek(date, referenceDate) {

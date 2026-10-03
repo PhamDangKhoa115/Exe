@@ -12,6 +12,8 @@ import {
   FaTable,
   FaWpforms,
 } from "react-icons/fa";
+import SpotlightCard from "./reactbits/SpotlightCard";
+import StarBorder from "./reactbits/StarBorder";
 export default function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -81,11 +83,11 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      <div className="upgrade-box">
+      <SpotlightCard className="upgrade-box" spotlightColor="rgba(167, 139, 250, 0.28)">
         <h3>Upgrade to Premium</h3>
         <p>Unlock advanced analytics, finance automation and AI assistant.</p>
-        <button type="button" onClick={() => navigate("/dashboard#subscription")}>Upgrade pack</button>
-      </div>
+        <StarBorder type="button" color="#c4b5fd" backgroundColor="#4c1d95" borderColor="#4c1d95" onClick={() => navigate("/dashboard#subscription")}>Upgrade pack</StarBorder>
+      </SpotlightCard>
     </aside>
   );
 }

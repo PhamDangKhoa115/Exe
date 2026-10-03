@@ -1,0 +1,25 @@
+.stroke-text {
+  display: block;
+  width: 100%;
+  line-height: 0;
+}
+
+.stroke-text--hover {
+  cursor: pointer;
+}
+
+.stroke-text__svg {
+  display: block;
+  width: 100%;
+  height: var(--stroke-text-height, 160px);
+}
+
+.stroke-text__stroke,
+.stroke-text__fill {
+  user-select: none;
+}
+
+
+.landing-page .landing-stroke-text { display: inline-block; position: relative; width: auto; line-height: inherit; vertical-align: bottom; }
+.landing-page .landing-stroke-text .stroke-text__sizer { visibility: hidden; color: inherit; }
+.landing-page .landing-stroke-text .stroke-text__svg { position: absolute; inset: 0; height: 100%; width: 100%; }

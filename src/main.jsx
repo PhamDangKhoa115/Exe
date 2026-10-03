@@ -5,15 +5,19 @@ import App from "./App.jsx";
 import "./styles.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import ClickSpark from "./components/reactbits/ClickSpark";
+import "./modern-theme.css";
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>
-    <App />
+    <ClickSpark className="sclub-ui">
+      <App />
 
-    <ToastContainer
-      position="top-right"
-      autoClose={3000}
-      pauseOnHover
-      theme="colored"
-    />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        pauseOnHover
+        theme="colored"
+      />
+    </ClickSpark>
   </BrowserRouter>,
 );

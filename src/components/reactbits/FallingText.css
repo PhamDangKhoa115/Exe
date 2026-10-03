@@ -1,0 +1,2 @@
+.rb-falling-icons { position: relative; width: 100%; height: 100%; overflow: hidden; display: flex; flex-wrap: wrap; align-content: flex-start; justify-content: center; gap: 10px; padding-top: 12px; }
+.rb-falling-icons > [data-falling-item] { display: inline-block; user-select: none; }

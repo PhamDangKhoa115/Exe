@@ -1,0 +1,33 @@
+/* React Bits effects only. Original colors and layouts remain in styles.css. */
+.sclub-ui { min-height: 100vh; }
+.rb-click-spark {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10000;
+}
+.sclub-ui .hero-cta { border-radius: 10px; }
+.sclub-ui .hero-cta .rb-star-content {
+  padding: 13px 28px;
+  border-radius: 10px;
+  font: inherit;
+}
+.sclub-ui .upgrade-box .rb-star-content {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 9px;
+  font: inherit;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .sclub-ui :is(.side-menu a, .main-btn, .small-primary-btn, .dashboard-overview-card, .feature-grid > .rb-spotlight) {
+    transition: transform 180ms ease, box-shadow 180ms ease;
+  }
+  .sclub-ui :is(.main-btn, .small-primary-btn, .dashboard-overview-card, .feature-grid > .rb-spotlight):hover {
+    transform: translateY(-2px);
+  }
+}
