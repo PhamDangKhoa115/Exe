@@ -27,6 +27,7 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import PrivacyPage from "./pages/privacy/PrivacyPage";
 import TermsPage from "./pages/privacy/TermsPage";
+import PaymentCallbackRoute from "./components/PaymentCallbackRoute";
 export default function App() {
   return (
     <Routes>
@@ -38,6 +39,13 @@ export default function App() {
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/admin" element={<AdminDashboardPage />} />
+      {["/payment/cancel", "/payment/success", "/payment/return"].map((path) => (
+        <Route key={path} path={path} element={
+          <ProtectedRoute>
+            <ClubRoute><PaymentCallbackRoute /></ClubRoute>
+          </ProtectedRoute>
+        } />
+      ))}
       <Route
         path="/select-club"
         element={

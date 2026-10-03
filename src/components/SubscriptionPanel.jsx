@@ -1,6 +1,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
+import { useLocation, useNavigate } from "react-router-dom";
 import { getPackages, checkPaymentPermission, createCheckout, getPaymentOrder, cancelPaymentOrder, getClubSubscription } from "../api/paymentApi";
 import { getApiError } from "../utils/getApiError";
 import "./SubscriptionPanel.css";
@@ -16,6 +17,10 @@ function secureUrl(value) {
   catch { return null; }
 }
 export default function SubscriptionPanel() {
+  const navigate = useNavigate();
+  const { state } = useLocation();
+  const paymentCallback = state?.paymentCallback;
+  const callbackRequest = useRef(null);
   const [packages, setPackages] = useState([]);
   const [packagesLoading, setPackagesLoading] = useState(false);
   const [packagesError, setPackagesError] = useState("");
@@ -81,11 +86,62 @@ export default function SubscriptionPanel() {
       loadSubscription();
     } else if (order.status === "CANCELLED") {
       setPaymentModalOpen(false);
-      toast.info("Đã hủy thanh toán.");
+      toast.info("Thanh toán đã được hủy");
     } else if (order.status === "EXPIRED") {
       toast.warning("Đơn thanh toán đã hết hạn. Bạn có thể chọn gói để thanh toán lại.");
     }
   }, [loadSubscription]);
+
+
+  const callbackOrderCode = paymentCallback?.orderCode;
+  const callbackIsCancel = paymentCallback?.isCancel;
+  const hasCallback = Boolean(paymentCallback);
+  useEffect(() => {
+    if (!hasCallback) return;
+    let active = true;
+    if (!callbackOrderCode) {
+      toast.error("Mã đơn thanh toán không hợp lệ.");
+      navigate("/dashboard#subscription", { replace: true, state: null });
+      return;
+    }
+    const key = identity + ":" + callbackOrderCode + ":" + callbackIsCancel;
+    // Keep the same request through StrictMode's setup/cleanup/setup cycle.
+    if (callbackRequest.current?.key !== key) {
+      callbackRequest.current = {
+        key,
+        promise: (async () => {
+          let order = await getPaymentOrder(callbackOrderCode);
+          if (String(order.clubId) !== localStorage.getItem("selectedClubId") ||
+              String(order.userId) !== localStorage.getItem("userId")) {
+            throw new Error("Đơn thanh toán không thuộc người dùng hoặc câu lạc bộ hiện tại.");
+          }
+          if (callbackIsCancel && order.status === "PENDING") {
+            await cancelPaymentOrder(callbackOrderCode);
+            order = await getPaymentOrder(callbackOrderCode);
+          }
+          return order;
+        })(),
+      };
+    }
+    callbackRequest.current.promise.then((order) => {
+      if (!active || !isCurrent()) return;
+      setPollError("");
+      setPaymentOrder(order);
+      if (order.status === "PENDING") {
+        setPaymentModalOpen(true);
+        if (callbackIsCancel) toast.warning("Đơn vẫn đang chờ thanh toán. Vui lòng thử hủy lại.");
+      } else {
+        finishOrder(order);
+      }
+      navigate("/dashboard#subscription", { replace: true, state: null });
+    }).catch((error) => {
+      if (!active || !isCurrent()) return;
+      toast.error(getApiError(error, error.message || "Không thể xác minh thanh toán."));
+      navigate("/dashboard#subscription", { replace: true, state: null });
+    });
+    return () => { active = false; };
+  }, [hasCallback, callbackOrderCode, callbackIsCancel, identity, isCurrent, finishOrder, navigate]);
+
 
   const orderCode = paymentOrder?.orderCode;
   const orderStatus = paymentOrder?.status;
