@@ -1,6 +1,8 @@
+import GoogleWorkspaceActions from "../components/GoogleWorkspaceActions";
+import "../components/GoogleWorkspaceActions.css";
 import GlideList from "../components/reactbits/GlideList";
 import RubberSegment from "../components/reactbits/RubberSegment";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Edit3,
   Eye,
@@ -26,6 +28,8 @@ import {
   getSpreadsheets,
   getSpreadsheetValues,
   updateSpreadsheetValues,
+  updateSpreadsheetTitle,
+  updateSpreadsheetType,
 } from "../api/googleSheetsApi";
 import { getApiError } from "../utils/getApiError";
 
@@ -34,6 +38,50 @@ export default function GoogleSheetsPage() {
 
   const [sheets, setSheets] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const role = localStorage.getItem("selectedClubRole") || "MEMBER";
+  const canEditMetadata = ["PRESIDENT", "TREASURER"].includes(role.toUpperCase());
+  const [editingItem, setEditingItem] = useState(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editType, setEditType] = useState("EVENT");
+  const [savingMetadata, setSavingMetadata] = useState(false);
+  const metadataBusyRef = useRef(false);
+  const handleEditMetadata = (sheet) => {
+    if (!canEditMetadata || metadataBusyRef.current) return;
+    if (!sheet?.spreadsheetId) { toast.error("Spreadsheet ID not found"); return; }
+    setEditingItem(sheet);
+    setEditTitle(sheet.title || "");
+    setEditType(sheet.type);
+  };
+  const handleCloseMetadata = () => { if (!metadataBusyRef.current) setEditingItem(null); };
+  const handleSaveMetadata = async event => {
+    event.preventDefault();
+    if (metadataBusyRef.current || !editingItem || !canEditMetadata) return;
+    if (!editTitle.trim()) { toast.warning("Please enter a title"); return; }
+    if (!["EVENT", "CLUB_ACTIVITIES"].includes(editType)) { toast.warning("Please select a supported type"); return; }
+    metadataBusyRef.current = true;
+    setSavingMetadata(true);
+    const id = editingItem.spreadsheetId;
+    const apply = patch => {
+      setSheets(current => current.map(entry => entry.spreadsheetId === id ? { ...entry, ...patch } : entry));
+      setEditingItem(current => current ? { ...current, ...patch } : current);
+    };
+    try {
+      if (editTitle.trim() !== editingItem.title) {
+        await updateSpreadsheetTitle(id, editTitle.trim());
+        apply({ title: editTitle.trim() });
+      }
+      if (editType !== editingItem.type) {
+        await updateSpreadsheetType(id, editType);
+        apply({ type: editType });
+      }
+      setType(editType);
+      setEditingItem(null);
+      toast.success("Sheet updated successfully");
+    } catch (error) {
+      toast.error(getApiError(error, "Failed to update sheet. Any completed changes have been kept."));
+    } finally { metadataBusyRef.current = false; setSavingMetadata(false); }
+  };
 
   const [search, setSearch] = useState("");
   const [type, setType] = useState("EVENT");
@@ -511,6 +559,7 @@ export default function GoogleSheetsPage() {
                     onOpen={() => handleOpen(sheet)}
                     onViewData={() => handleOpenDataModal(sheet, "view")}
                     onEditData={() => handleOpenDataModal(sheet, "edit")}
+                    onEdit={canEditMetadata ? () => handleEditMetadata(sheet) : undefined}
                     onDelete={() => handleDelete(sheet)}
                   />
                 ))}
@@ -521,6 +570,7 @@ export default function GoogleSheetsPage() {
                 onOpen={handleOpen}
                 onViewData={(sheet) => handleOpenDataModal(sheet, "view")}
                 onEditData={(sheet) => handleOpenDataModal(sheet, "edit")}
+                onEdit={canEditMetadata ? handleEditMetadata : undefined}
                 onDelete={handleDelete}
               />
             )}
@@ -528,6 +578,10 @@ export default function GoogleSheetsPage() {
         </section>
       </main>
 
+      {editingItem && (
+        <CreateWorkspaceModal editing value={editTitle} onChange={setEditTitle} type={editType}
+          onTypeChange={setEditType} onClose={handleCloseMetadata} onSubmit={handleSaveMetadata} loading={savingMetadata} />
+      )}
       {showCreate && (
         <CreateWorkspaceModal
           value={title}
@@ -588,7 +642,7 @@ function TemplateCard({ title }) {
   );
 }
 
-function SheetCard({ sheet, onOpen, onViewData, onEditData, onDelete }) {
+function SheetCard({ sheet, onOpen, onViewData, onEditData, onEdit, onDelete }) {
   const [menu, setMenu] = useState(false);
 
   const formattedDate = sheet.createdAt
@@ -626,6 +680,7 @@ function SheetCard({ sheet, onOpen, onViewData, onEditData, onDelete }) {
 
             {menu && (
               <div className="workspace-menu-dropdown">
+                <GoogleWorkspaceActions onEdit={onEdit} onClose={() => setMenu(false)} />
                 <button
                   type="button"
                   onClick={() => {
@@ -666,7 +721,7 @@ function SheetCard({ sheet, onOpen, onViewData, onEditData, onDelete }) {
     </article>
   );
 }
-function SheetsList({ sheets, onOpen, onViewData, onEditData, onDelete }) {
+function SheetsList({ sheets, onOpen, onViewData, onEditData, onEdit, onDelete }) {
   return (
     <div className="workspace-list-view">
       <div className="workspace-list-header">
@@ -688,6 +743,7 @@ function SheetsList({ sheets, onOpen, onViewData, onEditData, onDelete }) {
           onOpen={() => onOpen(sheet)}
           onViewData={() => onViewData(sheet)}
           onEditData={() => onEditData(sheet)}
+          onEdit={onEdit ? () => onEdit(sheet) : undefined}
           onDelete={() => onDelete(sheet)}
         />
       ))}
@@ -695,7 +751,7 @@ function SheetsList({ sheets, onOpen, onViewData, onEditData, onDelete }) {
   );
 }
 
-function SheetListRow({ sheet, onOpen, onViewData, onEditData, onDelete }) {
+function SheetListRow({ sheet, onOpen, onViewData, onEditData, onEdit, onDelete }) {
   const [menu, setMenu] = useState(false);
 
   return (
@@ -729,6 +785,7 @@ function SheetListRow({ sheet, onOpen, onViewData, onEditData, onDelete }) {
 
         {menu && (
           <div className="workspace-list-dropdown">
+            <GoogleWorkspaceActions onEdit={onEdit} onClose={() => setMenu(false)} />
             <button
               type="button"
               onClick={() => {
@@ -793,6 +850,8 @@ function CreateWorkspaceModal({
   onSubmit,
   loading,
   type,
+  editing = false,
+  onTypeChange,
 }) {
   return (
     <div className="workspace-modal-backdrop" onMouseDown={onClose}>
@@ -814,12 +873,15 @@ function CreateWorkspaceModal({
           <FileSpreadsheet size={32} />
         </div>
 
-        <h2>Create Spreadsheet</h2>
+        <h2>{editing ? "Edit Sheet" : "Create Spreadsheet"}</h2>
 
         <p className="workspace-modal-description">
           Type: {type === "EVENT" ? "Event" : "Club Activity"}
         </p>
 
+        {editing && <><label>Type</label><select className="workspace-edit-type" value={type} onChange={event => onTypeChange(event.target.value)} disabled={loading}>
+          <option value="EVENT">Event</option><option value="CLUB_ACTIVITIES">Club Activity</option>
+        </select></>}
         <label>Title</label>
 
         <input
@@ -836,7 +898,7 @@ function CreateWorkspaceModal({
           </button>
 
           <button type="submit" disabled={loading}>
-            {loading ? "Creating..." : "Create"}
+            {loading ? (editing ? "Saving..." : "Creating...") : (editing ? "Save" : "Create")}
           </button>
         </div>
       </form>

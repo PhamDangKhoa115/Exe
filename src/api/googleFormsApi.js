@@ -73,3 +73,24 @@ export const deleteGoogleForm = async (formId) => {
 
   return response.data;
 };
+
+export const updateGoogleFormTitle = async (formId, title) => {
+  const response = await API.put(`/api/google/forms/${formId}/title`, null, {
+    params: { ...getAuthParams(), title },
+  });
+  return response.data;
+};
+
+export const updateGoogleFormType = async (formId, type) => {
+  const response = await API.put(`/api/google/forms/${formId}/type`, null, {
+    params: { ...getAuthParams(), type },
+  });
+  return response.data;
+};
+
+export const syncGoogleFormSheet = async (formId) => {
+  const response = await API.post(`/api/google/forms/${formId}/sync-sheet`, null, {
+    params: getAuthParams(),
+  });
+  return response.data;
+};

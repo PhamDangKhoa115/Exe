@@ -1,0 +1,5 @@
+.workspace-result-modal { width: min(640px, 100%); max-height: 85vh; overflow-y: auto; }
+.workspace-result-modal dd { margin: 6px 0 18px; overflow-wrap: anywhere; }
+.workspace-result-modal dt { font-weight: 700; }
+.workspace-result-modal pre { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; }
+.workspace-modal .workspace-edit-type { width: 100%; height: 46px; padding: 0 14px; border: 1px solid #c4b5fd; border-radius: 8px; background: white; color: inherit; }

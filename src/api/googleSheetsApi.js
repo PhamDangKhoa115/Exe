@@ -78,3 +78,17 @@ export const deleteSpreadsheet = async (spreadsheetId) => {
 
   return response.data;
 };
+
+export const updateSpreadsheetTitle = async (spreadsheetId, title) => {
+  const response = await API.put(`/api/google/sheets/${spreadsheetId}/title`, null, {
+    params: { ...getAuthParams(), title },
+  });
+  return response.data;
+};
+
+export const updateSpreadsheetType = async (spreadsheetId, type) => {
+  const response = await API.put(`/api/google/sheets/${spreadsheetId}/type`, null, {
+    params: { ...getAuthParams(), type },
+  });
+  return response.data;
+};

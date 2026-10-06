@@ -1,7 +1,8 @@
+import GoogleWorkspaceActions, { GoogleWorkspaceResultModal } from "../components/GoogleWorkspaceActions";
 import GlideList from "../components/reactbits/GlideList";
 import RubberSegment from "../components/reactbits/RubberSegment";
 import GlideSelectField from "../components/reactbits/GlideSelectField";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowDownAZ,
   ClipboardList,
@@ -30,6 +31,10 @@ import {
   deleteGoogleForm,
   getGoogleForms,
   getGoogleFormResponses,
+  updateGoogleFormTitle,
+  updateGoogleFormType,
+  getGoogleFormDetail,
+  syncGoogleFormSheet,
 } from "../api/googleFormsApi";
 
 import { getApiError } from "../utils/getApiError";
@@ -39,6 +44,90 @@ export default function GoogleFormsPage() {
 
   const [forms, setForms] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const role = localStorage.getItem("selectedClubRole") || "MEMBER";
+  const canEditMetadata = ["PRESIDENT", "TREASURER"].includes(role.toUpperCase());
+  const [editingItem, setEditingItem] = useState(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editType, setEditType] = useState("EVENT");
+  const [savingMetadata, setSavingMetadata] = useState(false);
+  const metadataBusyRef = useRef(false);
+  const handleEditMetadata = (form) => {
+    if (!canEditMetadata || metadataBusyRef.current) return;
+    if (!form?.formId) { toast.error("Form ID not found"); return; }
+    setEditingItem(form);
+    setEditTitle(form.title || "");
+    setEditType(form.type);
+  };
+  const handleCloseMetadata = () => { if (!metadataBusyRef.current) setEditingItem(null); };
+  const handleSaveMetadata = async event => {
+    event.preventDefault();
+    if (metadataBusyRef.current || !editingItem || !canEditMetadata) return;
+    if (!editTitle.trim()) { toast.warning("Please enter a title"); return; }
+    if (!["EVENT", "CLUB_ACTIVITIES"].includes(editType)) { toast.warning("Please select a supported type"); return; }
+    metadataBusyRef.current = true;
+    setSavingMetadata(true);
+    const id = editingItem.formId;
+    const apply = patch => {
+      setForms(current => current.map(entry => entry.formId === id ? { ...entry, ...patch } : entry));
+      setEditingItem(current => current ? { ...current, ...patch } : current);
+    };
+    try {
+      if (editTitle.trim() !== editingItem.title) {
+        await updateGoogleFormTitle(id, editTitle.trim());
+        apply({ title: editTitle.trim() });
+      }
+      if (editType !== editingItem.type) {
+        await updateGoogleFormType(id, editType);
+        apply({ type: editType });
+      }
+      setType(editType);
+      setEditingItem(null);
+      toast.success("Form updated successfully");
+    } catch (error) {
+      toast.error(getApiError(error, "Failed to update form. Any completed changes have been kept."));
+    } finally { metadataBusyRef.current = false; setSavingMetadata(false); }
+  };
+
+  const [resultModal, setResultModal] = useState(null);
+  const detailRequestRef = useRef(0);
+  const syncLocksRef = useRef(new Set());
+  const [syncingIds, setSyncingIds] = useState(new Set());
+  useEffect(() => () => { detailRequestRef.current += 1; }, []);
+  const closeResultModal = () => { detailRequestRef.current += 1; setResultModal(null); };
+  const handleDetails = async form => {
+    if (!form?.formId) { toast.error("Form ID not found"); return; }
+    const request = ++detailRequestRef.current;
+    setResultModal({ title: "Form Details", loading: true });
+    try {
+      const data = await getGoogleFormDetail(form.formId);
+      if (request === detailRequestRef.current) setResultModal({ title: "Form Details", data });
+    } catch (error) {
+      if (request !== detailRequestRef.current) return;
+      const message = getApiError(error, "Failed to load form details");
+      setResultModal({ title: "Form Details", error: message });
+      toast.error(message);
+    }
+  };
+  const handleSync = async form => {
+    if (!form?.formId) { toast.error("Form ID not found"); return; }
+    if (syncLocksRef.current.has(form.formId)) return;
+    syncLocksRef.current.add(form.formId);
+    setSyncingIds(new Set(syncLocksRef.current));
+    try {
+      const data = await syncGoogleFormSheet(form.formId);
+      toast.success("Form responses synced to Sheet successfully");
+      if (data != null) {
+        detailRequestRef.current += 1;
+        setResultModal({ title: "Sync to Sheet", data });
+      }
+    } catch (error) {
+      toast.error(getApiError(error, "Failed to sync form to Sheet"));
+    } finally {
+      syncLocksRef.current.delete(form.formId);
+      setSyncingIds(new Set(syncLocksRef.current));
+    }
+  };
 
   const [search, setSearch] = useState("");
   const [type, setType] = useState("EVENT");
@@ -460,6 +549,10 @@ export default function GoogleFormsPage() {
                     onOpenEditor={() => handleOpenEditor(form)}
                     onOpenResponder={() => handleOpenResponder(form)}
                     onResponses={() => handleResponses(form)}
+                    onEdit={canEditMetadata ? () => handleEditMetadata(form) : undefined}
+                    onDetails={() => handleDetails(form)}
+                    onSync={() => handleSync(form)}
+                    syncing={syncingIds.has(form.formId)}
                     onDelete={() => handleDelete(form)}
                   />
                 ))}
@@ -471,6 +564,10 @@ export default function GoogleFormsPage() {
                 onOpenEditor={handleOpenEditor}
                 onOpenResponder={handleOpenResponder}
                 onResponses={handleResponses}
+                onEdit={canEditMetadata ? handleEditMetadata : undefined}
+                onDetails={handleDetails}
+                onSync={handleSync}
+                syncingIds={syncingIds}
                 onDelete={handleDelete}
               />
             )}
@@ -478,6 +575,11 @@ export default function GoogleFormsPage() {
         </section>
       </main>
 
+      {resultModal && <GoogleWorkspaceResultModal {...resultModal} onClose={closeResultModal} />}
+      {editingItem && (
+        <CreateFormModal editing value={editTitle} onChange={setEditTitle} type={editType}
+          onTypeChange={setEditType} onClose={handleCloseMetadata} onSubmit={handleSaveMetadata} loading={savingMetadata} />
+      )}
       {showCreate && (
         <CreateFormModal
           value={title}
@@ -518,6 +620,10 @@ function FormsList({
   onOpenEditor,
   onOpenResponder,
   onResponses,
+  onEdit,
+  onDetails,
+  onSync,
+  syncingIds,
   onDelete,
 }) {
   return (
@@ -538,6 +644,10 @@ function FormsList({
           onOpenEditor={() => onOpenEditor(form)}
           onOpenResponder={() => onOpenResponder(form)}
           onResponses={() => onResponses(form)}
+          onEdit={onEdit ? () => onEdit(form) : undefined}
+          onDetails={() => onDetails(form)}
+          onSync={() => onSync(form)}
+          syncing={syncingIds.has(form.formId)}
           onDelete={() => onDelete(form)}
         />
       ))}
@@ -551,6 +661,10 @@ function FormListRow({
   onOpenEditor,
   onOpenResponder,
   onResponses,
+  onEdit,
+  onDetails,
+  onSync,
+  syncing,
   onDelete,
 }) {
   const [menu, setMenu] = useState(false);
@@ -590,6 +704,7 @@ function FormListRow({
 
         {menu && (
           <div className="workspace-list-dropdown">
+              <GoogleWorkspaceActions onEdit={onEdit} onDetails={onDetails} onSync={onSync} syncing={syncing} onClose={() => setMenu(false)} />
             <button
               type="button"
               onClick={() => {
@@ -671,6 +786,10 @@ function FormCard({
   onOpenEditor,
   onOpenResponder,
   onResponses,
+  onEdit,
+  onDetails,
+  onSync,
+  syncing,
   onDelete,
 }) {
   const [menu, setMenu] = useState(false);
@@ -716,6 +835,7 @@ function FormCard({
 
             {menu && (
               <div className="workspace-menu-dropdown">
+              <GoogleWorkspaceActions onEdit={onEdit} onDetails={onDetails} onSync={onSync} syncing={syncing} onClose={() => setMenu(false)} />
                 <button
                   type="button"
                   onClick={() => {
@@ -785,6 +905,8 @@ function CreateFormModal({
   onSubmit,
   loading,
   type,
+  editing = false,
+  onTypeChange,
 }) {
   return (
     <div className="workspace-modal-backdrop" onMouseDown={onClose}>
@@ -804,12 +926,15 @@ function CreateFormModal({
         <div className="workspace-modal-icon">
           <GoogleFormsIcon size={34} />
         </div>
-        <h2>Create Google Form</h2>
+        <h2>{editing ? "Edit Form" : "Create Google Form"}</h2>
 
         <p className="workspace-modal-description">
           Type: {type === "EVENT" ? "Event" : "Club Activity"}
         </p>
 
+        {editing && <><label>Type</label><select className="workspace-edit-type" value={type} onChange={event => onTypeChange(event.target.value)} disabled={loading}>
+          <option value="EVENT">Event</option><option value="CLUB_ACTIVITIES">Club Activity</option>
+        </select></>}
         <label>Title</label>
 
         <input
@@ -826,7 +951,7 @@ function CreateFormModal({
           </button>
 
           <button type="submit" disabled={loading}>
-            {loading ? "Creating..." : "Create Form"}
+            {loading ? (editing ? "Saving..." : "Creating...") : (editing ? "Save" : "Create Form")}
           </button>
         </div>
       </form>
