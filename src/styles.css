@@ -11882,3 +11882,27 @@ input {
 .forgot-password-link:hover {
   text-decoration: underline;
 }
+.member-edit-select {
+  width: 100%;
+  height: 52px;
+  padding: 0 14px;
+
+  border: 1px solid #d8dee9;
+  border-radius: 10px;
+
+  background: #fff;
+  font-size: 16px;
+  color: #111827;
+
+  outline: none;
+  cursor: pointer;
+}
+
+.member-edit-select:focus {
+  border-color: #7c3aed;
+}
+
+.member-edit-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

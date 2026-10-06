@@ -632,7 +632,8 @@ function EditMemberModal({ member, departments, saving, onClose, onSave }) {
         <div className="member-modal-body">
           <label>Role</label>
 
-          <GlideSelectField
+          <select
+            className="member-edit-select"
             value={form.role}
             onChange={(event) =>
               setForm((current) => ({
@@ -640,17 +641,18 @@ function EditMemberModal({ member, departments, saving, onClose, onSave }) {
                 role: event.target.value,
               }))
             }
+            disabled={saving}
           >
             {ROLE_OPTIONS.map((role) => (
               <option key={role.value} value={role.value}>
                 {role.label}
               </option>
             ))}
-          </GlideSelectField>
-
+          </select>
           <label>Department</label>
 
-          <GlideSelectField
+          <select
+            className="member-edit-select"
             value={form.departmentId}
             onChange={(event) =>
               setForm((current) => ({
@@ -658,6 +660,7 @@ function EditMemberModal({ member, departments, saving, onClose, onSave }) {
                 departmentId: event.target.value,
               }))
             }
+            disabled={saving}
           >
             <option value="">No Department</option>
 
@@ -675,7 +678,7 @@ function EditMemberModal({ member, departments, saving, onClose, onSave }) {
                 </option>
               );
             })}
-          </GlideSelectField>
+          </select>
 
           <small>Select the department this member belongs to.</small>
         </div>
