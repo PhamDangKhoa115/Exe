@@ -193,7 +193,7 @@ export default function CreateDocumentModal({ open, onClose, onCreated }) {
             Category <span>*</span>
           </label>
 
-          <select
+          <GlideSelectField
             id="document-category"
             className="document-select"
             value={form.category}
@@ -213,13 +213,13 @@ export default function CreateDocumentModal({ open, onClose, onCreated }) {
                 <option value="CLUB_ACTIVITY">Club Activity</option>
               </>
             )}
-          </select>
+          </GlideSelectField>
 
           <label htmlFor="document-type">
             Document Type <span>*</span>
           </label>
 
-          <select
+          <GlideSelectField
             id="document-type"
             className="document-select"
             value={form.type}
@@ -245,7 +245,7 @@ export default function CreateDocumentModal({ open, onClose, onCreated }) {
                 <option value="OTHER">Other</option>
               </>
             )}
-          </select>
+          </GlideSelectField>
 
           {form.category === "EVENT" && (
             <>

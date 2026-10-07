@@ -245,3 +245,5 @@
 @media (prefers-reduced-motion: reduce) {
   .glide-select *, .glide-select *::before { animation: none !important; transition: none !important; }
 }
+
+.glide-select__option[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
