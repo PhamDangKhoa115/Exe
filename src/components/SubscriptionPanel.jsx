@@ -1,3 +1,4 @@
+import { trackPaymentEvent } from "../utils/analytics";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -183,6 +184,7 @@ export default function SubscriptionPanel() {
           if (callbackIsCancel)
             toast.warning("Đơn vẫn đang chờ thanh toán. Vui lòng thử hủy lại.");
         } else {
+          trackPaymentEvent("complete_payment", order);
           finishOrder(order);
         }
         navigate("/dashboard#subscription", { replace: true, state: null });
@@ -233,6 +235,7 @@ export default function SubscriptionPanel() {
         setPollError("");
         if (["PAID", "CANCELLED", "EXPIRED"].includes(order.status)) {
           stop();
+          trackPaymentEvent("complete_payment", order);
           finishOrder(order);
           return;
         }
@@ -300,6 +303,7 @@ export default function SubscriptionPanel() {
       if (!isCurrent()) return;
       setPollError("");
       setPaymentOrder(order);
+      trackPaymentEvent("initiate_transaction", order);
       setPaymentModalOpen(true);
       if (order.status !== "PENDING") finishOrder(order);
     } catch (error) {
@@ -322,9 +326,10 @@ export default function SubscriptionPanel() {
       if (!isCurrent()) return;
       const order = await getPaymentOrder(orderCode);
       if (!isCurrent()) return;
-      if (["PAID", "CANCELLED", "EXPIRED"].includes(order.status))
+      if (["PAID", "CANCELLED", "EXPIRED"].includes(order.status)) {
+        trackPaymentEvent("complete_payment", order);
         finishOrder(order);
-      else {
+      } else {
         setPaymentOrder(order);
         toast.warning("Đơn vẫn đang chờ thanh toán. Vui lòng thử hủy lại.");
       }

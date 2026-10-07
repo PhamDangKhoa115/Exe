@@ -1,3 +1,4 @@
+import { trackEvent } from "../utils/analytics";
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -74,6 +75,7 @@ export default function RegisterPage() {
         confirmPassword: form.confirmPassword,
       });
 
+      trackEvent("user_register", { method: "email" });
       toast.success("Register successfully. Please login.");
       navigate("/login");
     } catch (err) {
@@ -107,6 +109,7 @@ export default function RegisterPage() {
       });
 
       saveAuthData(data);
+      trackEvent("user_login", { method: "google" });
 
       toast.success("Register with Google successfully");
       navigate("/select-club", { replace: true });

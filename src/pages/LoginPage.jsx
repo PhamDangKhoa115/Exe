@@ -1,3 +1,4 @@
+import { trackEvent } from "../utils/analytics";
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
@@ -36,8 +37,9 @@ export default function LoginPage() {
     localStorage.removeItem("selectedClubRole");
   };
 
-  const handleLoginSuccess = (data) => {
+  const handleLoginSuccess = (data, method) => {
     saveAuthData(data);
+    trackEvent("user_login", { method });
     toast.success("Login successful! Redirecting to club selection...");
     navigate("/select-club", { replace: true });
   };
@@ -66,7 +68,7 @@ export default function LoginPage() {
         localStorage.removeItem("rememberedEmail");
       }
 
-      handleLoginSuccess(data);
+      handleLoginSuccess(data, "email");
     } catch (error) {
       console.log("LOGIN ERROR:", error.response?.data || error);
 
@@ -97,7 +99,7 @@ export default function LoginPage() {
         avatarUrl: googleProfile.picture || "",
       });
 
-      handleLoginSuccess(data);
+      handleLoginSuccess(data, "google");
     } catch (error) {
       console.log("GOOGLE LOGIN ERROR:", error.response?.data || error);
 

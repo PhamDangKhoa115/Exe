@@ -8,6 +8,21 @@
     />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>S-Club</title>
+    <!-- SPA tracking is manual; disable Enhanced Measurement in the GA4 stream. -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2V5LDJ2FN5"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
+      if (!window.__sclubGAInitialized) {
+        window.__sclubGAInitialized = true;
+        window.gtag('js', new Date());
+        window.gtag('config', 'G-2V5LDJ2FN5', {
+          send_page_view: false,
+          page_location: window.location.origin + window.location.pathname,
+          page_referrer: '',
+        });
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
