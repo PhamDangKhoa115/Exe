@@ -5,6 +5,7 @@ import {
   FaInstagram,
   FaEnvelope,
   FaAt,
+  FaPhone,
   FaCode,
 } from "react-icons/fa";
 
@@ -24,15 +25,6 @@ export default function Footer() {
       </section>
 
       <section className="footer-main">
-        <div className="footer-top">
-          <span>© 2026 S-Club. All rights reserved.</span>
-
-          <div className="footer-policy">
-            <a href="#">Privacy Policy</a>
-            <a href="#">Cookie Policy</a>
-          </div>
-        </div>
-
         <div className="footer-grid">
           <div className="footer-brand">
             <div className="footer-logo">
@@ -91,13 +83,21 @@ export default function Footer() {
 
             <a href="#">
               <FaEnvelope />
-              SClub@gmail.com
+              sclub.management.platform@gmail.com
             </a>
 
             <a href="#">
-              <FaAt />
-              @sclub
+              <FaPhone />
+              0764577656
             </a>
+          </div>
+        </div>
+        <div className="footer-top">
+          <span>© 2026 S-Club. All rights reserved.</span>
+
+          <div className="footer-policy">
+            <a href="#">Privacy Policy</a>
+            <a href="#">Cookie Policy</a>
           </div>
         </div>
       </section>
