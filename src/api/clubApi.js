@@ -151,3 +151,18 @@ export async function approveClubMember(
 
   return extractData(response);
 }
+
+export async function grantClubDeletionPermission(targetUserId, clubId = getRequiredClubId()) {
+  return (await API.post(`/api/clubs/${clubId}/grant-deletion-permission`, null, { params: { userId: getRequiredUserId(), targetUserId } })).data;
+}
+export async function revokeClubDeletionPermission(targetUserId, clubId = getRequiredClubId()) {
+  const params = { userId: getRequiredUserId() };
+  if (targetUserId != null) params.targetUserId = targetUserId;
+  return (await API.post(`/api/clubs/${clubId}/revoke-deletion-permission`, null, { params })).data;
+}
+export async function getClubDeletionPermissions(clubId = getRequiredClubId()) {
+  return (await API.get(`/api/clubs/${clubId}/deletion-permissions`)).data;
+}
+export async function transferClubPresident(targetMemberId, clubId = getRequiredClubId()) {
+  return (await API.put(`/api/clubs/${clubId}/transfer-president`, null, { params: { requesterUserId: getRequiredUserId(), targetMemberId } })).data;
+}

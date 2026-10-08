@@ -100,3 +100,8 @@ export async function getDepartmentChatAccess(departmentId) {
 
   return extractData(response);
 }
+
+export async function deleteDepartment(departmentId) {
+  const { clubId, userId } = getRequiredContext();
+  return (await API.delete(`/api/clubs/${clubId}/departments/${departmentId}`, { params: { requesterUserId: userId } })).data;
+}

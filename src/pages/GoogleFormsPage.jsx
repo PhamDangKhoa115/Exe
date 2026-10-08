@@ -22,7 +22,6 @@ import {
 import GoogleFormsIcon from "../components/icons/GoogleFormsIcon";
 import GoogleWorkspacePickerModal from "../components/GoogleWorkspacePickerModal";
 import { toast } from "react-toastify";
-import ConfirmToast from "../components/ConfirmToast";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import {
@@ -43,6 +42,10 @@ export default function GoogleFormsPage() {
   const userId = localStorage.getItem("userId");
 
   const [forms, setForms] = useState([]);
+  const [deletingForm, setDeletingForm] = useState(null);
+  const [deleteLinkedSheet, setDeleteLinkedSheet] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const deleteLock = useRef(false);
   const [loading, setLoading] = useState(true);
 
   const role = localStorage.getItem("selectedClubRole") || "MEMBER";
@@ -81,6 +84,7 @@ export default function GoogleFormsPage() {
         await updateGoogleFormType(id, editType);
         apply({ type: editType });
       }
+      await loadForms();
       setType(editType);
       setEditingItem(null);
       toast.success("Form updated successfully");
@@ -317,44 +321,22 @@ export default function GoogleFormsPage() {
       setAddingQuestion(false);
     }
   };
-  const handleDelete = (form) => {
-    toast(
-      ({ closeToast }) => (
-        <ConfirmToast
-          message={`Are you sure you want to delete Google Form "${form.title}"?`}
-          closeToast={closeToast}
-          onConfirm={async () => {
-            try {
-              await deleteGoogleForm(form.formId);
-
-              setForms((current) =>
-                current.filter(
-                  (item) => item.formId !== form.formId && item.id !== form.id,
-                ),
-              );
-
-              toast.success("Successfully deleted Google Form");
-            } catch (error) {
-              const message = getApiError(
-                error,
-                "Failed to delete Google Form",
-              );
-
-              console.log("DELETE GOOGLE FORM ERROR:", message);
-              toast.error(message);
-
-              throw error;
-            }
-          }}
-        />
-      ),
-      {
-        autoClose: false,
-        closeOnClick: false,
-        draggable: false,
-        closeButton: false,
-      },
-    );
+  const handleDelete = form => {
+    if (!canEditMetadata) return;
+    setDeleteLinkedSheet(false);
+    setDeletingForm(form);
+  };
+  const confirmDeleteForm = async () => {
+    if (!deletingForm || deleteLock.current || !canEditMetadata) return;
+    deleteLock.current = true; setDeleting(true);
+    try {
+      await deleteGoogleForm(deletingForm.formId, deleteLinkedSheet);
+      setDeletingForm(null);
+      await loadForms();
+      // Sheets are not cached between routes; their page reloads the list on mount.
+      toast.success("Successfully deleted Google Form");
+    } catch (error) { toast.error(getApiError(error, "Failed to delete Google Form")); }
+    finally { deleteLock.current = false; setDeleting(false); }
   };
   const [showQuestionModal, setShowQuestionModal] = useState(false);
 
@@ -365,6 +347,7 @@ export default function GoogleFormsPage() {
     <div className="app-layout">
       <Sidebar />
 
+      {deletingForm && <div className="workspace-modal-backdrop"><div className="workspace-modal" role="dialog" aria-modal="true" aria-label="Delete Google Form"><h2>Delete Google Form</h2><p>Delete "{deletingForm.title}"? This cannot be undone.</p><label><input type="checkbox" checked={deleteLinkedSheet} disabled={deleting} onChange={e => setDeleteLinkedSheet(e.target.checked)} /> Also delete the linked response Google Sheet</label><div className="workspace-modal-actions"><button disabled={deleting} onClick={() => setDeletingForm(null)}>Cancel</button><button disabled={deleting} onClick={confirmDeleteForm}>{deleting ? "Deleting..." : "Delete"}</button></div></div></div>}
       <main className="main-content">
         <Topbar title="Home Page / Google Forms" />
 
@@ -553,7 +536,7 @@ export default function GoogleFormsPage() {
                     onDetails={() => handleDetails(form)}
                     onSync={() => handleSync(form)}
                     syncing={syncingIds.has(form.formId)}
-                    onDelete={() => handleDelete(form)}
+                    onDelete={canEditMetadata ? () => handleDelete(form) : undefined}
                   />
                 ))}
               </div>
@@ -568,7 +551,7 @@ export default function GoogleFormsPage() {
                 onDetails={handleDetails}
                 onSync={handleSync}
                 syncingIds={syncingIds}
-                onDelete={handleDelete}
+                onDelete={canEditMetadata ? handleDelete : undefined}
               />
             )}
           </div>
@@ -648,7 +631,7 @@ function FormsList({
           onDetails={() => onDetails(form)}
           onSync={() => onSync(form)}
           syncing={syncingIds.has(form.formId)}
-          onDelete={() => onDelete(form)}
+          onDelete={onDelete ? () => onDelete(form) : undefined}
         />
       ))}
     </div>
@@ -750,6 +733,7 @@ function FormListRow({
             <button
               type="button"
               className="danger"
+              disabled={!onDelete}
               onClick={() => {
                 setMenu(false);
                 onDelete();
@@ -881,6 +865,7 @@ function FormCard({
                 <button
                   type="button"
                   className="danger"
+              disabled={!onDelete}
                   onClick={() => {
                     setMenu(false);
                     onDelete();

@@ -15,11 +15,14 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 
+import ConfirmToast from "../components/ConfirmToast";
+import { getApiError } from "../utils/getApiError";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 
 import {
   createDepartment,
+  deleteDepartment,
   getDepartmentChatAccess,
   getDepartments,
   updateDepartment,
@@ -185,6 +188,18 @@ export default function DepartmentPage() {
         .includes(keyword),
     );
   }, [departments, searchText]);
+
+  const handleDeleteDepartment = department => {
+    if (role.toUpperCase() !== "PRESIDENT") return;
+    let busy = false;
+    toast(({ closeToast }) => <ConfirmToast message={`Delete department "${department.name}"? This cannot be undone.`} closeToast={closeToast} onConfirm={async () => {
+      if (busy) return;
+      busy = true;
+      try { await deleteDepartment(department.id); toast.success("Department deleted successfully."); await loadDepartments(); }
+      catch (error) { toast.error(getApiError(error, "Cannot delete department.")); throw error; }
+      finally { busy = false; }
+    }} />, { autoClose: false, closeOnClick: false, draggable: false, closeButton: false });
+  };
 
   const openCreateModal = () => {
     setEditingDepartment(null);
@@ -386,6 +401,8 @@ export default function DepartmentPage() {
                   key={department.id}
                   department={department}
                   canManage={canManageDepartments}
+                  canDelete={role.toUpperCase() === "PRESIDENT"}
+                  onDelete={handleDeleteDepartment}
                   checkingChat={checkingChatId === department.id}
                   onEdit={openEditModal}
                   onCheckChat={handleCheckChatAccess}
@@ -413,6 +430,8 @@ export default function DepartmentPage() {
 function DepartmentCard({
   department,
   canManage,
+  canDelete,
+  onDelete,
   checkingChat,
   onEdit,
   onCheckChat,
@@ -436,6 +455,7 @@ function DepartmentCard({
         )}
       </div>
 
+      {canDelete && <button type="button" className="department-edit-button" onClick={() => onDelete(department)}>Delete Department</button>}
       <h2>{department.name}</h2>
 
       <p>{department.description || "Department has no description."}</p>

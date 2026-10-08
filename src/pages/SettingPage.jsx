@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 
+import ClubGovernance from "../components/ClubGovernance";
 import Topbar from "../components/Topbar";
 
 import "../styles.css";
@@ -168,6 +169,7 @@ export default function SettingPage() {
               </div>
             </aside>
           </div>
+          <ClubGovernance />
         </section>
       </main>
     </div>

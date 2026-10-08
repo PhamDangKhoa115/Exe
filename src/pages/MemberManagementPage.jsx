@@ -1,6 +1,7 @@
+import GooglePermissionEditor from "../components/GooglePermissionEditor";
 import RubberSegment from "../components/reactbits/RubberSegment";
 import GlideSelectField from "../components/reactbits/GlideSelectField";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Check,
   ChevronLeft,
@@ -10,6 +11,7 @@ import {
   Lock,
   RefreshCw,
   Search,
+  ShieldCheck,
   Unlock,
   UserRoundPlus,
   Users,
@@ -116,6 +118,46 @@ export default function MemberManagementPage() {
   const [pageSize, setPageSize] = useState(20);
 
   const [editingMember, setEditingMember] = useState(null);
+  const [permissionMember, setPermissionMember] = useState(null);
+  const [permissionBusy, setPermissionBusy] = useState(false);
+  const permissionMemberRef = useRef(null);
+  permissionMemberRef.current = permissionMember;
+  const [permissionActorRole, setPermissionActorRole] = useState(null);
+  const [permissionContext, setPermissionContext] = useState(() => ({ clubId: localStorage.getItem("selectedClubId"), userId: localStorage.getItem("userId"), role: localStorage.getItem("selectedClubRole") }));
+  useEffect(() => {
+    const sync = () => setPermissionContext(current => {
+      const next = { clubId: localStorage.getItem("selectedClubId"), userId: localStorage.getItem("userId"), role: localStorage.getItem("selectedClubRole") };
+      return current.clubId === next.clubId && current.userId === next.userId && current.role === next.role ? current : next;
+    });
+    const timer = window.setInterval(sync, 500);
+    window.addEventListener("storage", sync);
+    return () => { window.clearInterval(timer); window.removeEventListener("storage", sync); };
+  }, []);
+  useEffect(() => { setPermissionMember(null); setPermissionBusy(false); setPermissionActorRole(null); }, [permissionContext.clubId, permissionContext.userId, permissionContext.role]);
+  const permissionPresident = permissionContext.role === "PRESIDENT" && (permissionActorRole ?? members.find(m => String(m.userId) === permissionContext.userId)?.role) === "PRESIDENT";
+  useEffect(() => {
+    if (!permissionMember) return;
+    let active = true, running = false;
+    const verify = async () => {
+      if (running) return;
+      running = true;
+      try {
+        const data = await getClubMembers(permissionContext.clubId);
+        if (!active) return;
+        const list = normalizeArray(data).map(normalizeMember);
+        const actor = list.find(m => String(m.userId) === permissionContext.userId);
+        setPermissionActorRole(actor?.role ?? "");
+        if (actor?.role !== "PRESIDENT" || !list.some(m => String(m.userId) === String(permissionMember.member.userId))) {
+          setPermissionMember(null); toast.warning("Presidency or member availability has changed.");
+        }
+      } catch (error) { if (active) { setPermissionMember(null); toast.error(getErrorMessage(error, "Cannot verify permission management access.")); } }
+      finally { running = false; }
+    };
+    verify();
+    const timer = window.setInterval(verify, 10000);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [permissionMember, permissionContext.clubId, permissionContext.userId]);
+
   const handleExportMembers = () => {
     if (members.length === 0) {
       toast.warning("No member data to export.");
@@ -197,6 +239,7 @@ export default function MemberManagementPage() {
     }
   }, []);
   const loadMembers = useCallback(async () => {
+    const requestedClub = localStorage.getItem("selectedClubId");
     try {
       setLoading(true);
 
@@ -205,6 +248,7 @@ export default function MemberManagementPage() {
         canManageMembers ? getPendingClubMembers() : Promise.resolve([]),
       ]);
 
+      if (requestedClub !== localStorage.getItem("selectedClubId")) return;
       setMembers(normalizeArray(memberData).map(normalizeMember));
 
       setPendingMembers(normalizeArray(pendingData).map(normalizeMember));
@@ -215,7 +259,7 @@ export default function MemberManagementPage() {
     } finally {
       setLoading(false);
     }
-  }, [canManageMembers]);
+  }, [canManageMembers, permissionContext.clubId]);
 
   useEffect(() => {
     loadMembers();
@@ -475,6 +519,8 @@ export default function MemberManagementPage() {
 
                         <td>
                           <div className="member-actions">
+                            {activeTab === "MEMBERS" && permissionPresident && member.userId != null && <button type="button" title="Manage Permissions" aria-label={`Manage Permissions for ${member.fullName}`} onClick={() => { setPermissionBusy(false); setPermissionMember({ member, clubId: permissionContext.clubId, userId: permissionContext.userId }); }}><ShieldCheck size={16} /></button>}
+
                             {activeTab === "APPLICATIONS" ? (
                               <>
                                 <button
@@ -568,6 +614,14 @@ export default function MemberManagementPage() {
           </div>
         </section>
 
+        {permissionMember && permissionPresident && permissionMember.clubId === permissionContext.clubId && permissionMember.userId === permissionContext.userId && (
+          <div className="gp-modal-backdrop" onMouseDown={event => { if (event.target === event.currentTarget && !permissionBusy) setPermissionMember(null); }}>
+            <section className="gp-modal" role="dialog" aria-modal="true" aria-label="Google Permissions" onKeyDown={event => { if (event.key === "Escape" && !permissionBusy) { event.stopPropagation(); setPermissionMember(null); } }}>
+              <header className="gp-modal-header"><div><h2>Google Permissions</h2><p>Manage Sheets and Forms access for this member.</p></div><button type="button" aria-label="Close Google Permissions" disabled={permissionBusy} onClick={() => setPermissionMember(null)}><X size={20} /></button></header>
+              <GooglePermissionEditor member={permissionMember.member} clubId={permissionContext.clubId} userId={permissionContext.userId} president={permissionPresident} onBusy={busy => { if (permissionMemberRef.current === permissionMember) setPermissionBusy(busy); }} onUnavailable={() => { setPermissionMember(null); loadMembers(); }} />
+            </section>
+          </div>
+        )}
         {editingMember && (
           <EditMemberModal
             member={editingMember}

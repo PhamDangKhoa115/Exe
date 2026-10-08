@@ -148,3 +148,7 @@ export function getChatFileUrl(fileName) {
 
   return `${baseUrl}/api/chat/files/${encodeURIComponent(fileName)}`;
 }
+
+export async function getChatEmojis() {
+  return (await API.get('/api/chat/emojis')).data;
+}

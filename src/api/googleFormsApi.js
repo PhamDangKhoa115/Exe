@@ -66,9 +66,9 @@ export const addGoogleFormQuestion = async (formId, question) => {
   return response.data;
 };
 
-export const deleteGoogleForm = async (formId) => {
+export const deleteGoogleForm = async (formId, deleteLinkedSheet = false) => {
   const response = await API.delete(`/api/google/forms/${formId}`, {
-    params: getAuthParams(),
+    params: { ...getAuthParams(), deleteLinkedSheet },
   });
 
   return response.data;

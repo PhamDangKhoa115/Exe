@@ -1,5 +1,5 @@
 import RubberSegment from "../components/reactbits/RubberSegment";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { getClubMembers } from "../api/clubApi";
@@ -25,11 +25,13 @@ import Topbar from "../components/Topbar";
 import {
   deleteMessage,
   getDepartmentMessages,
+  getChatEmojis,
   pinMessage,
   sendDepartmentMessage,
 } from "../api/chatApi";
 
 import "../styles.css";
+import "../components/DepartmentChatEmoji.css";
 
 /* =========================================================
    TEMPORARY MOCK DATA
@@ -116,6 +118,50 @@ export default function DepartmentChatPage() {
 
   const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const messageInputRef = useRef(null);
+  const composerRef = useRef(null);
+  const pendingCaret = useRef(null);
+  const [emojiOpen, setEmojiOpen] = useState(false);
+  const [emojiCategories, setEmojiCategories] = useState(null);
+  const [emojiLoading, setEmojiLoading] = useState(false);
+  const [emojiError, setEmojiError] = useState("");
+  useEffect(() => {
+    if (!emojiOpen) return;
+    const outside = event => {
+      if (!composerRef.current?.contains(event.target)) setEmojiOpen(false);
+    };
+    const escape = event => { if (event.key === "Escape") setEmojiOpen(false); };
+    document.addEventListener("pointerdown", outside, true);
+    document.addEventListener("keydown", escape);
+    return () => { document.removeEventListener("pointerdown", outside, true); document.removeEventListener("keydown", escape); };
+  }, [emojiOpen]);
+  useEffect(() => {
+    if (!emojiOpen || emojiCategories !== null) return;
+    let active = true;
+    setEmojiLoading(true); setEmojiError("");
+    getChatEmojis().then(data => {
+      if (!active) return;
+      if (!Array.isArray(data) || data.some(group => typeof group?.category !== "string" || !Array.isArray(group.emojis) || group.emojis.some(emoji => typeof emoji !== "string"))) throw new Error("Invalid emoji response.");
+      setEmojiCategories(data);
+    }).catch(error => { if (active) setEmojiError(getErrorMessage(error, "Cannot load emojis.")); })
+      .finally(() => { if (active) setEmojiLoading(false); });
+    return () => { active = false; };
+  }, [emojiOpen, emojiCategories]);
+  useLayoutEffect(() => {
+    if (pendingCaret.current === null || !messageInputRef.current) return;
+    const caret = pendingCaret.current; pendingCaret.current = null;
+    messageInputRef.current.focus({ preventScroll: true });
+    messageInputRef.current.setSelectionRange(caret, caret);
+  }, [messageText]);
+  const insertEmoji = emoji => {
+    if (sendingMessage) return;
+    const input = messageInputRef.current;
+    const start = input?.selectionStart ?? messageText.length;
+    const end = input?.selectionEnd ?? start;
+    pendingCaret.current = start + emoji.length;
+    setMessageText(current => current.slice(0, start) + emoji + current.slice(end));
+  };
+
 
   /* =======================================================
      LOAD MESSAGES
@@ -346,6 +392,7 @@ export default function DepartmentChatPage() {
   ======================================================= */
 
   const handleSendMessage = async () => {
+    setEmojiOpen(false);
     const content = messageText.trim();
 
     if (!content || sendingMessage) {
@@ -646,9 +693,17 @@ export default function DepartmentChatPage() {
 
             {/* COMPOSER */}
 
-            <div className="department-chat-composer-wrap">
+            <div className="department-chat-composer-wrap" ref={composerRef}>
+              {emojiOpen && <section className="department-chat-emoji-picker" role="dialog" aria-label="Emoji Picker">
+                {emojiLoading && <p role="status">Loading emojis...</p>}
+                {emojiError && <p role="alert">{emojiError} Close and reopen the picker to retry.</p>}
+                {emojiCategories?.map((group, index) => <section key={`${group.category}-${index}`}><h3>{group.category}</h3><div className="department-chat-emoji-grid">{group.emojis.map((emoji, emojiIndex) => <button type="button" key={`${emoji}-${emojiIndex}`} aria-label={emoji} disabled={sendingMessage} onMouseDown={e => e.preventDefault()} onClick={() => insertEmoji(emoji)}>{emoji}</button>)}</div></section>)}
+                {emojiCategories?.length === 0 && <p>No emojis are available.</p>}
+              </section>}
+
               <div className="department-chat-composer">
                 <textarea
+                  ref={messageInputRef}
                   rows="2"
                   value={messageText}
                   onChange={(event) => setMessageText(event.target.value)}
@@ -659,7 +714,7 @@ export default function DepartmentChatPage() {
 
                 <div className="department-chat-composer-footer">
                   <div className="department-chat-tools">
-                    <button type="button" title="Emoji">
+                    <button type="button" title="Emoji" aria-label="Emoji" aria-expanded={emojiOpen} disabled={sendingMessage} onClick={() => setEmojiOpen(current => !current)}>
                       <Smile size={18} />
                     </button>
 
