@@ -1,0 +1,29 @@
+.fund-campaign-panel { padding: 20px; margin-top: 20px; }
+.fund-campaign-panel button { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #ddd6fe; border-radius: 8px; padding: 9px 12px; color: #6d28d9; background: #faf8ff; cursor: pointer; }
+.fund-campaign-panel button:disabled { opacity: .5; cursor: not-allowed; }
+.fund-campaign-panel button:focus-visible, .fund-campaign-panel input:focus-visible { outline: 3px solid #c4b5fd; outline-offset: 2px; }
+.fund-campaign-panel p { line-height: 1.6; overflow-wrap: anywhere; }
+.fund-campaign-panel [role="alert"] { color: #b91c1c; }
+.fund-campaign-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 16px; }
+.fund-campaign-card { padding: 16px; border: 1px solid #ede9fe; border-radius: 12px; min-width: 0; }
+.fund-campaign-info p { margin: 6px 0; }
+.fund-campaign-info progress { width: 100%; height: 10px; accent-color: #7c3aed; }
+.fund-modal-backdrop { position: fixed; inset: 0; z-index: 1200; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgb(15 23 42 / 45%); }
+.fund-modal { box-sizing: border-box; width: min(100%, 520px); max-height: 90dvh; overflow-y: auto; padding: 24px; border-radius: 16px; background: #fff; box-shadow: 0 20px 60px rgb(15 23 42 / 20%); }
+.fund-modal-wide { width: min(100%, 900px); }
+.fund-modal header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.fund-modal h2 { margin: 0 0 14px; font-size: 22px; }
+.fund-form { border: 0; padding: 0; margin: 0; min-width: 0; }
+.fund-form label, .fund-proof-label { display: block; margin: 14px 0; font-weight: 600; }
+.fund-form input, .fund-proof-label input { display: block; box-sizing: border-box; width: 100%; margin-top: 6px; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font: inherit; }
+.fund-bank-info { white-space: pre-wrap; }
+.fund-contribution { display: grid; grid-template-columns: minmax(180px, 1fr) 1fr 1fr; gap: 12px; border-top: 1px solid #ede9fe; padding: 16px 0; }
+.fund-member { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.fund-member > div { min-width: 0; overflow-wrap: anywhere; }
+.fund-member img, .fund-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+.fund-avatar { display: grid; place-items: center; background: #ede9fe; color: #6d28d9; }
+.fund-member p { margin: 4px 0; }
+.fund-proof { display: block; width: 64px; height: 64px; object-fit: contain; }
+.fund-status { display: inline-block; padding: 4px 8px; border-radius: 8px; background: #f5f3ff; color: #6d28d9; overflow-wrap: anywhere; }
+.fund-row-actions { display: flex; gap: 8px; flex-wrap: wrap; grid-column: 1 / -1; margin-top: 12px; }
+@media (max-width: 620px) { .fund-modal, .fund-campaign-panel { padding: 16px; } .fund-contribution { grid-template-columns: 1fr; } }

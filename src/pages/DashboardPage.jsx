@@ -34,39 +34,7 @@ import Topbar from "../components/Topbar";
 import SpotlightCard from "../components/reactbits/SpotlightCard";
 import SubscriptionPanel from "../components/SubscriptionPanel";
 import API from "../api/api";
-const FINANCE_CHART_DATA = [
-  {
-    month: "T2",
-    income: 54,
-    expense: 32,
-  },
-  {
-    month: "T3",
-    income: 64,
-    expense: 43,
-  },
-  {
-    month: "T4",
-    income: 51,
-    expense: 38,
-  },
-  {
-    month: "T5",
-    income: 75,
-    expense: 49,
-  },
-  {
-    month: "T6",
-    income: 62,
-    expense: 54,
-  },
-  {
-    month: "T7",
-    income: 81,
-    expense: 59,
-  },
-];
-
+import { getFinanceOverview } from "../api/financeApi";
 const TASK_PROGRESS_DATA = [
   {
     name: "Completed",
@@ -106,6 +74,23 @@ export default function DashboardPage() {
 
   const [data, setData] = useState(INITIAL_DASHBOARD);
   const [loading, setLoading] = useState(true);
+
+  const [financeChart, setFinanceChart] = useState([]);
+  const [financeError, setFinanceError] = useState('');
+  const [financeLoading, setFinanceLoading] = useState(true);
+  const [financeRevision, setFinanceRevision] = useState(0);
+  useEffect(() => {
+    let active = true;
+    const controller = new AbortController();
+    setFinanceLoading(true); setFinanceChart([]); setFinanceError('');
+    getFinanceOverview(clubId, 6, controller.signal).then(result => {
+      if (!active || Number(localStorage.getItem('selectedClubId')) !== clubId) return;
+      if (!Array.isArray(result?.labels) || !Array.isArray(result.incomeData) || !Array.isArray(result.expenseData) || result.labels.length !== result.incomeData.length || result.labels.length !== result.expenseData.length || ![...result.incomeData, ...result.expenseData].every(Number.isFinite)) throw new Error('Invalid finance chart response.');
+      setFinanceChart(result.labels.map((month, index) => ({ month, income: result.incomeData[index] / 1000000, expense: result.expenseData[index] / 1000000 })));
+    }).catch(error => { if (active) setFinanceError(error.response?.data?.message || error.message || 'Cannot load finance chart.'); })
+      .finally(() => { if (active) setFinanceLoading(false); });
+    return () => { active = false; controller.abort(); };
+  }, [clubId, financeRevision]);
 
   const loadDashboard = useCallback(async () => {
     if (!clubId || !userId) {
@@ -384,10 +369,11 @@ export default function DashboardPage() {
                     </span>
                   </div>
 
+                  {financeError ? <p role="alert">{financeError} <button onClick={() => setFinanceRevision(value => value + 1)}>Retry</button></p> : financeLoading ? <p>Loading finance chart...</p> : !financeChart.length && <p>No finance data available.</p>}
                   <div className="dashboard-finance-chart-content">
                     <ResponsiveContainer width="100%" height={360}>
                       <BarChart
-                        data={FINANCE_CHART_DATA}
+                        data={financeChart}
                         barGap={10}
                         barCategoryGap="38%"
                         margin={{
@@ -412,7 +398,7 @@ export default function DashboardPage() {
                           dy={10}
                         />
 
-                        <YAxis hide domain={[0, 100]} />
+                        <YAxis hide />
 
                         <Tooltip
                           cursor={{

@@ -1,0 +1,13 @@
+.finance-page .finance-api-chart { height: 280px; min-width: 0; width: 100%; }
+.finance-page .finance-api-skeleton { min-height: 40px; background: #f5f3ff; border-radius: 10px; padding: 14px; }
+.finance-page .finance-api-pagination { display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding: 16px; }
+.finance-page .finance-api-pagination button, .finance-page [role="alert"] button { border: 1px solid #ddd6fe; border-radius: 8px; padding: 8px 12px; background: #faf8ff; color: #6d28d9; cursor: pointer; }
+.finance-page button:disabled { opacity: .5; cursor: not-allowed; }
+.finance-page [role="alert"] { color: #b91c1c; }
+.finance-page .finance-fund-blocker { padding: 20px; margin-top: 20px; }
+.finance-page .finance-fund-blocker p { color: #64748b; line-height: 1.6; }
+.finance-page .finance-status.cancelled { background: #fee2e2; color: #b91c1c; }
+.finance-page .finance-table-filters { flex-wrap: wrap; }
+.finance-page .finance-table-filters > .sclub-glide-field { width: 160px; }
+.finance-modal fieldset { margin: 0; border: 0; min-width: 0; }
+@media (max-width: 620px) { .finance-page .finance-api-pagination { justify-content: center; flex-wrap: wrap; } }

@@ -40,6 +40,8 @@ export default function SubscriptionPanel() {
   const { state } = useLocation();
   const paymentCallback = state?.paymentCallback;
   const callbackRequest = useRef(null);
+  const restoreRequest = useRef(null);
+  const [pollRevision, setPollRevision] = useState(0);
   const [packages, setPackages] = useState([]);
   const [packagesLoading, setPackagesLoading] = useState(false);
   const [packagesError, setPackagesError] = useState("");
@@ -60,10 +62,17 @@ export default function SubscriptionPanel() {
   const busy = useRef(false);
   const cancelBusy = useRef(false);
   const pollStop = useRef(() => {});
-  const identity =
+  const [identity, setIdentity] = useState(() =>
     localStorage.getItem("selectedClubId") +
     ":" +
-    localStorage.getItem("userId");
+    localStorage.getItem("userId"));
+  const pendingKey = `sclub-pending-order:${identity}`;
+  useEffect(() => {
+    const sync = () => setIdentity(localStorage.getItem('selectedClubId') + ':' + localStorage.getItem('userId'));
+    const timer = setInterval(sync, 500);
+    window.addEventListener('storage', sync);
+    return () => { clearInterval(timer); window.removeEventListener('storage', sync); };
+  }, []);
   const isCurrent = useCallback(
     () =>
       mounted.current &&
@@ -112,6 +121,7 @@ export default function SubscriptionPanel() {
 
   useEffect(() => {
     mounted.current = true;
+    setPaymentOrder(null); setPaymentModalOpen(false); setPackagesOpen(false); setPollError('');
     loadSubscription();
     loadPermission();
     return () => {
@@ -123,6 +133,9 @@ export default function SubscriptionPanel() {
   const finishOrder = useCallback(
     (order) => {
       setPaymentOrder(order);
+      if (['PAID', 'CANCELLED', 'EXPIRED'].includes(order.status)) {
+        try { sessionStorage.removeItem(pendingKey); } catch { /* Payment status still comes from backend. */ }
+      }
       if (order.status === "PAID") {
         setPaymentModalOpen(false);
         setPackagesOpen(false);
@@ -137,8 +150,26 @@ export default function SubscriptionPanel() {
         );
       }
     },
-    [loadSubscription],
+    [loadSubscription, pendingKey],
   );
+
+  useEffect(() => {
+    if (paymentCallback || paymentOrder?.orderCode) return;
+    let active = true;
+    let code;
+    try { code = sessionStorage.getItem(pendingKey); } catch { return; }
+    if (!code || !/^\d+$/.test(code)) return;
+    const key = `${identity}:${code}`;
+    if (restoreRequest.current?.key !== key) restoreRequest.current = { key, promise: getPaymentOrder(code) };
+    restoreRequest.current.promise.then(order => {
+      if (!active || !isCurrent()) return;
+      const [clubId, userId] = identity.split(':');
+      if (String(order.clubId) !== clubId || String(order.userId) !== userId) throw new Error('Đơn không thuộc người dùng hoặc câu lạc bộ hiện tại.');
+      if (order.status === 'PENDING') { setPaymentOrder(order); setPaymentModalOpen(true); }
+      else finishOrder(order);
+    }).catch(error => { if (active && isCurrent()) setPollError(getApiError(error, error.message || 'Không thể khôi phục đơn thanh toán.')); });
+    return () => { active = false; };
+  }, [identity, pendingKey, paymentCallback, isCurrent, finishOrder, pollRevision, paymentOrder?.orderCode]);
 
   const callbackOrderCode = paymentCallback?.orderCode;
   const callbackIsCancel = paymentCallback?.isCancel;
@@ -180,6 +211,7 @@ export default function SubscriptionPanel() {
         setPollError("");
         setPaymentOrder(order);
         if (order.status === "PENDING") {
+          try { sessionStorage.setItem(pendingKey, String(order.orderCode)); } catch { /* Optional reconnect storage. */ }
           setPaymentModalOpen(true);
           if (callbackIsCancel)
             toast.warning("Đơn vẫn đang chờ thanh toán. Vui lòng thử hủy lại.");
@@ -207,13 +239,13 @@ export default function SubscriptionPanel() {
     isCurrent,
     finishOrder,
     navigate,
+    pendingKey,
   ]);
 
   const orderCode = paymentOrder?.orderCode;
   const orderStatus = paymentOrder?.status;
   useEffect(() => {
     if (
-      !paymentModalOpen ||
       !orderCode ||
       orderStatus !== "PENDING" ||
       cancelLoading
@@ -221,6 +253,7 @@ export default function SubscriptionPanel() {
       return;
     let active = true;
     let timer;
+    let failures = 0;
     const controller = new AbortController();
     const stop = () => {
       active = false;
@@ -233,6 +266,7 @@ export default function SubscriptionPanel() {
         const order = await getPaymentOrder(orderCode, controller.signal);
         if (!active || !isCurrent()) return;
         setPollError("");
+        failures = 0;
         if (["PAID", "CANCELLED", "EXPIRED"].includes(order.status)) {
           stop();
           trackPaymentEvent("complete_payment", order);
@@ -242,21 +276,23 @@ export default function SubscriptionPanel() {
         setPaymentOrder(order);
       } catch (error) {
         if (!active || !isCurrent()) return;
+        failures += 1;
         setPollError(
-          getApiError(error, "Không thể kiểm tra thanh toán. Đang thử lại…"),
+          getApiError(error, failures >= 6 ? "Đã tạm dừng kiểm tra thanh toán. Vui lòng thử lại." : "Không thể kiểm tra thanh toán. Đang thử lại…"),
         );
+        if ([401, 403, 404].includes(error.response?.status) || failures >= 6) return;
       }
-      if (active && isCurrent()) timer = setTimeout(poll, 2000);
+      if (active && isCurrent()) timer = setTimeout(poll, Math.min(30000, 2000 * 2 ** failures));
     }
     timer = setTimeout(poll, 2000);
     return stop;
   }, [
-    paymentModalOpen,
     orderCode,
     orderStatus,
     cancelLoading,
     finishOrder,
     isCurrent,
+    pollRevision,
   ]);
 
   async function openPackages() {
@@ -303,6 +339,9 @@ export default function SubscriptionPanel() {
       if (!isCurrent()) return;
       setPollError("");
       setPaymentOrder(order);
+      if (order.status === 'PENDING') {
+        try { sessionStorage.setItem(pendingKey, String(order.orderCode)); } catch { /* Optional reconnect storage. */ }
+      }
       trackPaymentEvent("initiate_transaction", order);
       setPaymentModalOpen(true);
       if (order.status !== "PENDING") finishOrder(order);
@@ -412,6 +451,8 @@ export default function SubscriptionPanel() {
       ) : (
         !permissionLoading && !canPay && <p>{PERMISSION_MESSAGE}</p>
       )}
+      {!paymentModalOpen && paymentOrder?.status === 'PENDING' && <button type="button" onClick={() => setPaymentModalOpen(true)}>Mở lại đơn đang chờ</button>}
+      {pollError && !paymentModalOpen && <p role="alert">{pollError} <button type="button" onClick={() => { restoreRequest.current = null; setPollRevision(value => value + 1); }}>Thử lại</button></p>}
       {packagesOpen && (
         <div className="package-section">
           <div className="subscription-heading">
@@ -524,9 +565,11 @@ export default function SubscriptionPanel() {
             {pollError && (
               <p className="payment-error" role="alert">
                 {pollError}
+                <button type="button" onClick={() => setPollRevision(value => value + 1)}>Thử lại</button>
               </p>
             )}
             <div className="payment-actions">
+              <button type="button" disabled={cancelLoading} onClick={() => setPaymentModalOpen(false)}>Đóng</button>
               {paymentOrder.status === "PENDING" ? (
                 <button
                   type="button"
@@ -537,13 +580,7 @@ export default function SubscriptionPanel() {
                   {cancelLoading ? "Đang hủy…" : "Hủy thanh toán"}
                 </button>
               ) : (
-                <button
-                  type="button"
-                  autoFocus
-                  onClick={() => setPaymentModalOpen(false)}
-                >
-                  Đóng
-                </button>
+                null
               )}
             </div>
           </section>
