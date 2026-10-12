@@ -61,9 +61,9 @@ export default function Footer() {
           <div>
             <h4>PRODUCT</h4>
 
-            <a href="#">Landing Page</a>
+            <a href="./landing">Landing Page</a>
 
-            <a href="#">Pricing</a>
+            <a href="./pricing">Pricing</a>
 
             <a href="#">Global Feed</a>
           </div>
@@ -75,7 +75,7 @@ export default function Footer() {
 
             <a href="#">Recruitment</a>
 
-            <a href="#">Terms</a>
+            <a href="./terms">Terms</a>
           </div>
 
           <div>
@@ -96,7 +96,7 @@ export default function Footer() {
           <span>© 2026 S-Club. All rights reserved.</span>
 
           <div className="footer-policy">
-            <a href="#">Privacy Policy</a>
+            <a href="./privacy">Privacy Policy</a>
             <a href="#">Cookie Policy</a>
           </div>
         </div>
