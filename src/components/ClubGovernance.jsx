@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import GlideSelectField from './reactbits/GlideSelectField';
-import { getClubDetail, getClubMembers, transferClubPresident } from '../api/clubApi';
+import { getClubDetail, getClubMembers, transferClubPresident, deleteClub } from '../api/clubApi';
 import { ArrowRightLeft, TriangleAlert } from 'lucide-react';
 import { getApiError } from '../utils/getApiError';
 import './ClubGovernance.css';
@@ -104,6 +104,38 @@ export default function ClubGovernance() {
       if (transferred && currentContext()) navigate('/home', { replace: true });
     }
   };
+  const runDelete = async () => {
+    if (lock.current || !president || confirmation?.operation !== 'delete' || !club?.name || deleteName !== club.name || localStorage.getItem('selectedClubRole') !== context.role) return;
+    const request = generation.current;
+    const confirmedName = club.name;
+    lock.current = true; setBusy(true); setError('');
+    try {
+      const [latestClub, data] = await Promise.all([getClubDetail(clubId), getClubMembers(clubId)]);
+      if (request !== generation.current || !currentContext() || localStorage.getItem('selectedClubRole') !== context.role) return;
+      const list = Array.isArray(data) ? data : data?.content || data?.members || data?.data;
+      if (!Array.isArray(list)) throw new Error('Cannot verify current club permissions.');
+      const requester = list.find(member => String(memberUserId(member)) === userId);
+      const latestRole = String(requester?.role ?? requester?.memberRole ?? '').toUpperCase();
+      if (latestRole !== 'PRESIDENT') { setRole(latestRole); setConfirmation(null); throw new Error('Only the current PRESIDENT can delete this club.'); }
+      if (latestClub?.name !== confirmedName) { setClub(latestClub); setDeleteName(''); throw new Error('The club name has changed. Enter the current name to confirm deletion.'); }
+      await deleteClub(Number(clubId), Number(userId));
+      try { sessionStorage.removeItem(`sclub-pending-order:${clubId}:${userId}`); } catch { /* Optional payment recovery storage. */ }
+      if (request !== generation.current || !currentContext()) return;
+      // Invalidate in-flight reads before clearing the deleted club selection.
+      generation.current += 1;
+      setConfirmation(null); setClub(null); setMembers([]); setVerifiedContext(null);
+      ['selectedClubId', 'selectedClubName', 'selectedClubRole'].forEach(key => localStorage.removeItem(key));
+      toast.success('Club deleted successfully!');
+      // SelectClubPage mounts with fresh GET user-clubs/all-clubs requests.
+      navigate('/select-club', { replace: true });
+    } catch (err) {
+      if (request === generation.current && currentContext()) {
+        const message = getApiError(err, err.message || 'Cannot delete this club.');
+        setError(message); toast.error(message);
+        if (err.response?.status === 403) await load().catch(() => { setVerifiedContext(null); setConfirmation(null); });
+      }
+    } finally { lock.current = false; setBusy(false); }
+  };
   if (!president) return null;
   return <section className="setting-card club-governance">
     <h2>Club Management</h2>
@@ -127,9 +159,9 @@ export default function ClubGovernance() {
         <p>Permanently delete <strong>{club.name}</strong> and its associated data. This action cannot be undone.</p>
         <label htmlFor="club-delete-name">Type the exact club name to confirm: <strong>{club.name}</strong></label>
         <input id="club-delete-name" autoFocus value={deleteName} onChange={e => setDeleteName(e.target.value)} autoComplete="off" disabled={busy} />
-        <p role="alert">Club deletion is unavailable until the backend API contract is confirmed.</p>
+        {error && <p role="alert">{error}</p>}
       </> : <><h2>Confirm operation</h2><p>{confirmation.message}</p></>}
-      <div className="club-confirm-actions"><button disabled={busy} onClick={() => setConfirmation(null)}>Cancel</button>{confirmation.operation === 'delete' ? <button className="club-delete-button" disabled title={deleteName === club.name ? 'Awaiting verified Delete Club API contract' : 'Enter the exact club name'}>Delete Club</button> : <button disabled={busy} onClick={run}>{busy ? 'Processing...' : 'Confirm'}</button>}</div>
+      <div className="club-confirm-actions"><button disabled={busy} onClick={() => setConfirmation(null)}>Cancel</button>{confirmation.operation === 'delete' ? <button className="club-delete-button" disabled={busy || !club?.name || deleteName !== club.name} onClick={runDelete}>{busy ? 'Deleting...' : 'Delete Club'}</button> : <button disabled={busy} onClick={run}>{busy ? 'Processing...' : 'Confirm'}</button>}</div>
     </div></div>}
   </section>;
 }

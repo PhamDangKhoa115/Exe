@@ -103,7 +103,7 @@ export default function FinancePage() {
       }),
       apply('transactions', () => getFinanceTransactions(clubId, { search, type: typeFilter === 'ALL' ? undefined : typeFilter, category: categoryFilter === 'ALL' ? undefined : categoryFilter, status: statusFilter === 'ALL' ? undefined : statusFilter, page, size: 10 }, controller.signal), data => {
         if (!Array.isArray(data?.content) || !Number.isInteger(data.totalPages) || !Number.isFinite(data.totalElements)) throw new Error('Invalid transaction page response.');
-        setTransactions(data.content.map(row => ({ ...row, title: row.description, categoryLabel: row.category, date: row.createdAt ? new Date(row.createdAt).toLocaleString('vi-VN') : '—', createdBy: row.createdByName })));
+        setTransactions(data.content.map(row => ({ ...row, title: row.description, categoryLabel: row.category, date: row.createdAt ? new Date(row.createdAt).toLocaleString('en-US') : '—', createdBy: row.createdByName })));
         setPagination(data);
         if (data.totalPages > 0 && page >= data.totalPages) setPage(data.totalPages - 1);
       }),
@@ -554,7 +554,7 @@ function FinanceModal({ form, setForm, editing, busy, onClose, onSave }) {
 
 function formatMoney(value) {
   if (value == null || !Number.isFinite(Number(value))) return "—";
-  return new Intl.NumberFormat("vi-VN", {
+  return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "VND",
     maximumFractionDigits: 0,

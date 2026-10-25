@@ -329,14 +329,14 @@ function formatRole(role, isSelectClubPage) {
   }
 
   const labels = {
-    PRESIDENT: "CLB MANAGER",
-    CLUB_MANAGER: "CLB MANAGER",
+    PRESIDENT: "CLUB MANAGER",
+    CLUB_MANAGER: "CLUB MANAGER",
     DEPARTMENT_HEAD: "DEPARTMENT HEAD",
     TREASURER: "TREASURER",
     MEMBER: "MEMBER",
   };
 
-  return labels[String(role || "").toUpperCase()] || "CLB MEMBER";
+  return labels[String(role || "").toUpperCase()] || "CLUB MEMBER";
 }
 function getInitials(name) {
   if (!name) return "?";
@@ -377,7 +377,7 @@ function formatNotificationTime(value) {
 
   if (!date) return "";
 
-  return date.toLocaleTimeString("vi-VN", {
+  return date.toLocaleTimeString("en-US", {
     timeZone: "Asia/Ho_Chi_Minh",
     hour: "2-digit",
     minute: "2-digit",

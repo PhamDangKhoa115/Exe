@@ -94,7 +94,7 @@ export default function DashboardPage() {
 
   const loadDashboard = useCallback(async () => {
     if (!clubId || !userId) {
-      toast.error("Không tìm thấy thông tin người dùng hoặc câu lạc bộ.");
+      toast.error("User or club information is missing.");
       setLoading(false);
       return;
     }
@@ -136,7 +136,7 @@ export default function DashboardPage() {
       toast.error(
         error.response?.data?.message ||
           error.response?.data?.error ||
-          "Không thể tải dữ liệu Dashboard.",
+          "Unable to load dashboard data.",
       );
     } finally {
       setLoading(false);
@@ -232,45 +232,45 @@ export default function DashboardPage() {
   }, [data]);
   const memberChartData = [
     {
-      name: "Tổng thành viên",
+      name: "Total Members",
       value: statistics.totalMembers,
     },
     {
-      name: "Mới trong tháng",
+      name: "New This Month",
       value: statistics.newMembersThisMonth,
     },
     {
-      name: "Chờ duyệt",
+      name: "Pending Approval",
       value: statistics.pendingApplications,
     },
   ];
 
   const eventChartData = [
     {
-      name: "Sắp diễn ra",
+      name: "Upcoming",
       value: statistics.upcomingEvents,
     },
     {
-      name: "Trong tuần",
+      name: "This Week",
       value: statistics.eventsThisWeek,
     },
     {
-      name: "Cần chuẩn bị",
+      name: "Preparation Needed",
       value: statistics.eventsNeedPreparation,
     },
   ];
 
   const taskChartData = [
     {
-      name: "Chưa hoàn thành",
+      name: "Incomplete",
       value: statistics.incompleteTasks,
     },
     {
-      name: "Quá hạn",
+      name: "Overdue",
       value: statistics.overdueTasks,
     },
     {
-      name: "Đến hạn tuần này",
+      name: "Due This Week",
       value: statistics.tasksDueThisWeek,
     },
   ];
@@ -685,7 +685,7 @@ function TaskDashboardItem({ task }) {
         <span className={overdue ? "danger-text" : ""}>
           <Clock3 size={13} />
 
-          {task.dueDate ? formatDateTime(task.dueDate) : "Chưa có thời hạn"}
+          {task.dueDate ? formatDateTime(task.dueDate) : "No deadline"}
         </span>
 
         <small>{task.assignedUserName || `User #${task.assignedUserId}`}</small>
@@ -798,7 +798,7 @@ function isValidDate(date) {
 }
 
 function formatCurrentDate(date) {
-  return date.toLocaleDateString("vi-VN", {
+  return date.toLocaleDateString("en-US", {
     weekday: "long",
     day: "2-digit",
     month: "2-digit",
@@ -807,13 +807,13 @@ function formatCurrentDate(date) {
 }
 
 function formatDateTime(value) {
-  if (!value) return "Không rõ";
+  if (!value) return "Unknown";
 
   const date = new Date(value);
 
-  if (!isValidDate(date)) return "Không rõ";
+  if (!isValidDate(date)) return "Unknown";
 
-  return date.toLocaleString("vi-VN", {
+  return date.toLocaleString("en-US", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -839,7 +839,7 @@ function FinanceTooltip({ active, payload, label }) {
           />
 
           <p>
-            {item.name}: <strong>{item.value} triệu</strong>
+            {item.name}: <strong>{item.value} million</strong>
           </p>
         </div>
       ))}
@@ -872,12 +872,12 @@ function TaskTooltip({ active, payload }) {
 }
 function formatRole(role) {
   const labels = {
-    PRESIDENT: "Chủ nhiệm",
-    TREASURER: "Thủ quỹ",
-    MEMBER: "Thành viên",
+    PRESIDENT: "President",
+    TREASURER: "Treasurer",
+    MEMBER: "Member",
   };
 
-  return labels[role] || role || "Thành viên";
+  return labels[role] || role || "Member";
 }
 
 function getInitials(fullName) {

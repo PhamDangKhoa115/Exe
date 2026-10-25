@@ -1244,7 +1244,7 @@ function formatMessageTime(value) {
 
   if (!date) return "";
 
-  return date.toLocaleTimeString("vi-VN", {
+  return date.toLocaleTimeString("en-US", {
     timeZone: "Asia/Ho_Chi_Minh",
     hour: "2-digit",
     minute: "2-digit",

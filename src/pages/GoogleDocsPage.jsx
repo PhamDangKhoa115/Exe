@@ -315,7 +315,7 @@ export default function GoogleDocsPage() {
 
                 {documentTypes.map((item) => (
                   <option key={item.value} value={item.value}>
-                    {item.displayName}
+                    {TYPE_LABELS[item.value] || item.displayName}
                   </option>
                 ))}
               </GlideSelectField>
@@ -549,7 +549,7 @@ export default function GoogleDocsPage() {
 
                       <div className="document-card-meta">
                         <span>
-                          Người tạo: {document.createdByName || "unknown user"}
+                          Created by: {document.createdByName || "unknown user"}
                         </span>
 
                         <span>
@@ -820,7 +820,7 @@ function getSyncLabel(status) {
 function formatDate(value) {
   if (!value) return "No date available";
 
-  return new Date(value).toLocaleString("vi-VN", {
+  return new Date(value).toLocaleString("en-US", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -832,7 +832,7 @@ function formatDate(value) {
 function formatWorkspaceDate(value) {
   if (!value) return "No date available";
 
-  return new Date(value).toLocaleDateString("vi-VN", {
+  return new Date(value).toLocaleDateString("en-US", {
     day: "2-digit",
     month: "short",
     year: "numeric",

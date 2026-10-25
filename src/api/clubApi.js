@@ -44,6 +44,10 @@ export async function getClubDetail(clubId) {
   return extractData(response);
 }
 
+export async function deleteClub(clubId = getRequiredClubId(), userId = getRequiredUserId()) {
+  return (await API.delete(`/api/clubs/${encodeURIComponent(clubId)}`, { params: { userId } })).data;
+}
+
 export async function joinClub(clubId) {
   const userId = getRequiredUserId();
 

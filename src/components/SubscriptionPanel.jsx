@@ -14,18 +14,18 @@ import { getApiError } from "../utils/getApiError";
 import "./SubscriptionPanel.css";
 
 const PERMISSION_MESSAGE =
-  "Chỉ Chủ nhiệm câu lạc bộ mới có quyền gia hạn/thanh toán gói dịch vụ";
+  "Only the club president can purchase or renew a subscription.";
 const money = (value) =>
-  Number(value).toLocaleString("vi-VN", { style: "currency", currency: "VND" });
+  Number(value).toLocaleString("en-US", { style: "currency", currency: "VND" });
 function date(value) {
   const parsed = new Date(value);
   return value && !Number.isNaN(parsed.getTime())
-    ? parsed.toLocaleDateString("vi-VN", {
+    ? parsed.toLocaleDateString("en-US", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
       })
-    : "Không rõ";
+    : "Unknown";
 }
 function secureUrl(value) {
   try {
@@ -95,7 +95,7 @@ export default function SubscriptionPanel() {
       if (error.response?.status === 404) setSubscription(null);
       else
         setSubscriptionError(
-          getApiError(error, "Không thể tải gói dịch vụ hiện tại."),
+          getApiError(error, "Unable to load the current subscription."),
         );
     } finally {
       if (isCurrent()) setSubscriptionLoading(false);
@@ -112,7 +112,7 @@ export default function SubscriptionPanel() {
     } catch (error) {
       if (isCurrent())
         setPermissionError(
-          getApiError(error, "Không thể kiểm tra quyền thanh toán."),
+          getApiError(error, "Unable to check payment permission."),
         );
     } finally {
       if (isCurrent()) setPermissionLoading(false);
@@ -139,14 +139,14 @@ export default function SubscriptionPanel() {
       if (order.status === "PAID") {
         setPaymentModalOpen(false);
         setPackagesOpen(false);
-        toast.success("Thanh toán thành công! Gói dịch vụ đã được cập nhật.");
+        toast.success("Payment successful! Your subscription has been updated.");
         loadSubscription();
       } else if (order.status === "CANCELLED") {
         setPaymentModalOpen(false);
-        toast.info("Thanh toán đã được hủy");
+        toast.info("Payment cancelled.");
       } else if (order.status === "EXPIRED") {
         toast.warning(
-          "Đơn thanh toán đã hết hạn. Bạn có thể chọn gói để thanh toán lại.",
+          "This payment order has expired. Select a plan to try again.",
         );
       }
     },
@@ -164,10 +164,10 @@ export default function SubscriptionPanel() {
     restoreRequest.current.promise.then(order => {
       if (!active || !isCurrent()) return;
       const [clubId, userId] = identity.split(':');
-      if (String(order.clubId) !== clubId || String(order.userId) !== userId) throw new Error('Đơn không thuộc người dùng hoặc câu lạc bộ hiện tại.');
+      if (String(order.clubId) !== clubId || String(order.userId) !== userId) throw new Error('This order does not belong to the current user or club.');
       if (order.status === 'PENDING') { setPaymentOrder(order); setPaymentModalOpen(true); }
       else finishOrder(order);
-    }).catch(error => { if (active && isCurrent()) setPollError(getApiError(error, error.message || 'Không thể khôi phục đơn thanh toán.')); });
+    }).catch(error => { if (active && isCurrent()) setPollError(getApiError(error, error.message || 'Unable to restore the payment order.')); });
     return () => { active = false; };
   }, [identity, pendingKey, paymentCallback, isCurrent, finishOrder, pollRevision, paymentOrder?.orderCode]);
 
@@ -178,7 +178,7 @@ export default function SubscriptionPanel() {
     if (!hasCallback) return;
     let active = true;
     if (!callbackOrderCode) {
-      toast.error("Mã đơn thanh toán không hợp lệ.");
+      toast.error("Invalid payment order code.");
       navigate("/dashboard#subscription", { replace: true, state: null });
       return;
     }
@@ -194,7 +194,7 @@ export default function SubscriptionPanel() {
             String(order.userId) !== localStorage.getItem("userId")
           ) {
             throw new Error(
-              "Đơn thanh toán không thuộc người dùng hoặc câu lạc bộ hiện tại.",
+              "This payment order does not belong to the current user or club.",
             );
           }
           if (callbackIsCancel && order.status === "PENDING") {
@@ -214,7 +214,7 @@ export default function SubscriptionPanel() {
           try { sessionStorage.setItem(pendingKey, String(order.orderCode)); } catch { /* Optional reconnect storage. */ }
           setPaymentModalOpen(true);
           if (callbackIsCancel)
-            toast.warning("Đơn vẫn đang chờ thanh toán. Vui lòng thử hủy lại.");
+            toast.warning("This order is still pending payment. Please try cancelling again.");
         } else {
           trackPaymentEvent("complete_payment", order);
           finishOrder(order);
@@ -224,7 +224,7 @@ export default function SubscriptionPanel() {
       .catch((error) => {
         if (!active || !isCurrent()) return;
         toast.error(
-          getApiError(error, error.message || "Không thể xác minh thanh toán."),
+          getApiError(error, error.message || "Unable to verify payment."),
         );
         navigate("/dashboard#subscription", { replace: true, state: null });
       });
@@ -278,7 +278,7 @@ export default function SubscriptionPanel() {
         if (!active || !isCurrent()) return;
         failures += 1;
         setPollError(
-          getApiError(error, failures >= 6 ? "Đã tạm dừng kiểm tra thanh toán. Vui lòng thử lại." : "Không thể kiểm tra thanh toán. Đang thử lại…"),
+          getApiError(error, failures >= 6 ? "Payment checks have been paused. Please retry." : "Unable to check payment status. Retrying…"),
         );
         if ([401, 403, 404].includes(error.response?.status) || failures >= 6) return;
       }
@@ -304,13 +304,13 @@ export default function SubscriptionPanel() {
       const data = await getPackages();
       if (isCurrent()) {
         if (!Array.isArray(data))
-          throw new Error("Dữ liệu gói dịch vụ không hợp lệ.");
+          throw new Error("Invalid subscription plan data.");
         setPackages(data);
       }
     } catch (error) {
       if (isCurrent())
         setPackagesError(
-          getApiError(error, "Không thể tải danh sách gói dịch vụ."),
+          getApiError(error, "Unable to load subscription plans."),
         );
     } finally {
       if (isCurrent()) setPackagesLoading(false);
@@ -348,7 +348,7 @@ export default function SubscriptionPanel() {
     } catch (error) {
       if (isCurrent()) {
         if ([400, 403].includes(error.response?.status)) loadPermission();
-        toast.error(getApiError(error, "Không thể tạo đơn thanh toán."));
+        toast.error(getApiError(error, "Unable to create a payment order."));
       }
     } finally {
       busy.current = false;
@@ -370,14 +370,14 @@ export default function SubscriptionPanel() {
         finishOrder(order);
       } else {
         setPaymentOrder(order);
-        toast.warning("Đơn vẫn đang chờ thanh toán. Vui lòng thử hủy lại.");
+        toast.warning("This order is still pending payment. Please try cancelling again.");
       }
     } catch (error) {
       if (isCurrent())
         toast.error(
           getApiError(
             error,
-            "Không thể hủy thanh toán. Đang tiếp tục kiểm tra trạng thái.",
+            "Unable to cancel payment. Continuing to check its status.",
           ),
         );
     } finally {
@@ -390,7 +390,7 @@ export default function SubscriptionPanel() {
   return (
     <article className="subscription-panel dashboard-panel" id="subscription">
       <div className="subscription-heading">
-        <h2>Gói dịch vụ câu lạc bộ</h2>
+        <h2>Club Subscription</h2>
         <button
           type="button"
           className="subscription-button"
@@ -403,39 +403,39 @@ export default function SubscriptionPanel() {
           onClick={openPackages}
           title={!canPay ? PERMISSION_MESSAGE : undefined}
         >
-          {permissionLoading ? "Đang kiểm tra quyền…" : "Nâng cấp / Gia hạn"}
+          {permissionLoading ? "Checking permission…" : "Upgrade / Renew"}
         </button>
       </div>
       {subscriptionLoading ? (
-        <p>Đang tải gói dịch vụ…</p>
+        <p>Loading subscription…</p>
       ) : subscriptionError ? (
         <p role="alert">
           {subscriptionError}{" "}
           <button type="button" onClick={loadSubscription}>
-            Thử lại
+            Retry
           </button>
         </p>
       ) : subscription ? (
         <dl className="subscription-details">
           <div>
-            <dt>Gói hiện tại</dt>
+            <dt>Current Plan</dt>
             <dd>{subscription.packageName}</dd>
           </div>
           <div>
-            <dt>Trạng thái</dt>
+            <dt>Status</dt>
             <dd>{subscription.status}</dd>
           </div>
           <div>
-            <dt>Từ ngày</dt>
+            <dt>Start Date</dt>
             <dd>{date(subscription.startDate)}</dd>
           </div>
           <div>
-            <dt>Đến ngày</dt>
+            <dt>End Date</dt>
             <dd>{date(subscription.endDate)}</dd>
           </div>
         </dl>
       ) : (
-        <p>CLB hiện chưa có gói dịch vụ đang hoạt động.</p>
+        <p>This club does not have an active subscription.</p>
       )}
       {permissionError ? (
         <p role="alert">
@@ -445,44 +445,44 @@ export default function SubscriptionPanel() {
             onClick={loadPermission}
             disabled={permissionLoading}
           >
-            Thử lại
+            Retry
           </button>
         </p>
       ) : (
         !permissionLoading && !canPay && <p>{PERMISSION_MESSAGE}</p>
       )}
-      {!paymentModalOpen && paymentOrder?.status === 'PENDING' && <button type="button" onClick={() => setPaymentModalOpen(true)}>Mở lại đơn đang chờ</button>}
-      {pollError && !paymentModalOpen && <p role="alert">{pollError} <button type="button" onClick={() => { restoreRequest.current = null; setPollRevision(value => value + 1); }}>Thử lại</button></p>}
+      {!paymentModalOpen && paymentOrder?.status === 'PENDING' && <button type="button" onClick={() => setPaymentModalOpen(true)}>Reopen Pending Order</button>}
+      {pollError && !paymentModalOpen && <p role="alert">{pollError} <button type="button" onClick={() => { restoreRequest.current = null; setPollRevision(value => value + 1); }}>Retry</button></p>}
       {packagesOpen && (
         <div className="package-section">
           <div className="subscription-heading">
-            <h3>Chọn gói dịch vụ</h3>
+            <h3>Choose a Plan</h3>
             <button
               type="button"
               disabled={paymentLoading || paymentModalOpen}
               onClick={() => setPackagesOpen(false)}
             >
-              Đóng danh sách
+              Close Plans
             </button>
           </div>
           {packagesLoading ? (
-            <p>Đang tải danh sách gói…</p>
+            <p>Loading plans…</p>
           ) : packagesError ? (
             <p role="alert">
               {packagesError}{" "}
               <button type="button" onClick={openPackages}>
-                Thử lại
+                Retry
               </button>
             </p>
           ) : packages.length === 0 ? (
-            <p>Chưa có gói dịch vụ khả dụng.</p>
+            <p>No subscription plans are available.</p>
           ) : (
             <div className="package-grid">
               {packages.map((item) => (
                 <article className="package-card" key={item.id}>
                   <h3>{item.name}</h3>
                   <strong>{money(item.price)}</strong>
-                  <p>Thời hạn: {item.durationDays} ngày</p>
+                  <p>Duration: {item.durationDays} days</p>
                   <p>{item.description}</p>
                   <p>
                     {Array.isArray(item.features)
@@ -501,8 +501,8 @@ export default function SubscriptionPanel() {
                     }
                   >
                     {paymentLoading && selectedPackage?.id === item.id
-                      ? "Đang tạo đơn…"
-                      : "Thanh toán"}
+                      ? "Creating order…"
+                      : "Pay Now"}
                   </button>
                 </article>
               ))}
@@ -519,13 +519,13 @@ export default function SubscriptionPanel() {
             aria-labelledby="payment-title"
             aria-describedby="payment-status"
           >
-            <h2 id="payment-title">Thanh toán gói dịch vụ</h2>
+            <h2 id="payment-title">Subscription Payment</h2>
             <h3>{paymentOrder.packageName}</h3>
             <strong>{money(paymentOrder.amount)}</strong>
-            <p>Phương thức: {paymentOrder.paymentMethod}</p>
-            <p>Mã đơn: {paymentOrder.orderCode}</p>
+            <p>Method: {paymentOrder.paymentMethod}</p>
+            <p>Order Code: {paymentOrder.orderCode}</p>
             <p id="payment-status" aria-live="polite">
-              Trạng thái: {paymentOrder.status}
+              Status: {paymentOrder.status}
             </p>
             {paymentOrder.status === "PENDING" && (
               <>
@@ -533,18 +533,17 @@ export default function SubscriptionPanel() {
                   <img
                     className="payment-qr"
                     src={qrUrl}
-                    alt="Mã QR thanh toán do hệ thống cung cấp"
+                    alt="Payment QR code provided by the system"
                     onError={(event) => {
                       event.currentTarget.hidden = true;
                       setPollError(
-                        "Không tải được mã QR. Vui lòng sử dụng liên kết PayOS nếu có.",
+                        "Unable to load the QR code. Use the PayOS link if available.",
                       );
                     }}
                   />
                 ) : (
                   <p>
-                    Không có mã QR khả dụng. Vui lòng sử dụng liên kết PayOS nếu
-                    có.
+                    No QR code is available. Use the PayOS link if available.
                   </p>
                 )}
                 {checkoutUrl && (
@@ -554,22 +553,22 @@ export default function SubscriptionPanel() {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Thanh toán qua PayOS
+                    Pay with PayOS
                   </a>
                 )}
               </>
             )}
             {paymentOrder.status === "EXPIRED" && (
-              <p>Đơn đã hết hạn. Đóng để chọn gói và tạo đơn mới.</p>
+              <p>This order has expired. Close this dialog to choose a plan and create a new order.</p>
             )}
             {pollError && (
               <p className="payment-error" role="alert">
                 {pollError}
-                <button type="button" onClick={() => setPollRevision(value => value + 1)}>Thử lại</button>
+                <button type="button" onClick={() => setPollRevision(value => value + 1)}>Retry</button>
               </p>
             )}
             <div className="payment-actions">
-              <button type="button" disabled={cancelLoading} onClick={() => setPaymentModalOpen(false)}>Đóng</button>
+              <button type="button" disabled={cancelLoading} onClick={() => setPaymentModalOpen(false)}>Close</button>
               {paymentOrder.status === "PENDING" ? (
                 <button
                   type="button"
@@ -577,7 +576,7 @@ export default function SubscriptionPanel() {
                   onClick={cancel}
                   disabled={cancelLoading}
                 >
-                  {cancelLoading ? "Đang hủy…" : "Hủy thanh toán"}
+                  {cancelLoading ? "Cancelling…" : "Cancel Payment"}
                 </button>
               ) : (
                 null

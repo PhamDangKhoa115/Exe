@@ -8,8 +8,8 @@ import './FundCampaignPanel.css';
 
 const EMPTY = { title: '', amountPerMember: '', deadline: '', bankAccountInfo: '', description: '' };
 const idValid = id => Number.isSafeInteger(Number(id)) && Number(id) > 0;
-const money = value => Number.isFinite(value) ? value.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }) : '—';
-const date = value => value && Number.isFinite(new Date(value).getTime()) ? new Date(value).toLocaleString('vi-VN') : '—';
+const money = value => Number.isFinite(value) ? value.toLocaleString('en-US', { style: 'currency', currency: 'VND' }) : '—';
+const date = value => value && Number.isFinite(new Date(value).getTime()) ? new Date(value).toLocaleString('en-US') : '—';
 function safeUrl(value) { try { const url = new URL(value); return ['http:', 'https:'].includes(url.protocol) && !url.username && !url.password ? url.href : null; } catch { return null; } }
 function campaignValid(data, clubId) {
   return data && idValid(data.id) && String(data.clubId) === String(clubId) && typeof data.title === 'string' && ['amountPerMember','totalMembers','paidMembers','totalCollected','targetAmount'].every(key => Number.isFinite(data[key]));

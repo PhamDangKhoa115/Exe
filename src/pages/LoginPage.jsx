@@ -22,7 +22,7 @@ export default function LoginPage() {
 
   const saveAuthData = (data) => {
     if (!data?.token || !data?.userId) {
-      throw new Error("Backend không trả về token hoặc userId");
+      throw new Error("The server did not return a token or user ID.");
     }
 
     localStorage.setItem("token", data.token);
@@ -118,7 +118,7 @@ export default function LoginPage() {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
     if (!clientId) {
-      console.error("Thiếu VITE_GOOGLE_CLIENT_ID");
+      console.error("VITE_GOOGLE_CLIENT_ID is missing.");
       return;
     }
 
@@ -161,7 +161,7 @@ export default function LoginPage() {
         text: "continue_with",
         shape: "rectangular",
         width: Math.floor(containerWidth),
-        locale: "vi",
+        locale: "en",
       });
     };
 

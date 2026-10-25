@@ -100,7 +100,7 @@ export default function CalendarPage() {
     const clubId = localStorage.getItem("selectedClubId");
 
     if (!clubId) {
-      toast.error("Vui lòng chọn câu lạc bộ trước.");
+      toast.error("Please select a club first.");
 
       setEvents([]);
       return;
@@ -143,7 +143,7 @@ export default function CalendarPage() {
       setEvents(mappedEvents);
 
       setLastSync(
-        new Date().toLocaleTimeString("vi-VN", {
+        new Date().toLocaleTimeString("en-US", {
           hour: "2-digit",
           minute: "2-digit",
         }),
@@ -610,6 +610,7 @@ export default function CalendarPage() {
             )}
             <div className="gcal-box">
               <FullCalendar
+                locale="en"
                 ref={calendarRef}
                 plugins={[
                   dayGridPlugin,
@@ -880,7 +881,7 @@ function formatLocalDate(dateValue) {
 function formatDateTime(value) {
   if (!value) return "";
 
-  return new Date(value).toLocaleString("vi-VN", {
+  return new Date(value).toLocaleString("en-US", {
     weekday: "short",
     day: "2-digit",
     month: "2-digit",

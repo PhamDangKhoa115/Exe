@@ -20,7 +20,7 @@ export default function ConfirmToast({
           onClick={closeToast}
           disabled={loading}
         >
-          Hủy
+          Cancel
         </button>
 
         <button
@@ -29,7 +29,7 @@ export default function ConfirmToast({
           onClick={handleConfirm}
           disabled={loading}
         >
-          {loading ? "Đang xóa..." : "Xóa"}
+          {loading ? "Deleting..." : "Delete"}
         </button>
       </div>
     </div>

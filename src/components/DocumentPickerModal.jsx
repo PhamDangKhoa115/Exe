@@ -157,21 +157,21 @@ export default function DocumentPickerModal({ open, onClose, onSelect }) {
 
           <button
             type="button"
-            onClick={() => toast.info("Tính năng đang phát triển")}
+            onClick={() => toast.info("This feature is under development.")}
           >
             My Drive
           </button>
 
           <button
             type="button"
-            onClick={() => toast.info("Tính năng đang phát triển")}
+            onClick={() => toast.info("This feature is under development.")}
           >
             Shared with me
           </button>
 
           <button
             type="button"
-            onClick={() => toast.info("Tính năng đang phát triển")}
+            onClick={() => toast.info("This feature is under development.")}
           >
             Starred
           </button>
@@ -253,5 +253,5 @@ function getDocumentTypeLabel(type) {
 function formatDate(value) {
   if (!value) return "";
 
-  return new Date(value).toLocaleDateString("vi-VN");
+  return new Date(value).toLocaleDateString("en-US");
 }

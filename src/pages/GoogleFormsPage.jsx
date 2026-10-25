@@ -405,7 +405,7 @@ export default function GoogleFormsPage() {
 
               <FormTemplate title="Registration Form" />
               <FormTemplate title="Member Survey" />
-              <FormTemplate title="CLB Feedback" />
+              <FormTemplate title="Club Feedback" />
               <FormTemplate title="Attendance Sheet" />
             </div>
 
@@ -668,7 +668,7 @@ function FormListRow({
 
       <span className="workspace-list-owner">
         {form.userId === Number(localStorage.getItem("userId"))
-          ? "Tôi"
+          ? "Me"
           : `User ${form.userId}`}
       </span>
 
@@ -804,14 +804,14 @@ function FormCard({
           <GoogleFormsIcon size={21} />
           <span>
             {form.createdAt
-              ? new Date(form.createdAt).toLocaleDateString("vi-VN")
+              ? new Date(form.createdAt).toLocaleDateString("en-US")
               : "Google Form"}
           </span>
 
           <div className="workspace-card-menu">
             <button
               type="button"
-              aria-label={`Mở menu của ${form.title}`}
+              aria-label={`Open menu for ${form.title}`}
               onClick={() => setMenu((current) => !current)}
             >
               <MoreVertical size={18} />
@@ -1137,7 +1137,7 @@ function AddQuestionModal({ form, loading, onClose, onSubmit }) {
 function formatWorkspaceDate(value) {
   if (!value) return "Unknown date";
 
-  return new Date(value).toLocaleDateString("vi-VN", {
+  return new Date(value).toLocaleDateString("en-US", {
     day: "2-digit",
     month: "short",
     year: "numeric",

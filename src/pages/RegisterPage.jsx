@@ -30,7 +30,7 @@ export default function RegisterPage() {
   const saveAuthData = (data) => {
     if (!data?.token || !data?.userId) {
       throw new Error(
-        "Backend không trả về token hoặc userId sau khi đăng nhập Google",
+        "The server did not return a token or user ID after Google sign-in.",
       );
     }
 
@@ -131,7 +131,7 @@ export default function RegisterPage() {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
     if (!clientId) {
-      console.error("Thiếu VITE_GOOGLE_CLIENT_ID trong file .env");
+      console.error("VITE_GOOGLE_CLIENT_ID is missing from the environment configuration.");
       return;
     }
 
@@ -160,7 +160,7 @@ export default function RegisterPage() {
         shape: "rectangular",
         logo_alignment: "left",
         width: buttonWidth,
-        locale: "vi",
+        locale: "en",
       });
     };
 

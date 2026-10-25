@@ -294,5 +294,5 @@ export default function DocumentDetailPage() {
 function formatDate(value) {
   if (!value) return "Not specified";
 
-  return new Date(value).toLocaleString("vi-VN");
+  return new Date(value).toLocaleString("en-US");
 }

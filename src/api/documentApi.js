@@ -28,7 +28,7 @@ function extractData(response) {
  * Backend mới nhận dữ liệu bằng query parameters,
  * không gửi request body.
  */
-export async function createDocument({ title, eventId, category, type }) {
+export async function createDocument({ title, category, type }) {
   const { userId, clubId } = getRequiredContext();
 
   if (!title?.trim()) {
@@ -45,10 +45,6 @@ export async function createDocument({ title, eventId, category, type }) {
     title: title.trim(),
     type,
   };
-
-  if (eventId) {
-    params.eventId = Number(eventId);
-  }
 
   if (category) {
     params.category = category;

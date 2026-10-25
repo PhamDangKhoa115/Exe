@@ -1,7 +1,7 @@
 import API from "./api";
 function requiredId(key) {
   const id = Number(localStorage.getItem(key));
-  if (!Number.isSafeInteger(id) || id <= 0) throw new Error("Không tìm thấy thông tin người dùng hoặc câu lạc bộ.");
+  if (!Number.isSafeInteger(id) || id <= 0) throw new Error("User or club information is missing.");
   return id;
 }
 export async function getPackages() { return (await API.get("/api/packages")).data; }

@@ -197,7 +197,7 @@ export default function GlobalNotificationsPage() {
         id: Date.now(),
         ...form,
         categoryLabel: categoryLabels[form.category],
-        date: new Date().toLocaleDateString("vi-VN"),
+        date: new Date().toLocaleDateString("en-US"),
         visibility: 0,
       };
 
@@ -285,7 +285,7 @@ export default function GlobalNotificationsPage() {
                 type="text"
                 value={searchText}
                 onChange={(event) => setSearchText(event.target.value)}
-                placeholder="Tìm kiếm thông báo..."
+                placeholder="Search notifications..."
               />
             </div>
           </div>

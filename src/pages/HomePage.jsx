@@ -263,7 +263,7 @@ function formatGoogleUpdatedAt(value) {
     return "Unknown";
   }
 
-  return date.toLocaleString("vi-VN", {
+  return date.toLocaleString("en-US", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",

@@ -9,12 +9,12 @@ import {
   getDocumentTypes,
 } from "../api/documentApi";
 import { getApiError } from "../utils/getApiError";
+import { documentCategoryLabel, documentTypeLabel } from "../utils/documentLabels";
 
 const EMPTY_FORM = {
   title: "",
   category: "CLUB_ACTIVITY",
   type: "MEETING_MINUTES",
-  eventId: "",
 };
 
 export default function CreateDocumentModal({ open, onClose, onCreated }) {
@@ -116,11 +116,6 @@ export default function CreateDocumentModal({ open, onClose, onCreated }) {
       return;
     }
 
-    if (form.category === "EVENT" && !form.eventId) {
-      toast.error("Documents under events must select an Event name.");
-      return;
-    }
-
     try {
       setSubmitting(true);
 
@@ -128,10 +123,6 @@ export default function CreateDocumentModal({ open, onClose, onCreated }) {
         title: form.title,
         category: form.category,
         type: form.type,
-        eventId:
-          form.category === "EVENT" && form.eventId
-            ? Number(form.eventId)
-            : null,
       });
 
       toast.success("Document created successfully.");
@@ -203,7 +194,7 @@ export default function CreateDocumentModal({ open, onClose, onCreated }) {
             {categories.length > 0 ? (
               categories.map((item) => (
                 <option key={item.value} value={item.value}>
-                  {item.displayName}
+                  {documentCategoryLabel(item.value, item.displayName)}
                 </option>
               ))
             ) : (
@@ -229,7 +220,7 @@ export default function CreateDocumentModal({ open, onClose, onCreated }) {
             {types.length > 0 ? (
               types.map((item) => (
                 <option key={item.value} value={item.value}>
-                  {item.displayName}
+                  {documentTypeLabel(item.value, item.displayName)}
                 </option>
               ))
             ) : (
@@ -247,22 +238,6 @@ export default function CreateDocumentModal({ open, onClose, onCreated }) {
             )}
           </GlideSelectField>
 
-          {form.category === "EVENT" && (
-            <>
-              <label htmlFor="document-event-id">
-                Event ID <span>*</span>
-              </label>
-
-              <input
-                id="document-event-id"
-                type="number"
-                min="1"
-                value={form.eventId}
-                placeholder="Enter event"
-                onChange={(event) => setField("eventId", event.target.value)}
-              />
-            </>
-          )}
         </div>
 
         <div className="document-modal-footer">

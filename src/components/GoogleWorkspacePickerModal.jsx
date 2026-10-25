@@ -268,5 +268,5 @@ export default function GoogleWorkspacePickerModal({
 function formatDate(value) {
   if (!value) return "";
 
-  return new Date(value).toLocaleDateString("vi-VN");
+  return new Date(value).toLocaleDateString("en-US");
 }

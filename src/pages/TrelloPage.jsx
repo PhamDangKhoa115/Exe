@@ -153,7 +153,7 @@ export default function TrelloPage() {
       console.error("LOAD STATISTICS ERROR:", error);
 
       toast.error(
-        getErrorMessage(error, "Không thể tải dữ liệu thống kê công việc."),
+        getErrorMessage(error, "Unable to load task statistics."),
       );
     } finally {
       setLoadingStatistics(false);
@@ -1329,7 +1329,7 @@ function TaskModal({
 
           <input
             type="text"
-            placeholder="Ví dụ: Thiết kế Banner Chào Tân"
+            placeholder="Example: Design the welcome event banner"
             value={form.title}
             onChange={(event) => setField("title", event.target.value)}
           />
@@ -1569,7 +1569,7 @@ function formatDateTime(value) {
     return "Invalid date";
   }
 
-  return date.toLocaleString("vi-VN", {
+  return date.toLocaleString("en-US", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",

@@ -646,7 +646,7 @@ function SheetCard({ sheet, onOpen, onViewData, onEditData, onEdit, onDelete }) 
   const [menu, setMenu] = useState(false);
 
   const formattedDate = sheet.createdAt
-    ? new Date(sheet.createdAt).toLocaleDateString("vi-VN")
+    ? new Date(sheet.createdAt).toLocaleDateString("en-US")
     : "No date available";
 
   return (
@@ -837,7 +837,7 @@ function SheetListRow({ sheet, onOpen, onViewData, onEditData, onEdit, onDelete 
 function formatWorkspaceDate(value) {
   if (!value) return "No date available";
 
-  return new Date(value).toLocaleDateString("vi-VN", {
+  return new Date(value).toLocaleDateString("en-US", {
     day: "2-digit",
     month: "short",
     year: "numeric",
