@@ -8,7 +8,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/api": {
-        target: "https://exe101-backend-clubmanagement.onrender.com",
+        target: "https://api.sclub.io.vn",
         changeOrigin: true,
         secure: true,
       },
