@@ -98,7 +98,6 @@ export default function LoginPage() {
       }
 
       const googleProfile = decodeGoogleCredential(response.credential);
-      Ư;
       const data = await loginWithGoogle({
         googleId: googleProfile.sub,
         email: googleProfile.email,

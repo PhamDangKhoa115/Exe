@@ -28,3 +28,5 @@ heading dimensions and palette, uses semantic inline markup, and respects reduce
 - RubberSegment: adapted dilate/handoff/spring effect decorates original tab and view
   buttons, preserving their callbacks, conditional visibility and disabled states.
   Observers, subscriptions, timers and animations are cleaned up on unmount.
+
+- ChromaGrid: JavaScript + CSS source verified against https://github.com/DavidHDev/react-bits/tree/main/src/content/Components/ChromaGrid (2026-10-29). Preserves the light theme, per-card accent, pointer-following spotlight, smooth falloff, and border glow. Adapted to local React/SVG previews, semantic headings/full descriptions, same-page explanation links, scroll reveals, keyboard focus and reduced-motion/touch fallbacks. Removes all stock-photo defaults. Settling requestAnimationFrame loop, observers, visibility and pointer listeners are cleaned up; hidden/reduced-motion states stop the effect. Existing LICENSE.md applies.

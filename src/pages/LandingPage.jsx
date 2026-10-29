@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import PublicNavbar from "../components/PublicNavbar";
 import Footer from "../components/Footer";
 import LandingProductDemo from "../components/LandingProductDemo";
 import SpotlightCard from "../components/reactbits/SpotlightCard";
@@ -21,28 +22,7 @@ const scatteredTools = [
 export default function LandingPage() {
   return (
     <div className="landing-page">
-      <nav className="landing-nav">
-        <div className="brand">
-          <img src="/logo.png" alt="S-Club Logo" className="brand-logo" />
-          <h2>S-Club</h2>
-        </div>
-        {/* 
-        <div className="landing-menu">
-          <a>Home</a>
-          <a>Features</a>
-          <a>Pricing</a>
-          <a>Contact</a>
-        </div> */}
-
-        <div>
-          <Link to="/login" className="text-btn">
-            Login
-          </Link>
-          <Link to="/register" className="small-primary-btn">
-            Sign Up
-          </Link>
-        </div>
-      </nav>
+      <PublicNavbar />
 
       <section className="hero-section">
         <span className="badge">
