@@ -1,0 +1,20 @@
+.privacy-policy-page { padding: 48px 24px 64px; color: #1f2937; }
+.privacy-policy-page .privacy-policy-article { max-width: 860px; margin: 0 auto; padding: 40px 48px; background: #fff; border: 1px solid #ede9fe; border-radius: 18px; box-shadow: 0 8px 28px rgb(76 29 149 / 5%); line-height: 1.8; overflow-wrap: anywhere; }
+.privacy-policy-page .privacy-policy-brand { color: #6d28d9; font-size: 14px; font-weight: 700; letter-spacing: .04em; }
+.privacy-policy-page h1 { margin: 8px 0 12px; color: #111827; font-size: clamp(30px, 5vw, 40px); line-height: 1.2; }
+.privacy-policy-page .privacy-policy-updated { margin: 0 0 24px; color: #4b5563; font-size: 14px; }
+.privacy-policy-page .privacy-policy-header { padding-bottom: 24px; border-bottom: 1px solid #ede9fe; }
+.privacy-policy-page section { margin-top: 32px; }
+.privacy-policy-page h2 { margin: 0 0 12px; color: #4c1d95; font-size: 21px; line-height: 1.4; }
+.privacy-policy-page p { margin: 0 0 16px; }
+.privacy-policy-page p:last-child { margin-bottom: 0; }
+.privacy-policy-page ul { margin: 0 0 16px; padding-left: 24px; }
+.privacy-policy-page li { margin-bottom: 8px; }
+.privacy-policy-page a { color: #6d28d9; text-decoration: underline; text-underline-offset: 3px; }
+.privacy-policy-page a:hover { color: #4c1d95; }
+.privacy-policy-page a:focus-visible { outline: 3px solid #7c3aed; outline-offset: 4px; border-radius: 2px; }
+@media (max-width: 600px) {
+  .privacy-policy-page { padding: 20px 12px 32px; }
+  .privacy-policy-page .privacy-policy-article { padding: 28px 20px; border-radius: 12px; }
+  .privacy-policy-page h2 { font-size: 20px; }
+}

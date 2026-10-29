@@ -40,6 +40,8 @@ export default function RegisterPage() {
     localStorage.setItem("fullName", data.fullName || "");
     localStorage.setItem("email", data.email || "");
     localStorage.setItem("avatarUrl", data.avatarUrl || "");
+    if (['ADMIN', 'USER'].includes(data.role)) localStorage.setItem('systemRole', data.role);
+    else localStorage.removeItem('systemRole');
 
     localStorage.removeItem("selectedClubId");
     localStorage.removeItem("selectedClubName");
@@ -112,7 +114,7 @@ export default function RegisterPage() {
       trackEvent("user_login", { method: "google" });
 
       toast.success("Register with Google successfully");
-      navigate("/select-club", { replace: true });
+      navigate(data.role === 'ADMIN' ? '/admin' : '/select-club', { replace: true });
     } catch (err) {
       console.log("GOOGLE REGISTER ERROR:", err.response?.data || err);
 

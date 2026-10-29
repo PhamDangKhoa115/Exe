@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import Footer from "../components/Footer";
+import LandingProductDemo from "../components/LandingProductDemo";
 import SpotlightCard from "../components/reactbits/SpotlightCard";
 import StarBorder from "../components/reactbits/StarBorder";
 import StrokeText from "../components/reactbits/StrokeText";
@@ -94,18 +95,7 @@ export default function LandingPage() {
           Get Started →
         </StarBorder>
 
-        <div className="hero-preview">
-          <div className="preview-sidebar"></div>
-          <div className="preview-main">
-            <div className="preview-line"></div>
-            <div className="preview-grid">
-              <div></div>
-              <div></div>
-              <div></div>
-            </div>
-            <div className="preview-chart"></div>
-          </div>
-        </div>
+        <LandingProductDemo />
       </section>
 
       <section className="problem-section">

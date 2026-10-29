@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useNavigate } from "react-router-dom";
 import {
@@ -35,28 +35,10 @@ import SpotlightCard from "../components/reactbits/SpotlightCard";
 import SubscriptionPanel from "../components/SubscriptionPanel";
 import API from "../api/api";
 import { getFinanceOverview } from "../api/financeApi";
-const TASK_PROGRESS_DATA = [
-  {
-    name: "Completed",
-    value: 28,
-    color: "#22c55e",
-  },
-  {
-    name: "In Progress",
-    value: 14,
-    color: "#f59e0b",
-  },
-  {
-    name: "To Do",
-    value: 8,
-    color: "#cbd5e1",
-  },
-];
-
-const TOTAL_TASKS = TASK_PROGRESS_DATA.reduce(
-  (total, item) => total + item.value,
-  0,
-);
+import { getTaskDashboard } from "../api/trelloApi";
+import { getApiError } from "../utils/getApiError";
+import "./DashboardPage.tasks.css";
+const TASK_COUNT_FIELDS = ['totalTasks', 'todoTasks', 'doingTasks', 'doneTasks', 'financeRelatedTasks', 'eventCriticalTasks', 'eventCriticalDoneTasks', 'overdueTasksCount'];
 import "../styles.css";
 
 const INITIAL_DASHBOARD = {
@@ -68,12 +50,46 @@ const INITIAL_DASHBOARD = {
 
 export default function DashboardPage() {
   const navigate = useNavigate();
+  const [, updateContext] = useState(0);
+  useEffect(() => {
+    const sync = () => updateContext(value => value + 1);
+    window.addEventListener('storage', sync);
+    window.addEventListener('focus', sync);
+    return () => { window.removeEventListener('storage', sync); window.removeEventListener('focus', sync); };
+  }, []);
   const clubId = Number(localStorage.getItem("selectedClubId"));
   const userId = Number(localStorage.getItem("userId"));
   const clubName = localStorage.getItem("selectedClubName") || "S-Club";
 
   const [data, setData] = useState(INITIAL_DASHBOARD);
   const [loading, setLoading] = useState(true);
+
+  const identity = `${clubId}:${userId}`;
+  const [taskDashboard, setTaskDashboard] = useState(null);
+  const [taskDashboardLoading, setTaskDashboardLoading] = useState(true);
+  const [taskDashboardError, setTaskDashboardError] = useState('');
+  const [taskDashboardContext, setTaskDashboardContext] = useState(null);
+  const [taskRevision, setTaskRevision] = useState(0);
+  const dashboardRequest = useRef(null);
+  useEffect(() => {
+    let active = true;
+    const controller = new AbortController();
+    setTaskDashboardLoading(true); setTaskDashboardError(''); setTaskDashboard(null); setTaskDashboardContext(null);
+    getTaskDashboard(clubId, userId, controller.signal).then(result => {
+      if (!active || Number(localStorage.getItem('selectedClubId')) !== clubId || Number(localStorage.getItem('userId')) !== userId) return;
+      if (!result || Array.isArray(result) || !TASK_COUNT_FIELDS.every(field => typeof result[field] === 'number' && Number.isFinite(result[field]) && result[field] >= 0) || !['eventProgressPercentage', 'overallProgressPercentage'].every(field => typeof result[field] === 'number' && Number.isFinite(result[field]))) throw new Error('Task dashboard data is incomplete or invalid.');
+      setTaskDashboard(result); setTaskDashboardContext(identity);
+    }).catch(error => { if (active && !controller.signal.aborted) setTaskDashboardError(getApiError(error, error.message || 'Unable to load task statistics.')); })
+      .finally(() => { if (active) setTaskDashboardLoading(false); });
+    return () => { active = false; controller.abort(); };
+  }, [clubId, userId, identity, taskRevision]);
+  const taskMetrics = taskDashboardContext === identity ? taskDashboard : null;
+  const taskProgressData = taskMetrics ? [
+    { name: 'Completed', value: taskMetrics.doneTasks, color: '#22c55e' },
+    { name: 'In Progress', value: taskMetrics.doingTasks, color: '#f59e0b' },
+    { name: 'To Do', value: taskMetrics.todoTasks, color: '#cbd5e1' },
+  ] : [];
+  const taskTotalMismatch = taskMetrics && taskMetrics.todoTasks + taskMetrics.doingTasks + taskMetrics.doneTasks !== taskMetrics.totalTasks;
 
   const [financeChart, setFinanceChart] = useState([]);
   const [financeError, setFinanceError] = useState('');
@@ -99,16 +115,21 @@ export default function DashboardPage() {
       return;
     }
 
+    dashboardRequest.current?.abort();
+    const controller = new AbortController();
+    dashboardRequest.current = controller;
+    const isCurrent = () => !controller.signal.aborted && Number(localStorage.getItem('selectedClubId')) === clubId && Number(localStorage.getItem('userId')) === userId;
     try {
       setLoading(true);
 
       const [membersResponse, eventsResponse, tasksResponse] =
         await Promise.all([
-          API.get(`/api/clubs/${clubId}/members`),
+          API.get(`/api/clubs/${clubId}/members`, { signal: controller.signal }),
 
-          API.get(`/api/events/club/${clubId}`),
+          API.get(`/api/events/club/${clubId}`, { signal: controller.signal }),
 
           API.get("/api/tasks", {
+            signal: controller.signal,
             params: {
               clubId,
               userId,
@@ -117,6 +138,7 @@ export default function DashboardPage() {
           }),
         ]);
 
+      if (!isCurrent()) return;
       setData({
         members: Array.isArray(membersResponse.data)
           ? membersResponse.data
@@ -131,6 +153,7 @@ export default function DashboardPage() {
         pendingApplications: 0,
       });
     } catch (error) {
+      if (!isCurrent()) return;
       console.error("LOAD DASHBOARD ERROR:", error.response?.data || error);
 
       toast.error(
@@ -139,12 +162,14 @@ export default function DashboardPage() {
           "Unable to load dashboard data.",
       );
     } finally {
-      setLoading(false);
+      if (isCurrent()) setLoading(false);
     }
   }, [clubId, userId]);
 
   useEffect(() => {
+    setData(INITIAL_DASHBOARD);
     loadDashboard();
+    return () => dashboardRequest.current?.abort();
   }, [loadDashboard]);
 
   const statistics = useMemo(() => {
@@ -187,12 +212,6 @@ export default function DashboardPage() {
 
     const incompleteTasks = data.tasks.filter((task) => !isCompletedTask(task));
 
-    const overdueTasks = incompleteTasks.filter((task) => {
-      const dueDate = new Date(task.dueDate);
-
-      return isValidDate(dueDate) && dueDate < now;
-    });
-
     const tasksDueThisWeek = incompleteTasks.filter((task) => {
       const dueDate = new Date(task.dueDate);
 
@@ -212,8 +231,8 @@ export default function DashboardPage() {
       eventsThisWeek: eventsThisWeek.length,
       eventsNeedPreparation: eventsNeedPreparation.length,
 
-      incompleteTasks: incompleteTasks.length,
-      overdueTasks: overdueTasks.length,
+      incompleteTasks: taskMetrics ? taskMetrics.todoTasks + taskMetrics.doingTasks : null,
+      overdueTasks: taskMetrics?.overdueTasksCount ?? null,
       tasksDueThisWeek: tasksDueThisWeek.length,
 
       upcomingEventList: upcomingEvents
@@ -229,7 +248,7 @@ export default function DashboardPage() {
         .sort((a, b) => new Date(b.joinedAt) - new Date(a.joinedAt))
         .slice(0, 5),
     };
-  }, [data]);
+  }, [data, taskMetrics]);
   const memberChartData = [
     {
       name: "Total Members",
@@ -296,15 +315,15 @@ export default function DashboardPage() {
               <button
                 type="button"
                 className="dashboard-refresh-button"
-                onClick={loadDashboard}
-                disabled={loading}
+                onClick={() => { loadDashboard(); setTaskRevision(value => value + 1); setFinanceRevision(value => value + 1); }}
+                disabled={loading || taskDashboardLoading}
               >
                 <RefreshCw
                   size={17}
                   className={loading ? "dashboard-spin" : ""}
                 />
 
-                {loading ? "Loading..." : "refresh"}
+                {loading || taskDashboardLoading ? "Loading..." : "Refresh"}
               </button>
             </div>
           </header>
@@ -336,14 +355,15 @@ export default function DashboardPage() {
 
                 <OverviewCard
                   label="Incomplete Tasks"
-                  value={statistics.incompleteTasks}
+                  value={taskDashboardLoading ? "Loading…" : statistics.incompleteTasks ?? "Unavailable"}
+                  description="To Do + In Progress"
                   icon={<ListTodo />}
                   className="tasks"
                 />
 
                 <OverviewCard
                   label="Overdue Tasks"
-                  value={statistics.overdueTasks}
+                  value={taskDashboardLoading ? "Loading…" : statistics.overdueTasks ?? "Unavailable"}
                   icon={<AlertTriangle />}
                   className="danger"
                 />
@@ -437,11 +457,12 @@ export default function DashboardPage() {
                     <ListTodo size={25} />
                   </div>
 
-                  <div className="dashboard-task-chart-wrap">
+                  {taskDashboardLoading ? <p role="status" className="dashboard-task-state">Loading task statistics...</p> : taskDashboardError ? <p role="alert" className="dashboard-task-state">{taskDashboardError} <button onClick={() => setTaskRevision(value => value + 1)}>Retry task statistics</button></p> : taskMetrics && <>
+                  {taskMetrics.totalTasks === 0 ? <p className="dashboard-task-state">No tasks available. <span>Total Tasks: {taskMetrics.totalTasks}</span></p> : <div className="dashboard-task-chart-wrap">
                     <ResponsiveContainer width="100%" height={270}>
                       <PieChart>
                         <Pie
-                          data={TASK_PROGRESS_DATA}
+                          data={taskProgressData}
                           dataKey="value"
                           nameKey="name"
                           cx="50%"
@@ -452,7 +473,7 @@ export default function DashboardPage() {
                           endAngle={-270}
                           stroke="none"
                         >
-                          {TASK_PROGRESS_DATA.map((item) => (
+                          {taskProgressData.map((item) => (
                             <Cell key={item.name} fill={item.color} />
                           ))}
                         </Pie>
@@ -462,13 +483,14 @@ export default function DashboardPage() {
                     </ResponsiveContainer>
 
                     <div className="dashboard-donut-center">
-                      <strong>{TOTAL_TASKS}</strong>
+                      <strong>{taskMetrics.totalTasks}</strong>
                       <span>Total Tasks</span>
                     </div>
                   </div>
 
+                  }
                   <div className="task-summary-list">
-                    {TASK_PROGRESS_DATA.map((item) => (
+                    {taskProgressData.map((item) => (
                       <div className="task-summary-row" key={item.name}>
                         <span>
                           <i
@@ -484,8 +506,20 @@ export default function DashboardPage() {
                       </div>
                     ))}
                   </div>
+                  {taskTotalMismatch && <p role="status" className="dashboard-task-state">The backend total differs from the status counts. Values are displayed as received.</p>}
+                  </>}
                 </article>
               </div>
+              {taskMetrics && !taskDashboardLoading && !taskDashboardError && <article className="dashboard-panel dashboard-task-metrics">
+                <div className="dashboard-panel-header"><div><h2>Task Metrics and Progress</h2><p>Current club task statistics</p></div><ListTodo size={25}/></div>
+                <dl className="dashboard-task-metric-grid">{[
+                  ['Total Tasks', taskMetrics.totalTasks], ['To Do', taskMetrics.todoTasks], ['In Progress', taskMetrics.doingTasks], ['Completed', taskMetrics.doneTasks],
+                  ['Finance-Related Tasks', taskMetrics.financeRelatedTasks], ['Event-Critical Tasks', taskMetrics.eventCriticalTasks], ['Completed Event-Critical Tasks', taskMetrics.eventCriticalDoneTasks], ['Overdue Tasks', taskMetrics.overdueTasksCount],
+                ].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
+                <div className="dashboard-task-progress-grid">{[
+                  ['Overall Task Progress', taskMetrics.overallProgressPercentage], ['Event Task Progress', taskMetrics.eventProgressPercentage],
+                ].map(([label, value]) => <label key={label}>{label}<strong>{value}%</strong><progress max="100" value={Math.min(100, Math.max(0, value))}/>{(value < 0 || value > 100) && <small>Backend percentage is outside 0–100; only the bar is limited to this range.</small>}</label>)}</div>
+              </article>}
 
               <div className="dashboard-detail-grid">
                 <DashboardListPanel
@@ -745,7 +779,7 @@ function isSameMonth(firstDate, secondDate) {
     firstDate.getMonth() === secondDate.getMonth()
   );
 }
-function OverviewCard({ label, value, icon, className }) {
+function OverviewCard({ label, value, icon, className, description }) {
   return (
     <SpotlightCard as="article" className={`dashboard-overview-card ${className}`}>
       <div className="dashboard-overview-icon">{icon}</div>
@@ -753,6 +787,7 @@ function OverviewCard({ label, value, icon, className }) {
       <div>
         <strong>{value}</strong>
         <span>{label}</span>
+        {description && <small>{description}</small>}
       </div>
     </SpotlightCard>
   );

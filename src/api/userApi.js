@@ -1,7 +1,7 @@
 import API from "./api";
 
-export const getUserProfile = async (userId) => {
-  const res = await API.get(`/api/users/${userId}`);
+export const getUserProfile = async (userId, signal) => {
+  const res = await API.get(`/api/users/${userId}`, { signal });
   return res.data;
 };
 

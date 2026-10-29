@@ -12,6 +12,7 @@ import CreateClubPage from "./pages/CreateClubPage";
 import ProfilePage from "./pages/ProfilePage";
 import SettingPage from "./pages/SettingPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
 import ClubRoute from "./components/ClubRoute";
 import GoogleDocsPage from "./pages/GoogleDocsPage";
 import DocumentDetailPage from "./pages/DocumentDetailPage";
@@ -38,7 +39,7 @@ export default function App() {
       <Route path="/terms" element={<TermsPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
-      <Route path="/admin" element={<AdminDashboardPage />} />
+      <Route path="/admin" element={<AdminRoute><AdminDashboardPage /></AdminRoute>} />
       {["/payment/cancel", "/payment/success", "/payment/return"].map((path) => (
         <Route key={path} path={path} element={
           <ProtectedRoute>

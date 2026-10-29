@@ -2,3 +2,12 @@
 /* Neutralize the original placeholder blocks only inside this illustration. */
 .landing-page .problem-tools-card .rb-falling-icons { height: 100%; background: transparent; border-radius: 0; margin: 0; }
 .landing-page .problem-tools-card .problem-tool { display: flex; align-items: center; gap: 7px; padding: 10px 12px; border-radius: 12px; background: #ede9fe; color: #4c1d95; font-size: 13px; font-weight: 700; white-space: nowrap; }
+/* Keep the existing Hero badge inside narrow mobile viewports. */
+@media (max-width: 480px) {
+  .landing-page .hero-section > .badge { display: inline-block; max-width: 100%; box-sizing: border-box; line-height: 1.6; }
+}
+@media (max-width: 480px) {
+  .landing-page .problem-tools-card { max-width: 100%; }
+  .landing-page .footer-grid { grid-template-columns: minmax(0, 1fr); }
+  .landing-page .footer-grid a { overflow-wrap: anywhere; }
+}

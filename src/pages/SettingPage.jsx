@@ -10,6 +10,7 @@ import {
 import { toast } from "react-toastify";
 
 import ClubGovernance from "../components/ClubGovernance";
+import UserFeedbackPanel from "../components/UserFeedbackPanel";
 import Topbar from "../components/Topbar";
 
 import "../styles.css";
@@ -170,6 +171,7 @@ export default function SettingPage() {
             </aside>
           </div>
           <ClubGovernance />
+          <UserFeedbackPanel />
         </section>
       </main>
     </div>

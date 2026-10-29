@@ -31,6 +31,9 @@ export default function LoginPage() {
     localStorage.setItem("fullName", data.fullName || "");
     localStorage.setItem("email", data.email || "");
     localStorage.setItem("avatarUrl", data.avatarUrl || "");
+    if (["ADMIN", "USER"].includes(data.role))
+      localStorage.setItem("systemRole", data.role);
+    else localStorage.removeItem("systemRole");
 
     localStorage.removeItem("selectedClubId");
     localStorage.removeItem("selectedClubName");
@@ -40,8 +43,14 @@ export default function LoginPage() {
   const handleLoginSuccess = (data, method) => {
     saveAuthData(data);
     trackEvent("user_login", { method });
-    toast.success("Login successful! Redirecting to club selection...");
-    navigate("/select-club", { replace: true });
+    toast.success(
+      data.role === "ADMIN"
+        ? "Login successful! Opening administration..."
+        : "Login successful! Redirecting to club selection...",
+    );
+    navigate(data.role === "ADMIN" ? "/admin" : "/select-club", {
+      replace: true,
+    });
   };
 
   const handleLogin = async (event) => {
@@ -89,9 +98,7 @@ export default function LoginPage() {
       }
 
       const googleProfile = decodeGoogleCredential(response.credential);
-
-      console.log("GOOGLE PROFILE:", googleProfile);
-
+      Ư;
       const data = await loginWithGoogle({
         googleId: googleProfile.sub,
         email: googleProfile.email,

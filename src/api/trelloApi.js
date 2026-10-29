@@ -144,14 +144,18 @@ export async function deleteTask(taskId) {
 
 // ==================== STATISTICS ====================
 
-export async function getTaskDashboard() {
-  const { clubId, userId } = getRequiredContext();
+export async function getTaskDashboard(
+  clubId = Number(localStorage.getItem("selectedClubId")),
+  userId = Number(localStorage.getItem("userId")),
+  signal,
+) {
+  if (!Number.isSafeInteger(clubId) || clubId <= 0) throw new Error("Please select a valid club.");
+  const params = { clubId };
+  if (Number.isSafeInteger(userId) && userId > 0) params.userId = userId;
 
   const response = await API.get("/api/tasks/dashboard", {
-    params: {
-      clubId,
-      userId,
-    },
+    params,
+    signal,
   });
 
   return extractData(response);
