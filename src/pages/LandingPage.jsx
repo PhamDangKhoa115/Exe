@@ -8,7 +8,13 @@ import StrokeText from "../components/reactbits/StrokeText";
 import GradientText from "../components/reactbits/GradientText";
 import ShinyText from "../components/reactbits/ShinyText";
 import FallingText from "../components/reactbits/FallingText";
-import { MessageSquare, Sheet, FileChartColumn, CalendarDays, ClipboardCheck } from "lucide-react";
+import {
+  MessageSquare,
+  Sheet,
+  FileChartColumn,
+  CalendarDays,
+  ClipboardCheck,
+} from "lucide-react";
 import "./LandingPage.effects.css";
 
 const scatteredTools = [
@@ -44,10 +50,10 @@ export default function LandingPage() {
           >
             S-Club
           </GradientText>
-          : All-in-one <br />
+          :Club Management Platform <br />
           <StrokeText
             className="landing-stroke-text"
-            text="Management Platform"
+            text="Keep the Club in Sync"
             strokeColor="#111827"
             fillColor="#111827"
             fontSize={54}
@@ -81,7 +87,15 @@ export default function LandingPage() {
       <section className="problem-section">
         <div>
           <h4>Problem</h4>
-          <h2><ShinyText text="Your club is using too many disjointed tools" color="#111827" shineColor="#8b5cf6" speed={3} delay={1} /></h2>
+          <h2>
+            <ShinyText
+              text="Your club is using too many disjointed tools"
+              color="#111827"
+              shineColor="#8b5cf6"
+              speed={3}
+              delay={1}
+            />
+          </h2>
           <p>
             Messages, Excel sheets, reports, event planning and attendance are
             scattered across different platforms.
@@ -102,7 +116,15 @@ export default function LandingPage() {
 
       <section className="solution-section">
         <h4>Solution</h4>
-        <h2><ShinyText text="A centralized dashboard for all activities" color="#111827" shineColor="#8b5cf6" speed={3} delay={1} /></h2>
+        <h2>
+          <ShinyText
+            text="A centralized dashboard for all activities"
+            color="#111827"
+            shineColor="#8b5cf6"
+            speed={3}
+            delay={1}
+          />
+        </h2>
 
         <div className="feature-grid">
           <SpotlightCard>Member Management</SpotlightCard>
