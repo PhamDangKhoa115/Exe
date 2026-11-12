@@ -21,3 +21,15 @@ export function getAdminFeedbacks({ rating, page = 0, size = 20 } = {}, signal) 
 }
 export function getAdminFeedbackSummary(signal) { return request(() => API.get('/api/admin/feedbacks/summary', { signal })); }
 export function deleteAdminFeedback(id) { return request(() => API.delete(`/api/admin/feedbacks/${encodeURIComponent(id)}`)); }
+export function getAdminOrders(params, signal) {
+  return request(() => API.get('/api/admin/orders', {
+    params,
+    signal,
+  }));
+}
+export function deleteAdminUser(userId) {
+  if (!Number.isInteger(userId) || userId < 1 || userId > 2147483647) {
+    throw new Error('Invalid user ID.');
+  }
+  return request(() => API.delete(`/api/admin/users/${userId}`, { timeout: 10000 }));
+}

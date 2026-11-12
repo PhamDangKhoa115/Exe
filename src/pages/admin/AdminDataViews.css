@@ -17,3 +17,71 @@
 .admin-layout button:focus-visible, .admin-layout input:focus-visible { outline: 3px solid #c4b5fd; outline-offset: 3px; }
 .admin-layout .admin-stat-card strong { overflow-wrap: anywhere; }
 @media(max-width: 600px) { .admin-layout .admin-data-filter { max-width: 100%; width: 100%; } .admin-layout .admin-data-modal { padding: 16px; } .admin-layout .admin-chart { min-width: 0; } }
+.admin-layout .admin-order-details { display: flex; flex-wrap: wrap; gap: 16px; margin: 0; }
+.admin-layout .admin-order-details dt { font-weight: 700; }
+.admin-layout .admin-order-details dd { margin: 4px 0; overflow-wrap: anywhere; white-space: normal; }
+.admin-layout .admin-data-filter select { padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font: inherit; }
+.admin-layout .admin-goal-progress { width: 100%; height: 16px; accent-color: #6d28d9; }
+.admin-layout .admin-goal-status { color: #5b21b6; font-weight: 700; }
+
+.admin-layout .admin-orders-search {
+  display: grid;
+  grid-template-columns: minmax(0, 280px) max-content;
+  align-items: end;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.admin-layout .admin-orders-search .admin-data-filter { min-width: 0; margin: 0; }
+.admin-layout .admin-orders-search input,
+.admin-layout .admin-orders-search button { box-sizing: border-box; height: 42px; }
+.admin-layout .admin-orders-search button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 14px;
+  border: 1px solid #6d28d9;
+  border-radius: 8px;
+  background: #6d28d9;
+  color: white;
+  font: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.admin-layout .admin-orders-search button:disabled { cursor: not-allowed; }
+@media (max-width: 480px) {
+  .admin-layout .admin-orders-search { grid-template-columns: minmax(0, 1fr); }
+}
+
+.admin-layout .admin-delete-user-dialog {
+  margin: auto;
+  border: 1px solid #ddd6fe;
+  overflow-wrap: anywhere;
+}
+.admin-layout .admin-delete-user-dialog::backdrop { background: rgb(15 23 42 / 45%); }
+.admin-layout .admin-delete-user-dialog p { margin: 12px 0; line-height: 1.5; }
+.admin-layout .admin-delete-user-dialog [role="alert"] { color: #991b1b; }
+.admin-layout button.admin-delete-user-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+.admin-layout .admin-delete-confirmation {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 12px 0 0;
+  line-height: 1.4;
+}
+.admin-layout .admin-delete-confirmation input[type="checkbox"] {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  padding: 0;
+  accent-color: #6d28d9;
+}

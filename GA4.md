@@ -1,9 +1,8 @@
 # GA4 setup
 
-Measurement ID: G-2V5LDJ2FN5. No npm dependency is added.
+Measurement ID: G-H0EZJDHCRK. No npm dependency is added.
 
-Before production validation, open this GA4 web data stream and turn off
-Enhanced Measurement (including automatic Page views / browser-history changes).
+Before production validation, open the official GA4 web stream and check Page views settings under Enhanced Measurement. If enabled, turn off only "Page changes based on browser history events" for this stream.
 Manual React Router tracking owns page_view. send_page_view:false only prevents
 config's page view; it does not disable Enhanced Measurement history events.
 Automatic measurement could also collect raw URLs outside this app's allowlist.

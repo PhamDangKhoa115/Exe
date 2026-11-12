@@ -9,7 +9,7 @@ test('Public Features, shared navigation/footer, ChromaGrid, CTA and SEO',async 
  const browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});t.after(()=>browser.close());
  const context=await browser.newContext({viewport:{width:1440,height:1000}});const page=await context.newPage();page.setDefaultTimeout(7000);const errors=[],api=[],external=[];
  page.on('pageerror',err=>errors.push(err.message));
- await page.route('**/*',route=>{const url=new URL(route.request().url());if(url.pathname.startsWith('/api/')){api.push(url.pathname);return route.abort()}if(url.origin!==origin){external.push(url.href);return route.abort()}return route.continue()});
+ await page.route('**/*',route=>{const url=new URL(route.request().url());if(url.origin===origin&&url.pathname==='/api/analytics/events')return route.fulfill({json:{}});if(url.pathname.startsWith('/api/')){api.push(url.pathname);return route.abort()}if(url.origin!==origin){external.push(url.href);return route.abort()}return route.continue()});
  await page.goto(`${origin}/features`);await page.getByRole('heading',{level:1,name:'Powerful Features for Every Student Club'}).waitFor();
  assert.equal(await page.evaluate(()=>localStorage.getItem('token')),null);
  assert.equal(await page.title(),'Features | S-Club — Club Management Platform');

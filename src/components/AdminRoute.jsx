@@ -5,6 +5,7 @@ import { getUserProfile } from '../api/userApi';
 import { getApiError } from '../utils/getApiError';
 
 export const AdminOverviewContext = createContext(null);
+export const AdminIdentityContext = createContext(null);
 
 export default function AdminRoute({ children }) {
   const [access, setAccess] = useState({ state: 'loading' });
@@ -46,7 +47,10 @@ export default function AdminRoute({ children }) {
         const overview = await getAdminDashboard(controller.signal);
         if (!active || localStorage.getItem('token') !== token || localStorage.getItem('userId') !== userId) return;
         overviewSeed.current = overview;
-        setAccess({ state: 'allowed', identity, overview });
+        const profileId = Number(profile?.userId);
+        const verifiedAdminId = profile?.role === 'ADMIN' && Number.isSafeInteger(profileId) &&
+          profileId > 0 && String(profileId) === userId ? profileId : null;
+        setAccess({ state: 'allowed', identity, overview, verifiedAdminId });
       } catch (error) {
         if (!active || controller.signal.aborted) return;
         if ([401, 403].includes(error.response?.status)) invalidate(error.response.status);
@@ -60,5 +64,11 @@ export default function AdminRoute({ children }) {
   if (systemRole === 'USER' || access.state === 'denied') return <Navigate to="/select-club" replace state={{ adminAccessDenied: true }}/>;
   if (access.state === 'error') return <main className="admin-loading"><p role="alert">{access.message}</p><button onClick={() => setRevision(value => value + 1)}>Retry access check</button><Link to="/select-club">Return to club selection</Link></main>;
   if (access.state !== 'allowed' || access.identity !== identity) return <main className="admin-loading" role="status">Verifying administrator access...</main>;
-  return <AdminOverviewContext.Provider value={overviewSeed}>{children}</AdminOverviewContext.Provider>;
+  const admin = {
+    userId: access.verifiedAdminId,
+    isCurrent: () => localStorage.getItem('token') === token && localStorage.getItem('userId') === userId,
+  };
+  return <AdminOverviewContext.Provider value={overviewSeed}>
+    <AdminIdentityContext.Provider value={admin}>{children}</AdminIdentityContext.Provider>
+  </AdminOverviewContext.Provider>;
 }

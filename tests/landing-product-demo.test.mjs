@@ -8,7 +8,7 @@ test('Landing product demo: playback, controls, viewport, accessibility and resp
  const browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});t.after(()=>browser.close());
  const context=await browser.newContext({viewport:{width:1440,height:1100}});const page=await context.newPage();page.setDefaultTimeout(5000);const errors=[],api=[];
  page.on('pageerror',error=>errors.push(error.message));
- await page.route('**/*',route=>{const url=new URL(route.request().url());if(url.pathname.startsWith('/api/')){api.push(url.pathname);return route.abort()}if(url.origin!==origin)return route.abort();return route.continue()});
+ await page.route('**/*',route=>{const url=new URL(route.request().url());if(url.origin===origin&&url.pathname==='/api/analytics/events')return route.fulfill({json:{}});if(url.pathname.startsWith('/api/')){api.push(url.pathname);return route.abort()}if(url.origin!==origin)return route.abort();return route.continue()});
  await page.goto(origin);const demo=page.getByRole('region',{name:'Interactive S-Club product demo'});await demo.waitFor();await demo.scrollIntoViewIfNeeded();
  await page.waitForFunction(()=>document.querySelector('.lpd').dataset.playing==='true');
  const advance=ms=>new Promise(resolve=>setTimeout(resolve,ms));

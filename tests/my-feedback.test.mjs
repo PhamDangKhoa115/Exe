@@ -8,7 +8,7 @@ const modulePath = process.env.PLAYWRIGHT_MODULE || `${process.env.USERPROFILE}/
 const { chromium } = await import(pathToFileURL(modulePath).href);
 const origin = process.env.FEEDBACK_TEST_URL || 'http://127.0.0.1:5174';
 const empty = { error: 'Bạn chưa gửi feedback nào!' };
-const existing = { id: 3, rating: 3, ratingLabel: 'Bình thường', comment: 'Original comment', userId: 11 };
+const existing = { id: 3, rating: 3, ratingLabel: 'Bình thường', comment: 'Original comment', userId: 11, verified: true, orderCode: 900001 };
 const html = `<div id="root"></div><script type="module">
 import RefreshRuntime from '/@react-refresh';
 RefreshRuntime.injectIntoGlobalHook(window);window.$RefreshReg$=()=>{};window.$RefreshSig$=()=>type=>type;window.__vite_plugin_react_preamble_installed__=true;
@@ -48,6 +48,8 @@ test('My Feedback verified contracts and protected mutation flows', async t => {
   }
   await t.test('200: selected English rating, PUT refresh, confirmed DELETE refresh and double submit', async()=>{
     const {page,state,close}=await setup();
+    await page.getByText('Verified Purchase', { exact: true }).waitFor();
+    await page.getByText('Order reference: 900001', { exact: true }).waitFor();
     await page.getByRole('button',{name:'Update Feedback',exact:true}).waitFor();
     assert.equal(await page.getByRole('button',{name:'3 stars — Average'}).getAttribute('aria-pressed'),'true');
     assert.equal(await page.locator('textarea').inputValue(),'Original comment');

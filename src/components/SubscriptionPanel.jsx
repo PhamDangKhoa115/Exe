@@ -1,3 +1,4 @@
+import { trackCheckoutStart, trackPricingView } from "../utils/backendAnalytics";
 import { trackPaymentEvent } from "../utils/analytics";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
@@ -297,6 +298,7 @@ export default function SubscriptionPanel() {
 
   async function openPackages() {
     if (!canPay || permissionLoading || packagesLoading) return;
+    if (!packagesOpen) trackPricingView();
     setPackagesOpen(true);
     setPackagesLoading(true);
     setPackagesError("");
@@ -343,6 +345,7 @@ export default function SubscriptionPanel() {
         try { sessionStorage.setItem(pendingKey, String(order.orderCode)); } catch { /* Optional reconnect storage. */ }
       }
       trackPaymentEvent("initiate_transaction", order);
+      trackCheckoutStart(order.orderCode);
       setPaymentModalOpen(true);
       if (order.status !== "PENDING") finishOrder(order);
     } catch (error) {

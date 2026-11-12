@@ -1,7 +1,8 @@
 import GlideList from "../../components/reactbits/GlideList";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Activity, BarChart3, Building2, LayoutDashboard, LogOut, Menu, MessageSquare, RefreshCw, Settings, ShieldCheck, Users, X } from "lucide-react";
+import { Activity, BarChart3, Building2, LayoutDashboard, LogOut, Menu, MessageSquare, ReceiptText, RefreshCw, Settings, ShieldCheck, Users, X } from "lucide-react";
+import AdminOrders from './AdminOrders';
 import { AdminOverview, AdminAnalytics, AdminUsers, AdminClubs, AdminFeedback } from './AdminDataViews';
 import "../../styles.css";
 import './AdminDataViews.css';
@@ -21,6 +22,7 @@ export default function AdminDashboardPage() {
         {activeTab === 'Analytics' && <AdminAnalytics revision={revision}/>}
         {activeTab === 'Users' && <AdminUsers revision={revision}/>}
         {activeTab === 'Clubs' && <AdminClubs revision={revision}/>}
+        {activeTab === 'Orders' && <AdminOrders revision={revision}/>}
         {activeTab === 'Feedback' && <AdminFeedback revision={revision}/>}
         {activeTab === 'System Activity' && <AdminOverview revision={revision} activityOnly/>}
       </section>
@@ -50,6 +52,10 @@ function AdminSidebar({ open, onClose, onExit, activeTab, onSelect, onLogout }) 
     {
       label: "System Activity",
       icon: <Activity size={19} />,
+    },
+    {
+      label: "Orders",
+      icon: <ReceiptText size={19} />,
     },
     {
       label: "Feedback",
